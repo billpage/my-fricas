@@ -28,6 +28,7 @@ Expression(R : Comparable) : Exports == Implementation where
       CombinatorialOpsCategory
       LiouvillianFunctionCategory
       SpecialFunctionCategory
+      holomorphic : BasicOperator -> BasicOperator
       reduce : % -> %
         ++ reduce(f) simplifies all the unreduced algebraic quantities
         ++ present in f by applying their defining relations.
@@ -147,7 +148,10 @@ Expression(R : Comparable) : Exports == Implementation where
             x : % = y : %        == (x - y) =$Rep 0$Rep
             numer x          == numer(x)$Rep
             denom x          == denom(x)$Rep
-
+            hashUpdate!(s : HashState, x : %) : HashState ==
+              s := hashUpdate!(s, numer x)
+              s := hashUpdate!(s, denom x)
+ 
             EREP := Record(num : MP, den : MP)
 
             coerce(p : MP) : %   == [p, 1]$EREP pretend %
@@ -272,6 +276,8 @@ Expression(R : Comparable) : Exports == Implementation where
             acsch x                   == acsch(x)$EF
 
             abs x                     == abs(x)$FSF
+            conjugate x               == conjugate(x)$FSF
+            holomorphic op            == holomorphic(op)$FSF
             Gamma x                   == Gamma(x)$FSF
             Gamma(a, x)               == Gamma(a, x)$FSF
             Beta(x, y)                == Beta(x, y)$FSF
@@ -359,6 +365,7 @@ Expression(R : Comparable) : Exports == Implementation where
             integral(x : %, s : SegmentBinding %)  == integral(x, s)$LF
 
             operator op ==
+                --output("operator: ",op::OutputForm)$OutputPackage
                 belong?(op)$AF  => operator(op)$AF
                 belong?(op)$EF  => operator(op)$EF
                 belong?(op)$CF  => operator(op)$CF
@@ -898,17 +905,21 @@ PolynomialAN2Expression() : Target == Implementation where
 ++ Description: Lifting of maps to Expressions.
 ++ Date Created: 16 Jan 1989
 ++ Date Last Updated: 22 Jan 1990
-ExpressionFunctions2(R : Join(Ring, Comparable), S : Join(Ring, Comparable)):
+ExpressionFunctions2(R : Comparable, S : Comparable):
  Exports == Implementation where
+  K   ==> Kernel R
   F2  ==> FunctionSpaceFunctions2(R, Expression R, S, Expression S)
+  E2  ==> ExpressionSpaceFunctions2(Expression R, Expression S)
 
   Exports ==> with
     map : (R -> S, Expression R) -> Expression S
       ++ map(f, e) applies f to all the constants appearing in e.
 
   Implementation == add
-
-    map(f, r) == map(f, r)$F2
+    if S has Ring and R has Ring then
+      map(f, r) == map(f, r)$F2
+    else
+      map(f, r) == map(x+->map(f, x), retract r)$E2
 
 )abbrev package PMPREDFS FunctionSpaceAttachPredicates
 ++ Predicates for pattern-matching.

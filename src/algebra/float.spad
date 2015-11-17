@@ -185,6 +185,12 @@ Float():
       if wholeObj then
          OMputEndObject(dev)
 
+   hashUpdate!(s : HashState, x : %) : HashState ==
+      s := hashUpdate!(s, mantissa x)
+      s := hashUpdate!(s, exponent x)
+      s
+
+
    shift2(x, y) == sign(x)*shift(sign(x)*x, y)
 
    asin x ==

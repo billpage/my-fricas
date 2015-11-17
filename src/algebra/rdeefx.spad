@@ -116,17 +116,27 @@ ConstantLinearDependence(R, F) : Exports == Implementation where
     DUMMYVAR := '%dummyVar
 
     kmap(k : K1, ldmvar : List K1, ldmval : List EF, ld : LFF) : EF ==
+        --output("rdeefx kmap ",bracket [k::OutputForm,ldmvar::OutputForm,ldmval::OutputForm,ld::OutputForm])$OutputPackage
         for dmvar in ldmvar for dmval in ldmval repeat
-            if k = dmvar then return dmval
-        is_const := true
-        kf := k::F
-        for d in ld repeat
-            if d(kf) ~= 0 then
-                is_const := false
-                break
-        is_const => kf::EF
+            if k = dmvar then
+                r1:=dmval
+                --output("rdeefx kmap r1: ",r1::OutputForm)$OutputPackage
+                return r1
+        if ld ~= [] then
+            is_const := true
+            kf := k::F
+            for d in ld repeat
+                --output("rdeefx kmap d(kf): ",kf::OutputForm)$OutputPackage
+                if d(kf) ~= 0 then
+                    is_const := false
+                    break
+            is_const =>
+                r2:=kf::EF
+                --output("rdeefx kmap r2: ",r2::OutputForm)$OutputPackage
+                return r2
         op := operator(operator(k))$EF
         args := argument(k)
+        --output("rdeefx kmap args: ",args::OutputForm)$OutputPackage
         nargs : List(EF)
         if (u := property(op, DUMMYVAR)) case None then
             n := u::None pretend NonNegativeInteger
@@ -147,19 +157,29 @@ ConstantLinearDependence(R, F) : Exports == Implementation where
         kernel(op, [F_to_EF1(a, kmap1) for a in argument(k)])$EF
 
     F_to_EF1(f : F, kmap1 : K1 -> EF) : EF ==
-        map(kmap1, (c : R) : EF +-> c::F::EF, numer(f))$Lift
-          /map(kmap1, (c : R) : EF +-> c::F::EF, denom(f))$Lift
+        --output("rdeefx F_to_EF1: ",f::OutputForm)$OutputPackage
+        n:=map(kmap1, (c : R) : EF +-> c::F::EF, numer(f))$Lift
+        d:=map(kmap1, (c : R) : EF +-> c::F::EF, denom(f))$Lift
+        r:=n/d
+        --output("rdeefx F_to_EF1 r: ",r::OutputForm)$OutputPackage
+        r
 
     F_to_EF(f : F, ld : LFF) : EF ==
-        F_to_EF1(f, (k : K1) : EF +-> kmap(k, [], [], ld))
+        --output("rdeefx F_to_EF: ",f::OutputForm)$OutputPackage
+        r:=F_to_EF1(f, (k : K1) : EF +-> kmap(k, [], [], ld))
+        --output("rdeefx F_to_EF r: ",r::OutputForm)$OutputPackage
+        r
 
     VF_to_VEF(v : Vector(F), ld : LFF) : Vector(EF) ==
         map(x +-> F_to_EF(x, ld), v)$VectorFunctions2(F, EF)
 
     MF_to_MEF(m : Matrix(F), ld : LFF) : Matrix(EF) ==
-        map(x +-> F_to_EF(x, ld), m)$TwoDimensionalArrayFunctions(
+        --output("rdeefx MF_to_MEF: ",m::OutputForm)$OutputPackage
+        r:=map(x +-> F_to_EF(x, ld), m)$TwoDimensionalArrayFunctions(
             F, Vector(F), Vector(F), Matrix(F),
             EF, Vector(EF), Vector(EF), Matrix(EF))
+        --output("rdeefx MF_to_MEF r: ",r::OutputForm)$OutputPackage
+        r
 
     linearlyDependentOverConstants?(v, ld) ==
         linearlyDependent?(VF_to_VEF(v, ld))$LD
@@ -180,7 +200,11 @@ ConstantLinearDependence(R, F) : Exports == Implementation where
         solveLinear(MF_to_MEF(m, ld), VF_to_VEF(v, ld))$LD
 
     reducedSystem(m : Matrix F, ld : LFF) ==
-        reducedSystem(MF_to_MEF(m, ld))$EF
+        s:=MF_to_MEF(m, ld)
+        --output("rdeefx reducedSystem s: ",s::OutputForm)$OutputPackage
+        r:=reducedSystem(s)$EF
+        --output("rdeefx reducedSystem r: ",r::OutputForm)$OutputPackage
+        r
 
     reducedSystem(m : Matrix F, v : Vector F, ld : LFF) ==
         reducedSystem(MF_to_MEF(m, ld), VF_to_VEF(v, ld))$EF
@@ -554,11 +578,10 @@ ElementaryRischDEX(R, F) : Exports == Implementation where
         d ~= 1 => "failed"
         get_uv0(tt, cd.num, vlst, ulst, k, x)
 
-    dummy := create()$SingletonAsOrderedSet
-
     handle_factor(gd : UP, nf : UP, denf : UP, f1 : UP, r0 : Z, u0 : F,
                   vlst : LF, ulst : LF, k : K, x : SE,
                   known_dividing : Boolean) : Union(EI_REC, "failed") ==
+        dummy := create()$SingletonAsOrderedSet
         deg1 : N := degree(f1)
         tt := -$F coefficient(f1, qcoerce(deg1 - 1)$N)$UP /$F
                 ((deg1::F)*coefficient(f1, deg1)$UP)
@@ -655,6 +678,7 @@ ElementaryRischDEX(R, F) : Exports == Implementation where
                 u0 := u
             vlst1 := cons(v, vlst1)
             ulst1 := cons(u, ulst1)
+        dummy := create()$SingletonAsOrderedSet
         res : List(EI_REC2) := []
         for fac in factors(fgd) repeat
             f1 := fac.factor
@@ -869,6 +893,8 @@ ElementaryRischDEX(R, F) : Exports == Implementation where
         f_res := ei_args1(gd, nf, denf, t)
         ei_args2(gd, nf, denf, f_res, k, vlst, ulst, x)
 
+    dummy := create()$SingletonAsOrderedSet
+
     ei_args(gd : UP, nf : UP, denf : UP, k : K, vlst : List(F),
           ulst : List(F), x : SE) : List(EI_REC) ==
         degree(gd) =$N 0 => []
@@ -1000,6 +1026,7 @@ ElementaryRischDEX(R, F) : Exports == Implementation where
             fac.exponent < n2 => "iterate"
             if deg1 = 2 then
                 tt := -coefficient(f1, 1)/(2::F*leadingCoefficient(f1))
+                dummy := create()$SingletonAsOrderedSet
                 f2 := eval(f1, dummy, monomial(1, 1)$UP + tt::UP)
                 not(every?((c : F) : Boolean +-> D(c, x) = 0,
                     coefficients(f2))$LF) => "iterate"
@@ -1441,6 +1468,7 @@ ElementaryRischDEX(R, F) : Exports == Implementation where
         lp_cor : RF := 0
         eiarg_inc := (monomial((er.ratpart2)::F, 1)$UP + (er.v_part2)::UP)
                      *denf
+        dummy := create()$SingletonAsOrderedSet
         zzl : List(F) :=
             cfac = 0 => [0]
             zerosOf(cfac)

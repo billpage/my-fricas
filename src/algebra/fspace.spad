@@ -284,6 +284,7 @@ ExpressionSpace() : Category == Defn where
       okkernel(op, args)
 
     okkernel(op, l) ==
+      --output("okkernel: ",op::OutputForm)$OutputPackage
       kernel(op, l, 1 + reduce("max", [height f for f in l], 0))$K :: %
 
     elt(op : OP, args : List %) ==
@@ -416,6 +417,7 @@ FunctionSpace(R : Comparable) : Category == Definition where
   PR ==> Polynomial R
   MP ==> SparseMultivariatePolynomial(R, K)
   QF==> PolynomialCategoryQuotientFunctions(IndexedExponents K, K, R, MP, %)
+  FSPECF ==> FunctionalSpecialFunction
 
   SPECIALDISP  ==> '%specialDisp
   SPECIALEQUAL ==> '%specialEqual
@@ -446,7 +448,7 @@ FunctionSpace(R : Comparable) : Category == Definition where
        if R has ConvertibleTo InputForm then
          ConvertibleTo InputForm
          eval     : (%, SY) -> %
-           ++ eval(f, foo) unquotes all the foo's in f.
+           ++ eval(f, foo) unquotes all the foo's in f.operator
          eval     : (%, List SY) -> %
            ++ eval(f, [foo1, ..., foon]) unquotes all the \spad{fooi}'s in f.
          eval     : % -> %
@@ -582,6 +584,9 @@ FunctionSpace(R : Comparable) : Category == Definition where
     ddiff     : List % -> O
     diffEval  : List % -> %
     dfeval    : (List %, K) -> %
+    diffEval' : List % -> %
+    dfeval'   : (List %, K) -> %
+
     smprep    : (List SY, List N, List(List % -> %), MP) -> %
     diffdiff  : (List %, SY) -> %
     subs      : (% -> %, K) -> %
@@ -592,7 +597,8 @@ FunctionSpace(R : Comparable) : Category == Definition where
 
     equaldiff : (K, K)->Boolean
     debugA : (List % , List %, Boolean) -> Boolean
-    opdiff := operator('%diff)$CommonOperators()
+    opdiff := operator('%diff)$CommonOperators
+    opdiff' := conjugate opdiff
     opquote := operator('%quote)$CommonOperators
 
     ground? x                == retractIfCan(x)@Union(R,"failed") case R
@@ -605,11 +611,12 @@ FunctionSpace(R : Comparable) : Category == Definition where
     applyQuote(s, x, y, z, t)  == applyQuote(s, [x, y, z, t])
     applyQuote(s : SY, l : List %) == opquote concat(s::%, l)
     belong? op                 ==
-        has?(op, 'any) and (is?(op, '%diff) or is?(op, '%quote))
+        has?(op, 'any) and (is?(op, '%diff) or is?(op, conjugate '%diff) or is?(op, '%quote))
     subs(fn, k) == kernel(operator k, [fn x for x in argument k]$List(%))
 
     operator op ==
       is?(op, '%diff) => opdiff
+      is?(op, conjugate '%diff) => opdiff'
       is?(op, '%quote) => opquote
       error concat("Unknown operator 4: ",string(name(op)))$String
 
@@ -836,21 +843,9 @@ FunctionSpace(R : Comparable) : Category == Definition where
         grad :=
           (u := derivative op) case "failed" => opderiv(op, n)
           u::List(List % -> %)
-        #grad ~= n => opderiv(op, n)
-        grad
-
-    -- SPECIALDIFF contains a map (List %, Symbol) -> %
-    -- it is used when the usual chain rule does not apply,
-    -- for instance with implicit algebraics.
-      kerderiv(k, x) ==
-        (v := symbolIfCan(k)) case SY =>
-          v::SY = x => 1
-          0
-        ak := argument k
-        (fn := property(operator k, SPECIALDIFF)) case None =>
-           ((fn::None) pretend ((List %, SY) -> %)) (ak, x)
-        +/[g(ak)*dyx for g in kgrad k for y in ak
-            | (dyx := differentiate(y, x)) ~= 0]
+        if #grad ~= n then grad := opderiv(op, n)
+        gs:=[g args for g in grad]
+        return gs
 
       smpderiv(p, x) ==
         map((s : R) : R +-> retract differentiate(s::PR, x), p)::% +
@@ -872,23 +867,21 @@ FunctionSpace(R : Comparable) : Category == Definition where
         first l
 
       smp2O p ==
+        --output("smp2O p: ",p::OutputForm)$OutputPackage
         (r := retractIfCan(p)@Union(R,"failed")) case R =>r::R::OutputForm
         a :=
           userOrdered?() => bestKernel variables p
           mainVariable(p)::K
-        outputForm(map((x : MP) : % +-> x::%, univariate(p,
-         a))$SparseUnivariatePolynomialFunctions2(MP, %), a::OutputForm)
+        --output("smp2O a: ",a::OutputForm)$OutputPackage
+        u:=univariate(p,a)
+        --output("smp2O u: ",u::OutputForm)$OutputPackage
+        m:=map((x : MP) : % +-> x::%, u)$SparseUnivariatePolynomialFunctions2(MP, %)
+        --output("smp2O m: ",m::OutputForm)$OutputPackage
+        outputForm(m, a::OutputForm)
 
       smpsubst(p, lk, lv) ==
           map(x +-> match(lk, lv, x,
                        notfound((z : K) : % +-> subs(s +-> subst(s, lk, lv), z),
-                                lk))$ListToMap(K, %),
-              y +-> y::%,
-              p)$PolynomialCategoryLifting(IndexedExponents K, K, R, MP, %)
-
-      smpeval(p, lk, lv) ==
-          map(x +-> match(lk, lv, x,
-                       notfound((z : K) : % +-> map(s +-> eval(s, lk, lv), z),
                                 lk))$ListToMap(K, %),
               y +-> y::%,
               p)$PolynomialCategoryLifting(IndexedExponents K, K, R, MP, %)
@@ -983,12 +976,13 @@ FunctionSpace(R : Comparable) : Category == Definition where
           [k, [i], a, a1, [da]]
 
       equaldiff(k1, k2) ==
+        --output("equaldiff: ", bracket [k1::OutputForm,k2::OutputForm])$OutputPackage
         a1 := argument k1
         a2 := argument k2
         -- check the operator
         res := operator k1 = operator k2
         not res => debugA(a1, a2, res)
-        -- check the evaluation point
+        -- check the evaluation pointddiff
         res := (a1.3 = a2.3)
         not res => debugA(a1, a2, res)
         a1.2 = a2.2 => a1.1 = a2.1
@@ -1008,8 +1002,33 @@ FunctionSpace(R : Comparable) : Category == Definition where
                           diffdiff@((List %, SY) -> %) pretend None)
       setProperty(opdiff, SPECIALDISP,
                               ddiff@(List % -> OutputForm) pretend None)
+      setProperty(opdiff', SPECIALEQUAL,
+                          equaldiff@((K, K) -> Boolean) pretend None)
+      setProperty(opdiff', SPECIALDIFF,
+                          diffdiff@((List %, SY) -> %) pretend None)
+      setProperty(opdiff', SPECIALDISP,
+                              ( (l:List %):OutputForm +-> overbar(ddiff(l)) ) pretend None)
 
       if not(R has IntegralDomain) then
+
+        smpeval(p, lk, lv) ==
+          map(x +-> match(lk, lv, x,
+                       notfound((z : K) : % +-> map(s +-> eval(s, lk, lv), z),
+                                lk))$ListToMap(K, %),
+              y +-> y::%,
+              p)$PolynomialCategoryLifting(IndexedExponents K, K, R, MP, %)
+
+        -- SPECIALDIFF contains a map (List %, Symbol) -> %
+        -- it is used when the usual chain rule does not apply,
+        -- for instance with implicit algebraics.
+        kerderiv(k, x) ==
+          (v := symbolIfCan(k)) case SY =>
+            v::SY = x => 1
+            0
+          (fn := property(operator k, SPECIALDIFF)) case None =>
+             ((fn::None) pretend ((List %, SY) -> %)) (argument k, x)
+          +/[g * differentiate(y, x) for g in kderiv k for y in argument k]
+
         mainKernel x         == mainVariable numer x
         kernels(x : %) : List(K) == variables numer x
         retract(x : %) : R       == retract numer x
@@ -1080,6 +1099,22 @@ FunctionSpace(R : Comparable) : Category == Definition where
       retract(x : %) : Fraction(PR) == smpret(numer x)::PR / smpret(denom x)::PR
       retract(x : %) : R == (retract(numer x)@R exquo retract(denom x)@R)::R
 
+      conj(x:K):MP ==
+        opconjugate:=operator(operator('conjugate)$CommonOperators)$%
+        numer kernel(opconjugate,[coerce(x)@%])$%
+
+      smpeval(p, lk, lv) ==
+          --output("smpeval(p, lk,lv): ",paren([p::OutputForm,lk::OutputForm, lv::OutputForm]))$OutputPackage
+          cvar:=select((x:K):Boolean+->((s:=symbolIfCan(x)) case Symbol and conjugated?(s::Symbol)),variables(p))
+          vars:=setIntersection(map((x:K):K+->kernels(conjugate(coerce(x)@%)$FSPECF(R,%))(1),cvar),lk)
+          cker := [conj x for x in vars]
+          p1:=eval(p,cvar,cker)$MP
+          map(x +-> match(lk, lv, x,
+                       notfound((z : K) : % +-> map(s +-> eval(s, lk, lv), z),
+                                lk))$ListToMap(K, %),
+              y +-> y::%,
+              p1)$PolynomialCategoryLifting(IndexedExponents K, K, R, MP, %)
+
       alg_ker_set(lx : List %) : List(K) ==
           resl : List(K) := []
           ak1 : List(K) := []
@@ -1110,9 +1145,12 @@ FunctionSpace(R : Comparable) : Category == Definition where
       algtower(x : %) : List K == algtower([x])
 
       coerce(x : %) : OutputForm ==
+        --output("coerce numer x: ",numer x::OutputForm)$OutputPackage
+        y:=x pretend LocalAlgebra(MP,MP)
+        --output("coerce numer y: ",numer y::OutputForm)$OutputPackage
 --        one?(denom x) => smp2O numer x
-        ((denom x) = 1) => smp2O numer x
-        smp2O(numer x) / smp2O(denom x)
+        ((denom y) = 1) => smp2O numer y
+        smp2O(numer y) / smp2O(denom y)
 
       retractIfCan(x:%):Union(R, "failed") ==
         (n := retractIfCan(numer x)@Union(R, "failed")) case "failed" or
@@ -1130,10 +1168,94 @@ FunctionSpace(R : Comparable) : Category == Definition where
         eval(x : %, s : List SY, n : List N, f : List(List % -> %)) ==
           smprep(s, n, f, numer x) / smprep(s, n, f, denom x)
 
+-- cannot use new()$Symbol because of possible re-instantiation
+      gendiff := '%%1
+
+      opderiv'   : (OP, N) -> List(List % -> %)
+      opderiv'(op, n) ==
+--        one? n =>
+        (n = 1) =>
+          g := symsub(gendiff, n)::%
+          [x +-> conjugate(kernel(opdiff, [kernel(conjugate op, g), g, first x]))$FSPECF(R,%)]
+        [x +-> conjugate(kernel(opdiff, diffArg(x, conjugate op, i)))$FSPECF(R,%) for i in 1..n]
+
+      kderiv'   : K -> List %
+      kderiv' k ==
+        --output("kderiv' k: ",k::OutputForm)$OutputPackage
+        zero?(n := #(args := argument k)) => empty()
+        op := operator k
+        grad :=
+          (u := derivative conjugate op) case "failed" => opderiv'(op, n)
+          u::List(List % -> %)
+        --output("kderiv' grad: ",grad::OutputForm)$OutputPackage
+        if #grad ~= n then grad := opderiv'(op, n)
+        gs:=[g args for g in grad]
+        --output("kderiv' gs: ",gs::OutputForm)$OutputPackage
+        return gs
+
+      -- Wirtinger's chain rule
+      kerderiv(k, x) ==
+        --output("kerderiv(k,x): ",paren([k::OutputForm,x::OutputForm]))$OutputPackage
+        if (v := symbolIfCan(k)) case SY then
+          if v::SY = x then
+            k1:=1
+          else
+            k1:=0
+          --output("kerderiv k1+k2: ",k1::OutputForm)$OutputPackage
+          return k1
+        if is?(k,'conjugate) then
+          if (v := retractIfCan(argument(k)(1))@Union(SY,"failed")) case SY then
+            k1:=0
+            --output("kerderiv k1+k2: ",k1::OutputForm)$OutputPackage
+            return k1
+
+        (fn := property(operator k, SPECIALDIFF)) case None =>
+           ((fn::None) pretend ((List %, SY) -> %)) (argument k, x)
+        k1:= +/[(g=0=>0;g * differentiate(y, x)) _
+          for g in kderiv k for y in argument k]
+        --output("kerderiv k1: ",k1::OutputForm)$OutputPackage
+
+        gs:=kderiv' k
+        ys:=argument k
+        --output("kerderiv ys: ",ys::OutputForm)$OutputPackage
+        k2:= +/[(g'=0=>0; g' * differentiate(conjugate(y)$FSPECF(R,%), x)) _
+          for g' in gs for y in ys]
+        --output("kerderiv k2: ",k2::OutputForm)$OutputPackage
+        --output("kerderiv k1+k2: ",(k1+k2)::OutputForm)$OutputPackage
+        return k1+k2
+
       differentiate(f : %, x : SY) ==
         (smpderiv(numer f, x) * denom(f)::% -
           numer(f)::% * smpderiv(denom f, x))
             / (denom(f)::% ^ 2)
+
+      dfeval'(l, g) ==
+        eval(conjugate(differentiate(first l, symbolIfCan(g)::SY))$FSPECF(R,%), g, third l)
+
+      diffEval' l ==
+        --output("diffEval'", l::OutputForm)$OutputPackage
+        k : K
+        g := retract(second l)@K
+        ((u := retractIfCan(first l)@Union(K, "failed")) case "failed")
+          or (u case K and symbolIfCan(k := u::K) case SY) => dfeval'(l, g)
+        op := operator k
+        (ud := derivative op) case "failed" =>
+             -- possible trouble
+             -- make sure it is a dummy var
+             dumm : % := symsub(gendiff, 1)::%
+             ss := subst(l.1, l.2 = dumm)
+             nl := [ss, dumm, l.3]
+             kernel(opdiff', nl)
+        (n := position(second l, argument k)) < minIndex l =>
+              dfeval'(l, g)
+        d := ud::List(List % -> %)
+        n<=#d => eval((d.n)(argument k), g, third l)
+        dumm : % := symsub(gendiff, 1)::%
+        ss := subst(l.1, l.2 = dumm)
+        nl := [ss, dumm, l.3]
+        kernel(opdiff', nl)
+
+      evaluate(opdiff',diffEval')
 
       eval(x : %, lk : List K, lv : List %) ==
         smpeval(numer x, lk, lv) / smpeval(denom x, lk, lv)

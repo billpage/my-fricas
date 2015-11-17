@@ -17,6 +17,10 @@ Symbol() : Exports == Implementation where
        ++ new() returns a new symbol whose name starts with %.
      new : % -> %
        ++ new(s) returns a new symbol whose name starts with %s.
+     conjugate : % -> %
+       ++ conjugate(s) returns the symbolic conjugate of s.
+     conjugated? : % -> Boolean
+       ++ conjugated?(s) is true if s a conjugated symbol
      resetNew : () -> Void
        ++ resetNew() resets the internals counters that new() and
        ++ new(s) use to return distinct symbols every time.
@@ -49,6 +53,7 @@ Symbol() : Exports == Implementation where
        ++ arg-scripted by \spad{[a1, ..., an]}.
      elt : (%, L) -> %
        ++ elt(s, [a1, ..., an]) or s([a1, ..., an]) returns s subscripted by \spad{[a1, ..., an]}.
+     _^ : (%,L) -> %
      string : % -> String
        ++ string(s) converts the symbol s to a string.
        ++ Error: if the symbol is subscripted.
@@ -86,12 +91,31 @@ Symbol() : Exports == Implementation where
     lhd          := #hd
     ord0         := ord char("0")$Character
     pcnt         ==> 4
+    conj:String  := "*"
 
     istring  : Integer -> String
     syprefix : Scripts -> String
     syscripts : Scripts -> L
 
-    convert(s : %) : InputForm == convert(s pretend Symbol)$InputForm
+    convert(s : %) : InputForm ==
+      conjugated? s => convert([convert('conjugate)@InputForm,convert conjugate s]$List(InputForm))@InputForm
+      scripted? s =>
+         sc:Scripts := scripts s
+         convert([convert('script)@InputForm,name(s) pretend InputForm, _
+                   convert([convert('construct)@InputForm, _
+                     prefix(outputForm 'construct, sc.sub pretend List OutputForm) _
+                       pretend InputForm, _
+                     prefix(outputForm 'construct, sc.sup pretend List OutputForm) _
+                       pretend InputForm, _
+                     prefix(outputForm 'construct, sc.presub pretend List OutputForm) _
+                       pretend InputForm, _
+                     prefix(outputForm 'construct, sc.presub pretend List OutputForm) _
+                       pretend InputForm, _
+                     prefix(outputForm 'construct, sc.args pretend List OutputForm) _
+                       pretend InputForm _
+                   ]$List(InputForm))@InputForm _
+                 ]$List(InputForm))@InputForm
+      convert(s pretend Symbol)$InputForm
     convert(s : %) : Symbol    == s pretend Symbol
     coerce(s : String) : %     == VALUES(INTERN(s)$Lisp)$Lisp
     x = y                  == EQUAL(x, y)$Lisp
@@ -99,7 +123,9 @@ Symbol() : Exports == Implementation where
     x < y                  == GGREATERP(y, x)$Lisp
 
     coerce(x : %) : OutputForm ==
-        not(scripted? x) => outputForm(x pretend Symbol)
+        not(scripted? x) =>
+          conjugated? x => overbar(outputForm(conjugate x pretend Symbol))
+          outputForm(x pretend Symbol)
         ss : Scripts := scripts x
         rsl : List(L) := [ss.presub, ss.presup, ss.sup, ss.sub]
         sl : L := []
@@ -109,13 +135,18 @@ Symbol() : Exports == Implementation where
                 #si = 1 => first(si)
                 commaSeparate(si)
             sl := cons(se, sl)
-        x0 := scripts(outputForm(name(x) pretend Symbol), sl)
+        if conjugated? x then
+          x0 := scripts(outputForm(conjugate name(x) pretend Symbol), sl)
+        else
+          x0 := scripts(outputForm(name(x) pretend Symbol), sl)
         a := ss.args
-        empty?(a) => x0
-        prefix(x0, a)
+        if not empty?(a) then x0 := prefix(x0, a)
+        conjugated? x => overbar x0
+        x0
 
     subscript(sy, lx)      == script(sy, [lx, nil, nil(), nil(), nil()])
-    elt(sy, lx)             == subscript(sy, lx)
+    elt(sy, lx)            == subscript(sy, lx)
+    sy ^ lx                == superscript(sy, lx)
     superscript(sy, lx)    == script(sy, [nil(), lx, nil(), nil(), nil()])
     argscript(sy, lx)      == script(sy, [nil(), nil(), nil(), nil(), lx])
 
@@ -157,9 +188,17 @@ Symbol() : Exports == Implementation where
       script(sy, sc)
 
     script(sy : %, sc : Scripts) ==
-      scripted? sy => error "Cannot add scripts to a scripted symbol"
-      (concat(concat(syprefix sc, string name sy)::%::OutputForm,
-                                                syscripts sc)) pretend %
+      --scripted? sy => error "Cannot add scripts to a scripted symbol"
+      oldsc:=scripts(sy)
+      --output("symbol oldsc: ",oldsc::OutputForm)$OutputPackage
+      newsc:Scripts := [concat(oldsc.sub,sc.sub), _
+                        concat(oldsc.sup,sc.sup), _
+                        concat(oldsc.presup,sc.presup), _
+                        concat(oldsc.presub,sc.presub), _
+                        concat(oldsc.args,sc.args)]
+      --output("symbol newsc: ",newsc::OutputForm)$OutputPackage
+      (concat(concat(syprefix newsc, string name sy)::% pretend OutputForm,
+                                                syscripts newsc)) pretend %
 
     string e ==
       not scripted? e => PNAME(e)$Lisp
@@ -265,6 +304,20 @@ Symbol() : Exports == Implementation where
         si := lhd + pcnt + 2
         str(si..#str)::%
 
+    conjugated? sy ==
+        str:=string(name sy)
+        str(#str..#str)=conj
+
+    conjugate sy ==
+        str:=string(name sy)
+        if conjugated? sy then
+          str:=str(1..#str-1)
+        else
+          str:=concat(str,conj)
+        str
+        not scripted? sy => str::%
+        script(str::%, scripts sy)
+
     scripts sy ==
       not scripted? sy => [nil(), nil(), nil(), nil(), nil()]
       nscripts : List NonNegativeInteger := [0, 0, 0, 0, 0]
@@ -322,3 +375,4 @@ Symbol() : Exports == Implementation where
 --LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 --NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 --SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+

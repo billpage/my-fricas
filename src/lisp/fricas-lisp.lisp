@@ -1183,11 +1183,21 @@ with this hack and will try to convince the GCL crowd to fix this.
 
 ;;; The following defines syntax of Spad identifiers
 
+#+:sbcl
 (defmacro |startsId?| (x)
-    `(or (alpha-char-p ,x) (member ,x '(#\? #\% #\!) :test #'char=)))
+      `(or (alpha-char-p ,x) (member ,x '(#\? #\% #\!) :test #'char=)))
 
+#-:sbcl
+(defmacro |startsId?| (x)
+    `(or (alpha-char-p ,x) (member ,x '(#\? #\% #\! #\BULLET ) :test #'char=)))
+
+#-:sbcl
 (defmacro |idChar?| (x)
     `(or (alphanumericp ,x) (member ,x '(#\? #\% #\' #\!) :test #'char=)))
+
+#+:sbcl
+(defmacro |idChar?| (x)
+      `(or (alphanumericp ,x) (member ,x '(#\? #\% #\' #\! #\COMBINING_RIGHT_ARROW_ABOVE #\COMBINING_DOT_ABOVE #\COMBINING_DIAERESIS ) :test #'char=)))
 
 (in-package "BOOTTRAN")
 

@@ -89,6 +89,7 @@ The following macros are just global abbreviations.
 N ==> NonNegativeInteger
 Z ==> Integer
 I ==> SingleInteger
+B ==> Boolean
 
 )if LiterateDoc
 Let us now discuss the overall domain implementation.
@@ -102,7 +103,7 @@ would not necessarily have to provide a hashing function of its own.
 ++ Keywords: hash table
 ++ Description:
 ++ An implementation of a hash table that uses equality of the key domain
-++ to decide upon equality of keys.
+++ or a user specified function to decide upon equality of keys.
 XHashTable(Key: SetCategory, Entry: Type):
   Join(TableAggregate(Key, Entry), finiteAggregate, shallowlyMutable) with
     table: (Key -> SingleInteger) -> %
@@ -111,6 +112,14 @@ XHashTable(Key: SetCategory, Entry: Type):
       ++ the sense that from k1=k2 follows h(k1)=h(k2). If that is not
       ++ the case, k1 and k2 will internally be considered as being
       ++ different keys.
+    table: (Key -> SingleInteger,(Key,Key) -> Boolean) -> %
+      ++ table(h,eq) creates an empty hash table that uses eq instead
+      ++ of the "=" from the Key domain. Note that h and eq must be
+      ++ compatible in the sense that h(k1)~=h(k2) -> not eq(k1,k2)
+    identify: (Key, %) -> Union(Record(key: Key, entry: Entry), "failed")
+      ++ identify(k,x) returns either Record(key:Key,entry:Entry)
+      ++ where eq(k,lookup(k,x).key), i.e. a "pointer" to the key in
+      ++ the table or ,"failed".
  == add
     KE ==> Record(key: Key, entry: Entry)
     UE ==> Union(Entry, "failed")
@@ -197,8 +206,13 @@ search algorithm to work correctly there must be at least one
 load equals the actual load again.
 )endif
 
-    maxLoad n ==> n*7 quo 10 -- load factor
-    maxVirtualLoad n ==> n*9 quo 10  -- virtual load factor
+    --maxLoad n ==> n*7 quo 10 -- load factor
+    --maxVirtualLoad n ==> n*9 quo 10  -- virtual load factor
+    --maxLoad n ==> n*80 quo 100 -- load factor
+    --maxVirtualLoad n ==> n*95 quo 100  -- virtual load factor
+    alt(x:Union(N,"failed"),y:N):N == if x case "failed" then y else x::N
+    maxLoad n ==> min(n*7 quo 10, alt(subtractIfCan(n,700),n)) -- load factor
+    maxVirtualLoad n ==> min(n*9 quo 10, alt(subtractIfCan(n,900),n)) -- virtual load factor
 
 
 )if LiterateDoc
@@ -223,8 +237,12 @@ buckets array by looking for twin primes with appropriate size.
 )endif
 
     arrayLengths: PrimitiveArray N := [[_
-        7, 13, 31, 61, 109, 241, 463, 1021, 2029, 4093, 8089, 16363,_
-        32719, 65521, 131011, 262111, 524221, 1048573, 2097133,_
+        7, 13, 31, 61, 109, 241, 463, 1021,1021, 2029, 3001, 4093,_
+        5101, 6133, 7129, 8089, 9043, 10141, 11173, 12253, 13219,_
+        14323, 15331, 16363, 17389, 18313, 19429, 20479, 16363,_
+        32719, 49123, 65521, 81901, 98299, 114661, 131011, 147451,_
+        163483,180181, 196543, 212869, 229249, 245683, 262111,_
+        278503, 294649, 311293,327583, 524221, 1048573, 2097133,_
         4193803, 8388451, 16777141, 33554011, 67108669, 134217439,_
         268435009, 536870839, 1073741719, 2147482951, 4294965841,_
         8589934291, 17179868809, 34359737299, 68719476391,_
@@ -257,7 +275,8 @@ Putting everything together yields the following.
         maxNumOfVirtualEntries: Z,_
         idx: Z,_
         arr: Buckets,_
-        hashFunction: Key -> I)
+        hashFunction: Key -> I,_
+        eqFunction: (Key,Key) -> Boolean)
 
 )if LiterateDoc
 Note that for a value $r$ of type \texttt{Rep} it always holds:
@@ -334,26 +353,35 @@ buckets) there is at least one position where \texttt{VACANT} is
 stored and thus the loops eventually terminate.
 )endif
 
-    localSearch(a: Buckets, k: Key, h: Key -> I): Z ==
+    localSearch(a: Buckets, k: Key, h: Key -> I, eq:(Key,Key) -> B): Z ==
         update!(p, mk) ==>
             p := p + h2
             if p>=n then p := p-n
             mk := getMKey(a, p)
 
         n: Z := numOfBuckets a
-        h1: Z := (h k)::Z
+        hk := h k
+        h1: Z := (hk)::Z
         p: Z := positiveRemainder(h1, n) -- position in array
         h2: Z := 1 + positiveRemainder(h1, n-2)
+
+        --output("**localSearch: n",n::OutputForm)$OutputPackage
+        --output("localSearch: k",k::OutputForm)$OutputPackage
+        --output("localSearch: h1",h1::OutputForm)$OutputPackage
+        --topoutput("localSearch: p",p::OutputForm)$OutputPackage
+        --output("localSearch: h2",h2::OutputForm)$OutputPackage
+
         mk: MKey := getMKey(a, p)
         deletedPosition?: Boolean := false
         while not vacant? mk repeat
             deleted? mk => (deletedPosition? := true; break)
-            k = toKey mk => return p -- key found
+            -- h(k1)~=h(k2) implies keys are different
+            hk = h toKey mk and eq(k,toKey mk) => return p -- key found
             update!(p, mk)
         q := p -- first position of a free entry
         -- We ignore DELETED entries when looking for the key.
         while not vacant? mk repeat
-            not deleted? mk and k = toKey mk =>
+            not deleted? mk and hk = h toKey mk and eq(k,toKey mk) =>
                 setKeyEntry!(a, n, q, k, getEntry(a, n, p))
                 deleteKeyEntry!(a, n, p)
                 return q -- entry has been copied to previous DELETED position
@@ -384,8 +412,10 @@ the index into the \texttt{arrayLengths} array.
 
     rehashAux!(x: %, ix: Z): % ==
         m: N := arrayLengths ix
+        --output("rehashAux!: m",m::OutputForm)$OutputPackage
         r: Rep := rep x
         h: Key -> I := r.hashFunction
+        eq: (Key,Key) -> B := r.eqFunction
         a: Buckets := r.arr
         n: Z := numOfBuckets a
         c: Buckets := newArr m
@@ -393,8 +423,12 @@ the index into the \texttt{arrayLengths} array.
             k: Key := toKey mk
             -- Note that k is not in c, and there are no DELETED positions.
             -- Thus, -m<=p<0.
-            p := m + localSearch(c, k, h)
-            setKeyEntry!(c, m, p, k, getEntry(a, n, i))
+            q := localSearch(c, k, h, eq)
+            if q<0 then
+              p := m + q
+              setKeyEntry!(c, m, p, k, getEntry(a, n, i))
+            else -- should not happen!
+              error "XHashTable rehashAux!: duplicate key"
         r.arr := c  --destructively set new array
         r.idx := ix
         r.maxNumOfEntries := maxLoad m
@@ -433,11 +467,15 @@ force the filling of the domain slot, and thus storing the true hash
 function into the representation.
 )endif
 
-    table(hashfunction: Key -> SingleInteger): % ==
+    table(hashfunction: Key -> SingleInteger,eqfunction: (Key,Key) -> Boolean): % ==
         n: N := arrayLengths 0
         maxEntries: Z := maxLoad n
         maxVirtualEntries: Z := maxVirtualLoad n
-        per [0, maxEntries, 0, maxVirtualEntries, 0, newArr n, hashfunction]
+        hashfunction := forceLazySlot((hash$Key)@(Key -> I))$Lisp pretend (Key->I)
+        per [0, maxEntries, 0, maxVirtualEntries, 0, newArr n, hashfunction, eqfunction]
+    table(hashfunction: Key -> SingleInteger): % ==
+        table(hashfunction,forceLazySlot((_=$Key)@((Key,Key) -> B))$Lisp pretend ((Key,Key)->B))
+
     empty(): % ==
         table(forceLazySlot((hash$Key)@(Key -> I))$Lisp pretend (Key->I))
 
@@ -462,22 +500,37 @@ function into the representation.
 \subsubsection{Searching and accessing the table}
 )endif
 
+    identify(k: Key, x: %): Union(KE, "failed") ==
+        a: Buckets := rep(x).arr
+        n: Z := numOfBuckets a
+        h: Key -> I := rep(x).hashFunction
+        eq: (Key,Key) -> B := rep(x).eqFunction
+        p: Z := localSearch(a, k, h, eq)
+        p<0 => "failed"
+        mk: MKey := getMKey(a, p)
+        return [toKey mk, getEntry(a, n, p)]
+
     search(k: Key, x: %): Union(Entry, "failed") ==
         a: Buckets := rep(x).arr
         h: Key -> I := rep(x).hashFunction
-        p: Z := localSearch(a, k, h)
+        eq: (Key,Key) -> B := rep(x).eqFunction
+        p: Z := localSearch(a, k, h, eq)
         p<0 => "failed"
         getEntry(a, numOfBuckets a, p)::UE
     elt(x: %, k: Key): Entry ==
         a: Buckets := rep(x).arr
         h: Key -> I := rep(x).hashFunction
-        p := localSearch(a, k, h)
-        p<0 => error "key not in table"
+        eq: (Key,Key) -> B := rep(x).eqFunction
+        p := localSearch(a, k, h, eq)
+        p<0 =>
+          output("xhash key: ",k::OutputForm)$OutputPackage
+          error "key not in table"
         getEntry(a, numOfBuckets a, p)
     elt(x: %, k: Key, e: Entry): Entry ==
         a: Buckets := rep(x).arr
         h: Key -> I := rep(x).hashFunction
-        p := localSearch(a, k, h)
+        eq: (Key,Key) -> B := rep(x).eqFunction
+        p := localSearch(a, k, h, eq)
         p<0 => e
         getEntry(a, numOfBuckets a, p)
 
@@ -497,10 +550,13 @@ we will rehash the table (and in that process eventually get rid of the
 )endif
 
     setelt!(x: %, k: Key, e: Entry): Entry ==
+        --output("setelt!: k",k::OutputForm)$OutputPackage
         if rep(x).numOfEntries >= rep(x).maxNumOfEntries then grow! x
         a: Buckets := rep(x).arr
         h: Key -> I := rep(x).hashFunction
-        p := localSearch(a, k, h)
+        eq: (Key,Key) -> B := rep(x).eqFunction
+        p := localSearch(a, k, h, eq)
+        --output("setelt!: p",p::OutputForm)$OutputPackage
         n: Z := numOfBuckets a
         p>=0 => setEntry!(a, n, p, e)
         r: Rep := rep x
@@ -527,7 +583,8 @@ deleted entry does not stop a probing sequence.
     remove!(k: Key, x: %): Union(Entry, "failed") ==
         a: Buckets := rep(x).arr
         h: Key -> I := rep(x).hashFunction
-        p := localSearch(a, k, h)
+        eq: (Key,Key) -> B := rep(x).eqFunction
+        p := localSearch(a, k, h, eq)
         p<0 => "failed" -- key has not been found
         n: Z := numOfBuckets a
         e: Entry := getEntry(a, n, p) -- to be returned
@@ -546,7 +603,7 @@ copy should have any destructive effect on the original.
         r: Rep := rep x
         per [r.numOfEntries, r.maxNumOfEntries,_
              r.numOfDeletedEntries, r.maxNumOfVirtualEntries,_
-             r.idx, copy(r.arr), r.hashFunction]
+             r.idx, copy(r.arr), r.hashFunction, r.eqFunction]
 
 )if LiterateDoc
 \subsubsection{Setting common values}
@@ -621,8 +678,9 @@ Equality is only exported if the \texttt{Entry} type is a \texttt{BasicType}.
             xa := rep(x).arr; xn := numOfBuckets xa
             ya := rep(y).arr; yn := numOfBuckets ya
             h := rep(y).hashFunction
+            eq := rep(y).eqFunction
             for i in 0..xn - 1 | key?(mk: MKey := getMKey(xa, i)) repeat
-                p := localSearch(ya, toKey mk, h)
+                p := localSearch(ya, toKey mk, h, eq)
                 p < 0 => return false
                 getEntry(xa, xn, i) ~= getEntry(ya, yn, p) => return false
             true

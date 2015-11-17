@@ -104,6 +104,7 @@ scanKeyWords := [ _
            ['";","SEMICOLON" ],_
            ['"**","POWER" ],_
            ['"*","TIMES" ],_
+           ['"•", "CDOT" ],_
            ['"+","PLUS" ],_
            ['"-","MINUS" ],_
            ['"<","LT" ],_
@@ -178,18 +179,18 @@ scanInsert(s,d) ==
 scanDictCons()==
       l:= HKEYS scanKeyTable
       d :=
-          a:=MAKE_-VEC(256)
+          a:=MAKE_-VEC(9000)
           b:=MAKE_-VEC(1)
           QSETVELT(b, 0, make_full_CVEC(0, '" "))
-          for i in 0..255 repeat QSETVELT(a, i, b)
+          for i in 0..8999 repeat QSETVELT(a, i, b)
           a
       for s in l repeat scanInsert(s,d)
       d
 
 scanPunCons()==
     listing := HKEYS scanKeyTable
-    a := make_BVEC(256, 0)
-    for i in 0..255 repeat SETELT_BVEC(a, i, 0)
+    a := make_BVEC(9000, 0)
+    for i in 0..8999 repeat SETELT_BVEC(a, i, 0)
     for k in listing repeat
        if not startsId? k.0 then
            SETELT_BVEC(a, STR_ELT(k, 0), 1)
@@ -204,6 +205,7 @@ scanPun:=scanPunCons()
 for i in   [ _
    ["EQUAL"    ,"="], _
    ["TIMES"    ,"*"], _
+   ["CDOT"     ,"•"], _
    ["has",      "has"], _
    ["case",     "case"], _
    ["exquo",    "exquo"], _
@@ -716,4 +718,4 @@ substringMatch (l,d,i)==
                  else false
        s1
 
-punctuation? c == c < 256 and ELT_BVEC(scanPun, c) = 1
+punctuation? c == c < 9000 and ELT_BVEC(scanPun, c) = 1

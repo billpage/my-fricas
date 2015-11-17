@@ -589,6 +589,12 @@ Complex(R : CommutativeRing) : ComplexCategory(R) with
           if wholeObj then
             OMputEndObject(dev)
 
+         hashUpdate!(s : HashState, x : %) : HashState ==
+           s := hashUpdate!(s, real x)
+           s := hashUpdate!(s, imag x)
+           s
+
+
        0                == [0, 0]
        1                == [1, 0]
        zero? x          == zero?(x.real) and zero?(x.imag)
