@@ -619,12 +619,15 @@ mmCost(name, sig,cond,tar,args1,args2) ==
 
 mmCost0(name, sig,cond,tar,args1,args2) ==
   sigArgs := CDDR sig
+  res := CADR sig
   n:=
     null cond => 1
     not (or/cond) => 1
     0
 
-  -- try to favor homogeneous multiplication
+  -- favor homogeneous operations (and pre-multiplication by positive integers)
+  -- (if name ~= "*" or 2 ~= #sigArgs or first sigArgs ~= $PositiveInteger then)
+  for x1 in sigArgs repeat if x1 ~= res then n := n + 1
 
 --if name = "*" and 2 = #sigArgs and first sigArgs ~= first rest sigArgs then n := n + 1
 
@@ -647,7 +650,6 @@ mmCost0(name, sig,cond,tar,args1,args2) ==
           n := n + 10*nargs
   else if sigArgs then n := n + 100000000000
 
-  res := CADR sig
   res=tar => 10000*n
   10000*n + 1000*domainDepth(res) + hitListOfTarget(res)
 
