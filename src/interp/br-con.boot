@@ -1156,9 +1156,11 @@ Z := '"The {\sf Union} constructor can take any number of arguments and has an a
 
 W := '"This tagged {\sf Union} type is necessary, for example, to disambiguate two branches of a union where {\em A} and {\em B} denote the same type. "
 
+W1 := '"Tags are also used as functions to construct values for ambiguous types."
+
 A := '"{\sf Union} is a primitive domain of \Language{} which cannot be defined in the \Language{} language."
 
-MESSAGE := STRCONC(X,Y,Z,W,A)
+MESSAGE := STRCONC(X,Y,Z,W,W1,A)
 
 PUT('Union,'documentation,SUBST(MESSAGE,'MESSAGE,'(
   (constructor (NIL MESSAGE))

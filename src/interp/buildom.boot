@@ -319,6 +319,7 @@ mkNewUnionFunList(name,form is ['Union,:listOfEntries],e) ==
      ['coerce, [$OutputForm, name], ['ELT, dc, 7]],:
        ("append"/
         [[['construct,[name,type],['XLAM,["#1"],['CONS,i,"#1"]]],
+          [tag,[name,type],['XLAM,["#1"],['CONS,i,"#1"]]], -- injectors
           ['elt,[type,name,tag],cdownFun],
             ["case", ['(Boolean), name, tag],
                ['XLAM,["#1"],['QEQCAR,"#1",i]]]]
