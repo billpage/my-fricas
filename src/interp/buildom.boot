@@ -302,11 +302,13 @@ mkRecordFunList(nam,['Record,:Alist],e) ==
        ['coerce, [$OutputForm, nam], ['ELT, dc, 7]],:
         [['elt,[A,nam,PNAME a],['XLAM,["$1","$2"],['RECORDELT,"$1",i,len]]]
             for i in 0.. for [.,a,A] in Alist],:
-          [["setelt!", [A, nam, PNAME a, A], ['XLAM, ["$1", "$2", "$3"],
-            ['SETRECORDELT,"$1",i, len,"$3"]]]
+          [[a,[A,nam],['XLAM,["$1"],['RECORDELT,"$1",i,len]]]
               for i in 0.. for [.,a,A] in Alist],:
-                [['copy,[nam,nam],['XLAM,["$1"],['RECORDCOPY,
-                  "$1",len]]]]]
+            [["setelt!", [A, nam, PNAME a, A], ['XLAM, ["$1", "$2", "$3"],
+              ['SETRECORDELT,"$1",i, len,"$3"]]]
+                for i in 0.. for [.,a,A] in Alist],:
+                  [['copy,[nam,nam],['XLAM,["$1"],['RECORDCOPY,
+                    "$1",len]]]]]
   [substitute(nam,dc,substitute("$",'Rep,sigFunAlist)),e]
 
 mkNewUnionFunList(name,form is ['Union,:listOfEntries],e) ==

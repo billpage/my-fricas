@@ -1098,11 +1098,13 @@ dbSpecialExpandIfNecessary(conform,opAlist) ==
 
 X := '"{\sf Record(a:A,b:B)} is used to create the class of pairs of objects made up of a value of type {\em A} selected by the symbol {\em a} and a value of type {\em B} selected by the symbol {\em b}. "
 
+X1 := '"Each selection symbol may be used as a function which returns a value of the specified type."
+
 Y := '"In general, the {\sf Record} constructor can take any number of arguments and thus can be used to create aggregates of heterogeneous components of arbitrary size selectable by name. "
 
 Z := '"{\sf Record} is a primitive domain of \Language{} which cannot be defined in the \Language{} language."
 
-MESSAGE := STRCONC(X,Y,Z)
+MESSAGE := STRCONC(X,X1,Y,Z)
 
 PUT('Record,'documentation,SUBST(MESSAGE,'MESSAGE,'(
   (constructor (NIL MESSAGE))
@@ -1113,11 +1115,15 @@ PUT('Record,'documentation,SUBST(MESSAGE,'MESSAGE,'(
          ((_$ (List (Any)))
    "\spad{coerce(u)}, where \spad{u} is the list \spad{[x,y]} for \spad{x} of type \spad{A} and \spad{y} of type \spad{B}, returns the record \spad{[a:x,b:y]}"))
  (construct ((_$ A B)
-   "\spad{construct(x, y)} returns the record \spad{[a:x,b:y]}"))
+   "\spad{[x, y]} returns the record with value x under selector \spad{x} and value y under selector \spad{b}."))
  (elt ((A $ "a")
    "\spad{r . a} returns the value stored in record \spad{r} under selector \spad{a}.")
       ((B $ "b")
    "\spad{r . b} returns the value stored in record \spad{r} under selector \spad{b}."))
+ (a ((A $)
+   "\spad{a(r)} returns the value stored in record \spad{r} under selector \spad{a}."))
+ (b ((B $)
+   "\spad{b(r)} returns the value stored in record \spad{r} under selector \spad{b}."))
  (setelt ((A $ "a" A)
    "\spad{r . a := x} destructively replaces the value stored in record \spad{r} under selector \spad{a} by the value of \spad{x}. Error: if \spad{r} has not been previously assigned a value.")
          ((B $ "b" B)
@@ -1132,8 +1138,12 @@ MESSAGE := STRCONC(X,Y)
 
 PUT('UntaggedUnion,'documentation,SUBST(MESSAGE,'MESSAGE,'(
   (constructor (NIL MESSAGE))
-  (_=  (((Boolean) $ $)
+  (_=  (((Boolean) _$ _$)
     "\spad{u = v} tests if two objects of the union are equal, that is, u and v are hold objects of same branch which are equal."))
+  (construct ((_$ A)
+    "\spad{[x]} returns the union with value x in branch \spad{A}")
+              ((_$ B)
+    "\spad{[y]} returns the union with value y in branch \spad{B}"))
   (case (((Boolean) $ "A")
     "\spad{u case A} tests if \spad{u} is of the type \spad{A} branch of the union.")
         (((Boolean) $ "B")
@@ -1166,6 +1176,12 @@ PUT('Union,'documentation,SUBST(MESSAGE,'MESSAGE,'(
   (constructor (NIL MESSAGE))
   (_=  (((Boolean) $ $)
     "\spad{u = v} tests if two objects of the union are equal, that is, \spad{u} and \spad{v} are objects of same branch which are equal."))
+  (a (($ A) "\spad{ a(x)} returns the union with value x in the branch with tag \spad{a}. "))
+  (b (($ A) "\spad{ b(x)} returns the union with value x in the branch with tag \spad{b}."))
+  (elt ((A $ "a")
+    "\spad{u . a} returns the value stored in union \spad{u} in the branch with tag \spad{a}. Error: if \spad{u} is of the \spad{b} branch of the union.")
+       ((B $ "b")
+    "\spad{u . b} returns the value stored in union \spad{u} in the branch with tag \spad{b}. Error: if \spad{u} is of the \spad{a} branch of the union."))
   (case (((Boolean) $ "A")
     "\spad{u case a} tests if \spad{u} is of branch \spad{a} of the union.")
                 (((Boolean) $ "B")
