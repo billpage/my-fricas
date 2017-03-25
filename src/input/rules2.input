@@ -1,0 +1,10 @@
+t1 := cos(x)*sin(y) - cos(y)*sin(x)
+t2 := - sin(x)*sin(y) + cos(x)*cos(y)
+expr := tan(q)*tan(w) + t1*cos(x3) + t2*w*cos(a) + r3*t1*t2 + 5
+rs := rule cos(x)*sin(y)*optional(z) - sin(x)*cos(y)*optional(z) == sin(y-x)*z
+rc := rule cos(x)*cos(y)*optional(z) - sin(x)*sin(y)*optional(z) == cos(x+y)*z
+rs t1
+rs t2
+rc t1
+rc t2
+rc rs expr

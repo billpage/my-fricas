@@ -440,13 +440,13 @@ PatternMatchTools(S, R, P) : Exports == Implementation where
   Implementation ==> add
     import from PatternFunctions1(S, P)
 
-    preprocessList : (PAT, List P, PRS) -> Union(List P, "failed")
+    preprocessList : (PAT, List P, PRS, P) -> Union(List P, "failed")
     selBestGen    : List PAT -> List PAT
     negConstant   : List P -> Union(P, "failed")
     findMatch     : (PAT, List P, PRS, P, (P, PAT, PRS) -> PRS) -> REC
     tryToMatch    : (List PAT, REC, P, (P, PAT, PRS) -> PRS) ->
                                                   Union(REC, "failed")
-    filterMatchedPatterns : (List PAT, List P, PRS) -> Union(RC, "failed")
+    filterMatchedPatterns : (List PAT, List P, PRS, P) -> Union(RC, "failed")
 
     mn1 := convert(-1::P)@Pattern(S)
 
@@ -481,7 +481,8 @@ PatternMatchTools(S, R, P) : Exports == Implementation where
         generic? p => setIntersection(badValues p, ls)
         empty()
       l1 : PRS := failed()
-      for x in setDifference(ls, bad)
+      --for x in setDifference(ls, bad)
+      for x in select((x1:P):Boolean +-> not member?(x1,bad),ls)
         while (t := x; failed?(l1 := pmatch(x, p, l))) repeat 0
       failed? l1 =>
         for x in bad
@@ -491,18 +492,18 @@ PatternMatchTools(S, R, P) : Exports == Implementation where
       [l1, remove(t, ls)]
 
 -- filters out pattern if it's generic and already matched.
-    preprocessList(pattern, ls, l) ==
+    preprocessList(pattern, ls, l,ident) ==
       generic? pattern =>
         (u := getMatch(pattern, l)) case P =>
-          member?(u::P, ls) => [u::P]
+          u = ident or member?(u::P, ls) => [u::P]
           "failed"
         empty()
       empty()
 
 -- take out already matched generic patterns
-    filterMatchedPatterns(lp, ls, l) ==
+    filterMatchedPatterns(lp, ls, l, ident) ==
       for p in lp repeat
-        (rc := preprocessList(p, ls, l)) case "failed" => return "failed"
+        (rc := preprocessList(p, ls, l, ident)) case "failed" => return "failed"
         if not empty?(rc::List(P)) then
           lp := remove(p,  lp)
           ls := remove(first(rc::List(P)), ls)
@@ -519,7 +520,7 @@ PatternMatchTools(S, R, P) : Exports == Implementation where
 -- matches unordered lists ls and lp
     patternMatch(ls, lp, op, l, pmatch) ==
       ident := op empty()
-      (rc := filterMatchedPatterns(lp, ls, l)) case "failed" => return failed()
+      (rc := filterMatchedPatterns(lp, ls, l, ident)) case "failed" => return failed()
       lp := (rc::RC).pat
       ls := (rc::RC).s
       empty? lp => l
@@ -542,7 +543,7 @@ PatternMatchTools(S, R, P) : Exports == Implementation where
       -- l3 = non-generic patterns without predicates
       l3 := sort!((z1 : PAT, z2 : PAT) : Boolean +-> depth(z1) > depth(z2),
         select((p1 : PAT) : Boolean +-> not(hasPredicate? p1 or generic? p1 or constant? p1), lp))
-      -- l4 = generic patterns with predicates
+      -- l4 = generic patterns without predicates
       l4 := select((p1 : PAT) : Boolean +-> generic? p1 and
                               not(hasPredicate? p1 or constant? p1), lp)
       rec : REC := [l, ls]
@@ -553,7 +554,7 @@ PatternMatchTools(S, R, P) : Exports == Implementation where
       (u := tryToMatch(l3, u::REC, ident, pmatch)) case "failed" =>
         failed()
       rec := u::REC
-      (rc := filterMatchedPatterns(l4,rec.s,rec.res)) case "failed" => failed()
+      (rc := filterMatchedPatterns(l4,rec.s,rec.res,ident)) case "failed" => failed()
       rec := [rec.res, (rc::RC).s]
       (u := tryToMatch((rc::RC).pat,rec,ident,pmatch)) case "failed" => failed()
       rec := u::REC
