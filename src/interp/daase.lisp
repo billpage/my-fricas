@@ -875,7 +875,7 @@ database.
  (let (thisdir nrlibs asos asys libs object only dir key
       (|$forceDatabaseUpdate| t) noexpose)
   (declare (special |$forceDatabaseUpdate|))
-  ;;; FIXME: make this _really_ portable
+  ;;; FIXME: make this _really_ portable id:660
   (setq thisdir (namestring (truename "./")))
   (setq noexpose nil)
   (multiple-value-setq (only dir noexpose) (processOptions options))

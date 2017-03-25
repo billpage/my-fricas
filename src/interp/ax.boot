@@ -40,7 +40,7 @@ $stripTypes := false
 -- is to pretend that they are such as required by the respective
 -- constructor.
 -- $pretendFlag will be set to true, if default operations are detected.
--- TODO: This is a reasonable assumption, but wrong in general.
+-- TODO: This is a reasonable assumption, but wrong in general. id:650
 $pretendFlag := false
 
 -- The variables $modemapArgs and $augmentedArgs and the code surrounding it

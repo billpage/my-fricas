@@ -975,7 +975,7 @@ dbShowConsDoc1(htPage,conform,indexOrNil) ==
   htSaySaturn '"\begin{description}"
   displayDomainOp(htPage,'"constructor",conform,conname,sig,true,doc,indexOrNil,'dbSelectCon,null exposeFlag,nil)
   htSaySaturn '"\end{description}"
-  --NOTE that we pass conform is as "origin"
+  --NOTE that we pass conform is as "origin" id:654
 
 getConstructorDocumentation conname ==
   LASSOC('constructor,GETDATABASE(conname,'DOCUMENTATION))

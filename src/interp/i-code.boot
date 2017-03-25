@@ -42,7 +42,7 @@
 --% COERCE
 
 intCodeGenCOERCE(triple,t2) ==
-  -- NOTE: returns a triple
+  -- NOTE: returns a triple id:662
   t1 := objMode triple
   t1 = $EmptyMode => NIL
   t1 = t2 => triple

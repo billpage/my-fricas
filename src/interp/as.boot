@@ -698,7 +698,7 @@ asyConstructorModemap con ==
   HGET($conHash,con) isnt [record,:.] => nil   --not there
   [form,sig,predlist,kind,exposure,comments,typeCode,:filename] := record
   $kind: local := kind
-  --NOTE: sig has the form (-> source target) or simply (target)
+  --NOTE: sig has the form (-> source target) or simply (target) id:652
   $constructorArgs : local := IFCDR form
   signature := asySignature(sig,false)
   formals := ['_$,:TAKE(#$constructorArgs,$FormalMapVariableList)]

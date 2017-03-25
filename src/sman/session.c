@@ -334,7 +334,7 @@ accept_session_connection(Sock *server_sock)
       send_int(spad_server, CreateFrame);
       {
           int command = get_int(spad_server);
-          /* XXX hack -- the whole protocol looks broken, we just
+          /* XXX hack -- the whole protocol looks broken, we just id:677
           try to detect losage */
           if (command != CreateFrameAnswer) {
               fprintf(stderr, "session: fatal, got out of sync "

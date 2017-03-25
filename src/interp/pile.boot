@@ -111,7 +111,7 @@ nopile (s, opar, cpar) ==
          balance := balance + countParens(h, opar, cpar)
          -- SAY("balance = ", balance)
       -- SAY("ress=", ress)
-      -- FIXME: we should return a pair [deque, stream], but
+      -- FIXME: we should return a pair [deque, stream], but id:672
       -- now we return nil instead of a stream
       cons([[ress]], t)
 
