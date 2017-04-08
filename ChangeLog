@@ -1,3 +1,59 @@
+2017-04-08  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+
+	* src/algebra/catdef.spad: Add 'Algebra(%)' to
+	CommutativeRing
+
+2017-04-07  Qian Yun  <oldk1331@gmail.com>
+
+	* src/interp/sfsfun.boot: Remove 'nangenericcomplex'
+
+2017-04-03  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+
+	* src/algebra/rdeefx.spad: Handle some integrals in terms
+	of incomplete Gamma-s with irrational first argument
+
+2017-04-02  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+	    Qian Yun  <oldk1331@gmail.com>
+
+	* src/algebra/indexedp.spad, src/algebra/multpoly.spad:
+	Fix and speed up 'monomial?'
+
+2017-04-02  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+
+	* src/algebra/fspace.spad, src/algebra/op.spad:
+	Add derivatives for 'box' and 'paren'
+
+2017-04-02  Qian Yun  <oldk1331@gmail.com>
+
+	* src/algebra/aggcat.spad: Simplify DictionaryOperations
+
+2017-04-01  Qian Yun  <oldk1331@gmail.com>
+
+	* src/algebra/poly.spad: Fix 0^0
+
+2017-04-01  Qian Yun  <oldk1331@gmail.com>
+
+	* src/algebra/manip.spad: Fix 'simplifyLog'
+
+2017-03-31  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+
+	* config/config.guess, config/config.sub: Update
+
+2017-03-29  Qian Yun  <oldk1331@gmail.com>
+
+	* src/algebra/manip.spad: Fix expansion of nested
+	logarithms
+
+2017-03-28  Bill Page <bill.page@newsynthesis.org>
+
+	* src/algebra/combfunc.spad, src/algebra/expr.spad,
+	src/algebra/trigcat.spad, src/algebra/sf.spad:
+	Add symbolic 'conjugate'
+
+2017-03-27  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+
+	* src/interp/i-coerfn.boot: Minor cleanup
+
 2017-03-26  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
 
 	* src/algebra/ffcat.spad: Turn on PolynomialFactorizationExplicit
