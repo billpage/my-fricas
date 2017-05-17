@@ -1,3 +1,97 @@
+2017-05-15  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+
+	* src/interp/iterator.boot: Replace 'nil' by 'construct'
+
+2017-05-15  Qian Yun  <oldk1331@gmail.com>
+
+	* src/algebra/expr.spad: Remove unused code
+
+2017-05-15  Qian Yun  <oldk1331@gmail.com>
+
+	* src/etc/fricas: Update and simplify
+
+2017-05-14  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+
+	* src/algebra/pgcd.spad: Add more checks for bad
+	reduction
+
+2017-05-14  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+
+	* src/algebra/npcoef.spad: Avoid crash
+
+2017-05-13  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+
+	* src/algebra/multfact.spad: Fix handling of leading
+	coefficient
+
+2017-05-13  Qian Yun  <oldk1331@gmail.com>
+
+	* src/algebra/stream.spad: Avoid recursion in 'construct'
+	and 'numberOfComputedEntries'
+
+2017-05-12  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+
+	* src/algebra/gpgcd.spad: Fix problem with gcd of
+	monomials
+
+2017-04-26  Qian Yun  <oldk1331@gmail.com>
+
+	* src/algebra/computation.spad, src/algebra/logic.spad:
+	Remove redundant export of 'coerce'
+
+2017-04-22  Qian Yun  <oldk1331@gmail.com>
+
+	* src/interp/lisplib.boot: Avoid duplicates in operation
+	list
+
+2017-04-17  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+
+	* src/interp/ax.boot: Fix build of Aldor interface
+
+2017-04-14  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+
+	* src/interp/i-funsel.boot: Work around problem with
+	self referential conditions
+
+2017-04-14  Qian Yun  <oldk1331@gmail.com>
+
+	* src/interp/i-output.boot: Add space around conjugate
+
+2017-04-13  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+            Qian Yun  <oldk1331@gmail.com>
+
+	* src/algebra/product.spad, src/algebra/rdeefx.spad,
+	src/algebra/special2.spad, src/algebra/tableau.spad,
+	src/algebra/view3D.spad, src/etc/fricas,
+	src/interp/fortcall.boot, src/interp/i-output.boot:
+	Misc cleanups
+
+2017-04-13  Qian Yun  <oldk1331@gmail.com>
+
+	* src/algebra/aggcat.spad: Fix '=' and 'node?' for URAGG
+
+2017-04-12  Tim Daly  <axiomcas@gmail.com>
+	    Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+
+	* src/lib/prt.c: Fix overlapping 'strcpy'
+
+2017-04-11  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+	    Barry Trager
+
+	* src/algebra/rep1.spad: Generalize tensor
+	representaions
+
+2017-04-11  Qian Yun  <oldk1331@gmail.com>
+
+	* src/algebra/algfunc.spad, src/algebra/expr.spad:
+	Move RetractableTo AlgebraicNumber to category
+
+2017-04-09  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+
+	* src/algebra/Makefile.in, src/algebra/boolean.spad,
+	src/algebra/logic.spad: Add defalut 'T()' and "_|_"
+	in Logic
+
 2017-04-08  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
 
 	* src/algebra/catdef.spad: Add 'Algebra(%)' to
