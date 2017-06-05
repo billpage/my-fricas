@@ -314,6 +314,7 @@ FunctionSpaceRationalRoots(R, F)  : Exports == Implementation where
 ++ Risch differential equation, wrapper for extended version.
 ElementaryRischDEX2(R, F) : Exports == Implementation where
   R : Join(GcdDomain, Comparable, CharacteristicZero,
+           PolynomialFactorizationExplicit,
            RetractableTo Integer, LinearlyExplicitOver Integer)
   F : Join(TranscendentalFunctionCategory, AlgebraicallyClosedField,
            FunctionSpace R)
@@ -392,7 +393,7 @@ ElementaryRischDEX2(R, F) : Exports == Implementation where
 ++   to polynomial part of the integral.
 ++
 ElementaryRischDEX(R, F) : Exports == Implementation where
-  R : Join(EuclideanDomain, Comparable, CharacteristicZero,
+  R : Join(PolynomialFactorizationExplicit, Comparable, CharacteristicZero,
            RetractableTo Integer, LinearlyExplicitOver Integer)
   F : Join(TranscendentalFunctionCategory, AlgebraicallyClosedField,
            LiouvillianFunctionCategory, SpecialFunctionCategory,
@@ -895,7 +896,7 @@ ElementaryRischDEX(R, F) : Exports == Implementation where
 
     SREC ==> Record(degree : Z, factor : UP, coeff : F, ratpart : Z,
                     v_part : F, alg_part : UP, new_f : RF, radicand : RF,
-                    u_part : F, exponent : Z, shift_part : F,  a_val : F)
+                    u_part : F, exponent : Z, shift_part : F, a_val : F)
 
     ei_candidate(nf : UP, denf : UP, vlst : List(F), ulst : List(F),
                  k : K, x : SE, a : Z, tt : F, res : List SREC) : List SREC ==
