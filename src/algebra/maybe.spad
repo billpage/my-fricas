@@ -1,0 +1,61 @@
+)abbrev domain MAYBE Maybe
+++ Description:
+++ The type Maybe(R) represents either a value of type R, or absence/failure.
+++ Using Maybe is a good way to deal with errors or exceptional cases without
+++ resorting to drastic measures such as error.  It replaces the usage of
+++ Union(R, "failed").
+
+Maybe(R : Type) : Exports == Implementation where
+  Exports == with
+      failed : () -> %
+          ++ failed() returns the value that indicates failure.
+      failed? : % -> Boolean
+          ++ failed?(x) checks if x is failed().
+      wrap : R -> %
+          ++ wrap(x) returns x wrapped in type Maybe(R).
+      wrap? : % -> Boolean
+          ++ wrap?(x) checks if x is of type R.
+      unwrap : % -> R
+          ++ unwrap(x) returns x as type R, gives an error if x is failed().
+      unwrap! : % -> R
+          ++ unwrap!(x) returns x as type R without checking, use with caution.
+      unwrapOr : (%, R) -> R
+          ++ unwrapOr(x, default) returns x as type R if it's not failed(),
+          ++ otherwise returns default.
+      coerce : R -> %
+          ++ coerce(x) returns x wrapped in type Maybe(R).  This is the same
+          ++ as wrap(x), and provides auto-coercion in interpreter.
+      if R has CoercibleTo OutputForm then CoercibleTo OutputForm
+      if R has BasicType then BasicType
+      if R has SetCategory then SetCategory
+
+  Implementation == add
+      Qfailed ==> _*MAYBEFAIL_*$Lisp
+      Qfailed? ==> maybe_failp$Lisp
+
+      failed() == Qfailed
+      failed? x == Qfailed?(x)
+      wrap x == x pretend %
+      coerce(x : R) : % == x pretend %
+      wrap? x == maybe_wrapp(x)$Lisp
+      unwrap x == maybe_unwrap(x)$Lisp
+      unwrap! x == x pretend R
+      unwrapOr(x, default) == if Qfailed?(x) then default else x pretend R
+
+      if R has CoercibleTo OutputForm then
+          coerce(x : %) : OutputForm ==
+              Qfailed?(x) => 'failed::OutputForm
+              (x pretend R)::OutputForm
+
+      if R has BasicType then
+          x = y ==
+              Qfailed?(x) =>
+                  Qfailed?(y) => true
+                  false
+              Qfailed?(y) => false
+              (x pretend R) = (y pretend R)
+
+      if R has SetCategory then
+          hashUpdate!(hs : HashState, x : %) ==
+              Qfailed?(x) => update!(hs, SXHASH(Qfailed)$Lisp)$HashState
+              hashUpdate!(hs, x pretend R)
