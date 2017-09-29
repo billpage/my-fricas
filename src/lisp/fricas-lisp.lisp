@@ -1189,6 +1189,17 @@ with this hack and will try to convince the GCL crowd to fix this.
 (defmacro |idChar?| (x)
     `(or (alphanumericp ,x) (member ,x '(#\? #\% #\' #\!) :test #'char=)))
 
+;;; The following functions are for Maybe domain to be inlined.
+
+(setq *maybefail* (gensym))
+
+(defun |maybe_failp| (x) (eq x *maybefail*))
+
+(defun |maybe_wrapp| (x) (not (eq x *maybefail*)))
+
+(defun |maybe_unwrap| (x)
+  (if (eq x *maybefail*) (|error| "unwrap: the argument is failed()") x))
+
 (in-package "BOOTTRAN")
 
 (defmacro |doInBoottranPackage| (expr)
