@@ -7,6 +7,6 @@ addons:
       - sbcl
 compiler: gcc
 script:
-  - ./configure && make -j2 2>&1 | grep '")compile"' | sed 's/ | DAASE.*//'
+  - ./configure && make -j2 2>&1 | grep -i -F -e '")compile"' -e 'user error' | sed 's/ | DAASE.*//'
   - cd src/input && make -j2 | grep 'tee.*output'
   - ../scripts/test.sh
