@@ -128,9 +128,9 @@ IntegerLocalizedAtPrime(p : P) : Join(EuclideanDomain,
         zero? y => zero? x
         exponent x = exponent y
     unit?(x : %) : Boolean == zero? exponent x and not zero? x
-    recip(x : %) : Union(%, "failed") ==
-        not unit? x => "failed"
-        (per [0, inv unitPart x])::Union(%, "failed")
+    recip(x : %) : Maybe % ==
+        not unit? x => failed
+        coerce(per [0, inv unitPart x])
     gcd(x : %, y : %) : % == per [min(exponent x, exponent y), 1]
     lcm(x : %, y : %) : % ==
         per [max(exponent x, exponent y), unitPart(x)*unitPart(y)]

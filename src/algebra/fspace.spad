@@ -1199,7 +1199,7 @@ FunctionSpaceFunctions2(R, A, S, B) : Exports == Implementation where
       if S has IntegralDomain then
         map(f, x) == smpmap(f, numer x) / smpmap(f, denom x)
       else
-        map(f, x) == smpmap(f, numer x) * (recip(smpmap(f, denom x))::B)
+        map(f, x) == smpmap(f, numer x) * (retract recip(smpmap(f, denom x)))
     else
       map(f, x) == smpmap(f, numer x)
 

@@ -411,9 +411,10 @@ ComplexRootFindingPackage(R, UP) : public == private where
        -- coefficient of x^d and x^(d-1)
        lC : C :=  coefficient(p, d)  -- ~= 0
        nC : C :=  coefficient(p, (d-1) pretend NNI)
-       (denom := recip ((d::I::C)*lC)) case "failed" => error  "schwerpunkt: _
+       denom := recip ((d::I::C)*lC)
+       not retractable?(denom) => error  "schwerpunkt: _
          degree * leadingCoefficient not invertible in ring of coefficients"
-       - (nC*(denom::C))
+       - (nC*(retract denom))
 
      reciprocalPolynomial p ==
        zero? p => 0

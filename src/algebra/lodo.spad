@@ -269,7 +269,7 @@ LODOConvertions(Coeff, Ab, R) : Exports == Implementation where
             while l1 ~= 0 repeat
                 l3 := (l3 +
                       leadingCoefficient(l1) *
-                      (((recip(monomial(1, 1) * 1$R)) :: R) * D())^degree(l1))
+                      (retract(recip(monomial(1, 1) * 1$R)) * D())^degree(l1))
                 l1 := reductum l1
             l3
         convert(l3 : L3) ==

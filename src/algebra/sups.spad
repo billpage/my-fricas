@@ -559,7 +559,8 @@ InnerSparseUnivariatePowerSeries(Coef) : Exports == Implementation where
         lazyEvaluate y
         (n := n + 1) > 1000 => return "failed"
       yCoef := getCoef(yTerm := frst y); ny := getExpon yTerm
-      (ry := recip yCoef) case "failed" => "failed"
+      ry := recip yCoef
+      not retractable? ry => "failed"
       nn := ny :: COM
       if taylor? then
         while (elt(xRefer) < nn) repeat
@@ -567,7 +568,7 @@ InnerSparseUnivariatePowerSeries(Coef) : Exports == Implementation where
           explicitEntries? x => return "failed"
           lazyEvaluate x
       -- check if ups2 is a monomial
-      empty? rst y => iMap2((y1, m) +-> y1*(ry :: Coef), z +-> z - ny,
+      empty? rst y => iMap2((y1, m) +-> y1*retract(ry), z +-> z - ny,
                             false, ups1)
       explicitlyEmpty? x => 0
       nx :=
@@ -576,7 +577,7 @@ InnerSparseUnivariatePowerSeries(Coef) : Exports == Implementation where
           deg - 1
         -- can't have elt(xRefer) = infty unless all terms have been computed
         retract(elt xRefer)@I
-      divide(ups1, nx, ups2, ny, ry :: Coef)
+      divide(ups1, nx, ups2, ny, retract ry)
 
     taylorQuoByVar ups ==
       iMap2((y, n) +-> y, z +-> z - 1, false,
@@ -763,15 +764,16 @@ InnerSparseUnivariatePowerSeries(Coef) : Exports == Implementation where
         (n := order exquo denom(r)) case "failed" =>
           error "^: rational power does not exist"
         cc := coefficient(uts, order)
-        (ccInv := recip cc) case "failed" => error concat("^: ",NOTINV)
+        ccInv := recip cc
+        not retractable? ccInv => error concat("^: ",NOTINV)
         ccPow :=
           (cc = 1) => cc
           (denom r) = 1 =>
             not negative?(num := numer r) => cc ^ (num :: NNI)
-            (ccInv :: Coef) ^ ((-num) :: NNI)
+            retract(ccInv) ^ ((-num) :: NNI)
           RATPOWERS => cc ^ r
           error "^ rational power of coefficient undefined"
-        uts1 := (ccInv :: Coef) * uts
+        uts1 := retract(ccInv) * uts
         uts2 := uts1 * monomial(1, -order)
         monomial(ccPow, (n :: I) * numer(r)) * cPower(uts2, r :: Coef)
 
@@ -1143,7 +1145,10 @@ SparseUnivariateTaylorSeries(Coef, var, cen) : Exports == Implementation where
     0 == monomial(0, 0)$Rep
     1 == monomial(1, 0)$Rep
 
-    recip uts == iExquo(1, uts, true)
+    recip uts ==
+      r := iExquo(1, uts, true)
+      r case "failed" => failed
+      coerce r
 
     if Coef has IntegralDomain then
       uts1 exquo uts2 == iExquo(uts1, uts2, true)
@@ -1539,7 +1544,10 @@ SparseUnivariateLaurentSeries(Coef, var, cen) : Exports == Implementation where
     if Coef has Field then
       (uts1 : SUTS) / (uts2 : SUTS) == (uts1 :: %) / (uts2 :: %)
 
-    recip(uls) == iExquo(1, uls, false)
+    recip(uls) ==
+      r:=iExquo(1, uls, false)
+      r case "failed" => failed
+      coerce r
 
     if Coef has IntegralDomain then
       uls1 exquo uls2 == iExquo(uls1, uls2, false)
@@ -1556,10 +1564,11 @@ SparseUnivariateLaurentSeries(Coef, var, cen) : Exports == Implementation where
       order(uls2, 1) < 1 =>
         error "elt: second argument must have positive order"
       negative?(ord := order(uls1, 0)) =>
-        (recipr := recip uls2) case "failed" =>
+        recipr := recip uls2
+        not retractable? recipr =>
           error "elt: second argument not invertible"
         uls3 := uls1 * monomial(1, -ord)
-        iCompose(uls3, uls2) * (recipr :: %) ^ ((-ord) :: NNI)
+        iCompose(uls3, uls2) * retract(recipr) ^ ((-ord) :: NNI)
       iCompose(uls1, uls2)
 
     if Coef has IntegralDomain then

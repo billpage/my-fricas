@@ -169,8 +169,8 @@ Permanent(n : PositiveInteger, R : Join(Ring, CommutativeStar)):
       -- [Nijenhuis and Wilf, ch.19, p.158]
       n = 1 => x(1, 1)
       two : R := (2::I) :: R
-      half : Union(R,"failed") := recip(two)
-      if (half case "failed") then
+      half := recip(two)
+      if not retractable? half then
         if n < 7 then return permanent3(x)
         else return permanent2(x)
       sgn : R := 1

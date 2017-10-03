@@ -204,8 +204,8 @@ InnerPAdicInteger(p, unBalanced?) : Exports == Implementation where
       concat(z0, quotientAux(x, yy))
 
     recip x ==
-      empty? x or modP frst x = 0 => "failed"
-      padic quotientAux(stream x, concat(1, empty()))
+      empty? x or modP frst x = 0 => failed
+      coerce padic quotientAux(stream x, concat(1, empty()))
 
     iExquo : (%,%,I) -> Union(%,"failed")
     iExquo(xx, yy, n) ==
@@ -216,8 +216,9 @@ InnerPAdicInteger(p, unBalanced?) : Exports == Implementation where
       zero? frst yy =>
         zero? frst xx => iExquo(rst xx, rst yy, n + 1)
         "failed"
-      (rec := recip yy) case "failed" => "failed"
-      xx * (rec :: %)
+      rec := recip yy
+      not retractable? rec => "failed"
+      xx * retract(rec)
 
     x exquo y == iExquo(stream x, stream y, 0)
 
@@ -441,13 +442,15 @@ PAdicRationalConstructor(p, PADIC) : Exports == Implementation where
 
     recip x ==
       x := removeZeroes(1000, x)
-      zero? moduloP(xx := getZp x) => "failed"
-      (inv := recip xx) case "failed" => "failed"
-      makeQp(- getExpon x, inv :: PADIC)
+      zero? moduloP(xx := getZp x) => failed
+      inv := recip xx
+      not retractable? inv => failed
+      coerce makeQp(- getExpon x, retract inv)
 
     inv x ==
-      (inv := recip x) case "failed" => error "inv: no inverse"
-      inv :: %
+      inv := recip x
+      not retractable? inv => error "inv: no inverse"
+      retract inv
 
     x : % / y : % == x * inv y
     x : PADIC / y : PADIC == (x :: %) / (y :: %)

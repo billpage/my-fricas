@@ -273,8 +273,8 @@ MonogenicAlgebra(R : CommutativeRing, UP : UnivariatePolynomialCategory R):
 
      recip x ==
        (bc := extendedEuclidean(lift x, definingPolynomial(), 1))
-                                                case "failed" => "failed"
-       reduce(bc.coef1)
+                                                case "failed" => failed
+       coerce reduce(bc.coef1)
 
 )abbrev package CPIMA CharacteristicPolynomialInMonogenicalAlgebra
 ++ Author: Claude Quitte

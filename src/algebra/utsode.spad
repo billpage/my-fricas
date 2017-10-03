@@ -68,8 +68,8 @@ UnivariateTaylorSeriesODESolver(Coef, UTS) : _
         zero? hx => sdiv(tx, ty)
         error "stream division by zero"
       rhy := recip hy
-      rhy case "failed" => error "stream division:no reciprocal"
-      divloop(hx, tx, rhy::Coef, ty)
+      not retractable? rhy => error "stream division:no reciprocal"
+      divloop(hx, tx, retract rhy, ty)
 
     fixedPointExquo(f, g) == series sdiv(coefficients f, coefficients g)
 

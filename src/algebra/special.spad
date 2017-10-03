@@ -197,25 +197,25 @@ DoubleFloatSpecialFunctions() : Exports == Impl where
             p * ahalf * ( besselI(-v, z) - besselI(v, z) )/sin(vp)
 
         airyAi x ==
-            ahalf  := recip(2::R)::R
-            athird := recip(3::R)::R
+            ahalf  := retract recip(2::R)
+            athird := retract recip(3::R)
             eta := 2 * athird * (-x) ^ (3*ahalf)
             (-x)^ahalf * athird * (besselJ(-athird, eta) + besselJ(athird, eta))
         airyAi z ==
-            ahalf  := recip(2::C)::C
-            athird := recip(3::C)::C
+            ahalf  := retract recip(2::C)
+            athird := retract recip(3::C)
             eta := 2 * athird * (-z) ^ (3*ahalf)
             (-z)^ahalf * athird * (besselJ(-athird, eta) + besselJ(athird, eta))
 
         airyBi x ==
-            ahalf  := recip(2::R)::R
-            athird := recip(3::R)::R
+            ahalf  := retract recip(2::R)
+            athird := retract recip(3::R)
             eta := 2 * athird * (-x) ^ (3*ahalf)
             (-x*athird)^ahalf * ( besselJ(-athird, eta) - besselJ(athird, eta) )
 
         airyBi z ==
-            ahalf  := recip(2::C)::C
-            athird := recip(3::C)::C
+            ahalf  := retract recip(2::C)
+            athird := retract recip(3::C)
             eta := 2 * athird * (-z) ^ (3*ahalf)
             (-z*athird)^ahalf * ( besselJ(-athird, eta) - besselJ(athird, eta) )
 

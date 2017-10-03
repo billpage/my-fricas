@@ -77,12 +77,12 @@ InnerPrimeField(p : PositiveInteger) : Exports == Implementation where
       q := p::SingleInteger
 
       recip x ==
-        zero?(y := convert(x)@Integer :: SingleInteger) => "failed"
-        invmod(y, q)::Integer::%
+        zero?(y := convert(x)@Integer :: SingleInteger) => failed
+        coerce(invmod(y, q)::Integer::%)
     else
       recip x ==
-        zero?(y := convert(x)@Integer) => "failed"
-        invmod(y, p)::%
+        zero?(y := convert(x)@Integer) => failed
+        coerce(invmod(retract y, p)::%)
 
     convert(x : %) == x pretend I
 

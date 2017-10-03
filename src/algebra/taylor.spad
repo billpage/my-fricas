@@ -99,8 +99,9 @@ InnerTaylorSeries(Coef) : Exports == Implementation where
     (x : %) * (c : Coef) == stream(x) *$STT c
 
     recip x ==
-      (rec := recip$STT stream x) case "failed" => "failed"
-      series(rec :: ST)
+      rec := recip$STT stream x
+      not retractable? rec => failed
+      coerce series(retract rec)
 
     if Coef has IntegralDomain then
 

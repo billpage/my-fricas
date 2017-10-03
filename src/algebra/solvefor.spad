@@ -152,9 +152,7 @@ PolynomialSolveByFormulas(UP, F) : PSFcat == PSFdef where
         -- local function for testing equality of radicals.
         --  This function is necessary to detect at least some of the
         --  situations like sqrt(9)-3 = 0 --> false.
-        equ(x : F, y : F) : Boolean ==
-            ( (recip(x-y)) case "failed" ) => true
-            false
+        equ(x : F, y : F) : Boolean == not retractable?(recip(x-y))
 
         linear(c1, c0) ==
             needLcoef c1

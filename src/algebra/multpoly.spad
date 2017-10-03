@@ -286,9 +286,9 @@ SparseMultivariatePolynomial(R : Join(SemiRng, AbelianMonoid),
           recip(p) ==
               p case R =>
                   uu := recip(p::R)
-                  uu case "failed" => "failed"
-                  uu::%
-              "failed"
+                  not retractable? uu => failed
+                  retract uu
+              failed
 
       if R has Ring then
 

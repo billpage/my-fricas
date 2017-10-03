@@ -281,8 +281,10 @@ PatternMatchKernel(S, E) : Exports == Implementation where
           vr := v::Record(val : PAT, exponent : PAT)
           is?(op := operator s, POWER) =>
             patternMatchArg(argument s, [vr.val, vr.exponent], l)
-          is?(op, NTHRT) and ((r := recip(second(arg := argument s))) case E) =>
-            patternMatchArg([first arg, r::E], [vr.val, vr.exponent], l)
+          arg := argument s
+          r := recip(second arg)
+          is?(op, NTHRT) and retractable? r =>
+            patternMatchArg([first arg, retract r], [vr.val, vr.exponent], l)
           optional?(vr.exponent) =>
             failed?(l := addMatch(vr.exponent, 1, l)) => failed()
             patternMatch(s::E, vr.val, l)

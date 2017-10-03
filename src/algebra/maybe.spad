@@ -6,7 +6,7 @@
 ++ Union(R, "failed").
 
 Maybe(R : Type) : Exports == Implementation where
-  Exports == with
+  Exports == RetractableTo R with
       failed : () -> %
           ++ failed() returns the value that indicates failure.
       failed? : % -> Boolean
@@ -25,6 +25,12 @@ Maybe(R : Type) : Exports == Implementation where
       coerce : R -> %
           ++ coerce(x) returns x wrapped in type Maybe(R).  This is the same
           ++ as wrap(x), and provides auto-coercion in interpreter.
+      retractable? : % -> Boolean
+          ++ retractable?(x) checks if x is of type R.
+      retract : % -> R
+          ++ retract(x) returns x as type R, gives an error if x is failed().
+      retractIfCan: % -> Union(R,"failed")
+          ++ retractIfCan(x) returns x as a union type.
       if R has CoercibleTo OutputForm then CoercibleTo OutputForm
       if R has BasicType then BasicType
       if R has SetCategory then SetCategory
@@ -38,9 +44,12 @@ Maybe(R : Type) : Exports == Implementation where
       wrap x == x pretend %
       coerce(x : R) : % == x pretend %
       wrap? x == maybe_wrapp(x)$Lisp
+      retractable? x == not maybe_wrapp(x)$Lisp
       unwrap x == maybe_unwrap(x)$Lisp
+      retract x == maybe_unwrap(x)$Lisp
       unwrap! x == x pretend R
       unwrapOr(x, default) == if Qfailed?(x) then default else x pretend R
+      retractIfCan(x) == if Qfailed?(x) then "failed" else x pretend R
 
       if R has CoercibleTo OutputForm then
           coerce(x : %) : OutputForm ==

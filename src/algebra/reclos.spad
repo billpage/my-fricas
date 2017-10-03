@@ -203,7 +203,7 @@ RealRootCharacterizationCategory(TheField, ThePols) : Category == PUB where
         positive? :           (ThePols, %)   ->         Boolean
               ++ \spad{positive?(pol, aRoot)} answers if \spad{pol}
               ++ interpreted as \spad{aRoot} is positive
-        recip :               (ThePols, %)   ->   Union(ThePols, "failed")
+        recip :               (ThePols, %)   ->   Union(ThePols,"failed")
               ++ \spad{recip(pol, aRoot)} tries to inverse \spad{pol}
               ++ interpreted as \spad{aRoot}
         definingPolynomial :       %         ->         ThePols
@@ -244,7 +244,7 @@ RealRootCharacterizationCategory(TheField, ThePols) : Category == PUB where
         recip(toInv, rootChar) ==
           degree(toInv) = 0 =>
             res := recip(leadingCoefficient(toInv))
-            if (res case "failed") then "failed" else (res::TheField::ThePols)
+            if not retractable?(res) then "failed" else (retract(res)::TheField::ThePols)
           defPol := definingPolynomial(rootChar)
           d := principalIdeal([defPol, toInv])
           zero?(d.generator,rootChar) => "failed"
@@ -720,7 +720,7 @@ RightOpenIntervalRootCharacterization(TheField, ThePolDom) : PUB == PRIV where
    linearRecip(toTest, rootChar) ==
       c := - inv(leadingCoefficient(toTest)) * coefficient(toTest, 0)
       r := recip(rootChar.defPol.c)
-      if (r case "failed")
+      if not retractable?(r)
       then
         if (c - rootChar.low) * (c - rootChar.high) <= 0
         then
@@ -1060,17 +1060,18 @@ RealClosure(TheField) : PUB == PRIV where
 
 
        inv(x) ==
-          (res := recip x) case "failed" => error "Division by 0"
-          res :: %
+          res := recip x
+          not retractable? res => error "Division by 0"
+          coerce(res)
 
        recip(x) ==
          x case TheField =>
-           if ((r := recip(x)$TheField) case TheField)
-           then r::%
-           else "failed"
-         if ((r := recip(x.val,x.seg)$SEG) case "failed")
-         then "failed"
-         else lessAlgebraic([x.seg, r::PME, x.outForm, x.order]$Rec)
+           r := recip(x)$TheField
+           if retractable? r then coerce(retract(r)::%)
+           else failed
+         r := recip(x.val,x.seg)$SEG
+         if not retractable? r then failed
+       else coerce lessAlgebraic([x.seg, retract(r), x.outForm, x.order]$Rec)
 
        (n : Z * x : %) : % ==
           x case TheField => n *$TheField x

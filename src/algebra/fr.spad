@@ -336,13 +336,14 @@ Factored(R : IntegralDomain) : Exports == Implementation where
       mkFF(- unit u, factorList u)
 
     recip u  ==
-      not empty? factorList u => "failed"
-      (r := recip unit u) case "failed" => "failed"
-      mkFF(r::R, empty())
+      not empty? factorList u => failed
+      r := recip unit u
+      not retractable? r => failed
+      coerce mkFF(retract(r), empty())
 
     reciprocal u ==
-      mkFF((recip unit u)::R,
-                    [[y.flg, y.fctr, - y.xpnt]$FF for y in factorList u])
+      r := recip unit u
+      mkFF(retract r, [[y.flg, y.fctr, - y.xpnt]$FF for y in factorList u])
 
     flagFactor(r, i, fl) ==
       zero? i => 1
@@ -370,8 +371,10 @@ Factored(R : IntegralDomain) : Exports == Implementation where
       "failed"
 
     unitNormal u == -- does a bunch of work, but more canonical
-      (ur := recip(un := unit u)) case "failed" => [1, u, 1]
-      as := ur::R
+      un := unit u
+      ur := recip un
+      not retractable? ur => [1, u, 1]
+      as := retract ur
       vl := empty()$List(FF)
       for x in factorList u repeat
         ucar := unitNormal(x.fctr)

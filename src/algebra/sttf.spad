@@ -205,11 +205,11 @@ StreamTranscendentalFunctions(Coef) : Exports == Implementation where
 
     sec z ==
       empty? z => 1::ST
-      frst z = 0 => recip(cos z)::ST
+      frst z = 0 => retract recip(cos z)
       TRANSFCN =>
         cosz := cos z
         first cosz = 0 => error concat("sec: ", NPOWERS)
-        recip(cosz)::ST
+        retract recip(cosz)
       error concat("sec: ", TRCONST)
 
     csc z ==
@@ -217,7 +217,7 @@ StreamTranscendentalFunctions(Coef) : Exports == Implementation where
       TRANSFCN =>
         sinz := sin z
         first sinz = 0 => error concat("csc: ", NPOWERS)
-        recip(sinz)::ST
+        retract recip(sinz)
       error concat("csc: ", TRCONST)
 
     orderOrFailed : ST -> Union(I,"failed")
@@ -272,11 +272,12 @@ StreamTranscendentalFunctions(Coef) : Exports == Implementation where
     atan z ==
       empty? z => 0 :: ST
       (coef := frst z) = 0 =>
-        integrate(0, (recip((1 :: ST) + z*z) :: ST) * (deriv z))
+        integrate(0, retract(recip((1 :: ST) + z*z)) * (deriv z))
       TRANSFCN =>
-        (y := recip((1 :: ST) + z*z)) case "failed" =>
+        y := recip((1 :: ST) + z*z)
+        not retractable? y =>
           error concat("atan: ", LOGS)
-        integrate(atan coef, (y :: ST) * (deriv z))
+        integrate(atan coef, retract(y) * (deriv z))
       error concat("atan: ", TRCONST)
 
     acot z ==
@@ -284,9 +285,10 @@ StreamTranscendentalFunctions(Coef) : Exports == Implementation where
         TRANSFCN => acot(0)$Coef :: ST
         error concat("acot: ", TRCONST)
       TRANSFCN =>
-        (y := recip((1 :: ST) + z*z)) case "failed" =>
+        y := recip((1 :: ST) + z*z)
+        not retractable? y =>
           error concat("acot: ", LOGS)
-        integrate(acot frst z, -(y :: ST) * (deriv z))
+        integrate(acot frst z, -retract(y) * (deriv z))
       error concat("acot: ", TRCONST)
 
     asec z ==
@@ -354,17 +356,17 @@ StreamTranscendentalFunctions(Coef) : Exports == Implementation where
       tanhz := tanh z
       empty? tanhz => error "coth: coth(0) is undefined"
       (frst tanhz) = 0 => error concat("coth: ", NPOWERS)
-      recip(tanhz)::ST
+      retract recip(tanhz)
 
     sech z ==
       coshz := cosh z
       (empty? coshz) or (frst coshz = 0) => error concat("sech: ", NPOWERS)
-      recip(coshz)::ST
+      retract recip(coshz)
 
     csch z ==
       sinhz := sinh z
       (empty? sinhz) or (frst sinhz = 0) => error concat("csch: ", NPOWERS)
-      recip(sinhz)::ST
+      retract recip(sinhz)
 
     asinh z ==
       empty? z => 0 :: ST

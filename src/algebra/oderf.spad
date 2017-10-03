@@ -286,7 +286,7 @@ UTSodetools(F, UP, L, UTS) : Exports == Implementation where
         ans
 
       LODO2FUN op ==
-          a := recip(UP2UTS(- leadingCoefficient op))::UTS
+          a := retract recip(UP2UTS(- leadingCoefficient op))
           n := (degree(op) - 1)::NonNegativeInteger
           v := [a * UP2UTS coefficient(op, i) for i in 0..n]$Vector(UTS)
           (l1 : List UTS) : UTS +-> fun(v, l1)
@@ -297,7 +297,7 @@ UTSodetools(F, UP, L, UTS) : Exports == Implementation where
           ans
 
       if F has IntegralDomain then
-          RF2UTS f == UP2UTS(numer f) * recip(UP2UTS denom f)::UTS
+          RF2UTS f == UP2UTS(numer f) * retract recip(UP2UTS denom f)
 
 )abbrev package ODERAT RationalLODE
 ++ Author: Manuel Bronstein

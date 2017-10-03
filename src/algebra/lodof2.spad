@@ -200,7 +200,7 @@ LinearOrdinaryDifferentialOperatorFactorizer2(var, cen) : Exports == Impl where
             den := convertUPtoUTS(denom lc) :: US
             apf := (apf +
                     monomial((convertUPtoUTS(numer lc) *
-                    recip(den) :: US), degree(ftmp)))
+                    retract(recip den)) :: US, degree(ftmp)))
             ftmp := reductum ftmp
         apf
 
@@ -1437,4 +1437,3 @@ LinearOrdinaryDifferentialOperatorFactorizer2(var, cen) : Exports == Impl where
 --LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 --NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 --SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-

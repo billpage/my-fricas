@@ -215,15 +215,19 @@ Equation(S : Type) : public == private where
     if S has Monoid then
         1 == equation(1$S, 1$S)
         recip eq ==
-          (lh := recip lhs eq) case "failed" => "failed"
-          (rh := recip rhs eq) case "failed" => "failed"
-          [lh :: S, rh :: S]
+          lh := recip lhs eq
+          not retractable? lh => failed
+          rh := recip rhs eq
+          not retractable? rh => failed
+          coerce([retract lh, retract rh])
         leftOne eq ==
-          (re := recip lhs eq) case "failed" => "failed"
-          1 = rhs eq * re
+          re := recip lhs eq
+          not retractable? re => "failed"
+          1 = rhs eq * retract re
         rightOne eq ==
-          (re := recip rhs eq) case "failed" => "failed"
-          lhs eq * re = 1
+          re := recip rhs eq
+          not retractable? re => "failed"
+          lhs eq * retract re = 1
     if S has Group then
         inv eq == [inv lhs eq, inv rhs eq]
         leftOne eq == 1 = rhs eq * inv rhs eq

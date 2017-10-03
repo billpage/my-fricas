@@ -181,8 +181,9 @@ ElementaryFunctionsUnivariatePuiseuxSeries(Coef, ULS, UPXS, EFULS) : _
       TRANSFCN =>
         cc := asec(coefficient(upxs, 0)) :: UPXS
         f := (upxs*upxs - 1)^(-1/2) * (differentiate upxs)
-        (rec := recip upxs) case "failed" => "failed"
-        cc + integrate(f * (rec :: UPXS))
+        rec := recip upxs
+        not retractable? rec => "failed"
+        cc + integrate(f * retract(rec))
       "failed"
 
     acscIfCan upxs ==
@@ -190,8 +191,9 @@ ElementaryFunctionsUnivariatePuiseuxSeries(Coef, ULS, UPXS, EFULS) : _
       TRANSFCN =>
         cc := acsc(coefficient(upxs, 0)) :: UPXS
         f := -(upxs*upxs - 1)^(-1/2) * (differentiate upxs)
-        (rec := recip upxs) case "failed" => "failed"
-        cc + integrate(f * (rec :: UPXS))
+        rec := recip upxs
+        not retractable? rec => "failed"
+        cc + integrate(f * retract(rec))
       "failed"
 
     asinhIfCan upxs ==
@@ -209,15 +211,17 @@ ElementaryFunctionsUnivariatePuiseuxSeries(Coef, ULS, UPXS, EFULS) : _
     asechIfCan upxs ==
       TRANSFCN =>
         order(upxs,0) < 0 => "failed"
-        (rec := recip upxs) case "failed" => "failed"
-        log((1 + (1 - upxs*upxs)*(1/2)) * (rec :: UPXS))
+        rec := recip upxs
+        not retractable? rec => "failed"
+        log((1 + (1 - upxs*upxs)*(1/2)) * retract(rec))
       "failed"
 
     acschIfCan upxs ==
       TRANSFCN =>
         order(upxs,0) < 0 => "failed"
-        (rec := recip upxs) case "failed" => "failed"
-        log((1 + (1 + upxs*upxs)*(1/2)) * (rec :: UPXS))
+        rec := recip upxs
+        not retractable? rec => "failed"
+        log((1 + (1 + upxs*upxs)*(1/2)) * retract(rec))
       "failed"
 
     applyOrError:(UPXS -> Union(UPXS,"failed"),String,UPXS) -> UPXS

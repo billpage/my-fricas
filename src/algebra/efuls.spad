@@ -173,28 +173,32 @@ ElementaryFunctionsUnivariateLaurentSeries(Coef, UTS, ULS) : _
       uts := taylorIfCan uls
       uts case "failed" => "failed"
       sc := sincos(coefficients(uts :: UTS))$STTF
-      (cosInv := recip(series(sc.cos) :: ULS)) case "failed" => "failed"
-      (series(sc.sin) :: ULS) * (cosInv :: ULS)
+      cosInv := recip(series(sc.cos) :: ULS)
+      not retractable? cosInv => "failed"
+      (series(sc.sin) :: ULS) * retract(cosInv)
 
     cotIfCan uls ==
       -- don't call 'cot' on a UTS (cot(uls) may have a singularity)
       uts := taylorIfCan uls
       uts case "failed" => "failed"
       sc := sincos(coefficients(uts :: UTS))$STTF
-      (sinInv := recip(series(sc.sin) :: ULS)) case "failed" => "failed"
-      (series(sc.cos) :: ULS) * (sinInv :: ULS)
+      sinInv := recip(series(sc.sin) :: ULS)
+      not retractable? sinInv => "failed"
+      (series(sc.cos) :: ULS) * retract(sinInv)
 
     secIfCan uls ==
       cos := cosIfCan uls
       cos case "failed" => "failed"
-      (cosInv := recip(cos :: ULS)) case "failed" => "failed"
-      cosInv :: ULS
+      cosInv := recip(cos :: ULS)
+      not retractable? cosInv => "failed"
+      retract cosInv
 
     cscIfCan uls ==
       sin := sinIfCan uls
       sin case "failed" => "failed"
-      (sinInv := recip(sin :: ULS)) case "failed" => "failed"
-      sinInv :: ULS
+      sinInv := recip(sin :: ULS)
+      not retractable? sinInv => "failed"
+      retract sinInv
 
     atanIfCan uls ==
       coef := coefficient(uls, 0)
@@ -213,8 +217,9 @@ ElementaryFunctionsUnivariateLaurentSeries(Coef, UTS, ULS) : _
         coef = 0 => 0
         TRANSFCN => atan coef
         return "failed"
-      (z := recip(1 + uls*uls)) case "failed" => "failed"
-      (cc :: ULS) + integrate(differentiate(uls) * (z :: ULS))
+      z := recip(1 + uls*uls)
+      not retractable? z => "failed"
+      (cc :: ULS) + integrate(differentiate(uls) * retract(z))
 
     acotIfCan uls ==
       coef := coefficient(uls, 0)
@@ -230,38 +235,43 @@ ElementaryFunctionsUnivariateLaurentSeries(Coef, UTS, ULS) : _
           0
         TRANSFCN => acot coef
         return "failed"
-      (z := recip(1 + uls*uls)) case "failed" => "failed"
-      (cc :: ULS) - integrate(differentiate(uls) * (z :: ULS))
+      z := recip(1 + uls*uls)
+      not retractable? z => "failed"
+      (cc :: ULS) - integrate(differentiate(uls) * retract(z))
 
     tanhIfCan uls ==
       -- don't call 'tanh' on a UTS (tanh(uls) may have a singularity)
       uts := taylorIfCan uls
       uts case "failed" => "failed"
       sc := sinhcosh(coefficients(uts :: UTS))$STTF
-      (coshInv := recip(series(sc.cosh) :: ULS)) case "failed" =>
+      coshInv := recip(series(sc.cosh) :: ULS)
+      not retractable? coshInv =>
         "failed"
-      (series(sc.sinh) :: ULS) * (coshInv :: ULS)
+      (series(sc.sinh) :: ULS) * retract(coshInv)
 
     cothIfCan uls ==
       -- don't call 'coth' on a UTS (coth(uls) may have a singularity)
       uts := taylorIfCan uls
       uts case "failed" => "failed"
       sc := sinhcosh(coefficients(uts :: UTS))$STTF
-      (sinhInv := recip(series(sc.sinh) :: ULS)) case "failed" =>
+      sinhInv := recip(series(sc.sinh) :: ULS)
+      not retractable? sinhInv =>
         "failed"
-      (series(sc.cosh) :: ULS) * (sinhInv :: ULS)
+      (series(sc.cosh) :: ULS) * retract(sinhInv)
 
     sechIfCan uls ==
       cosh := coshIfCan uls
       cosh case "failed" => "failed"
-      (coshInv := recip(cosh :: ULS)) case "failed" => "failed"
-      coshInv :: ULS
+      coshInv := recip(cosh :: ULS)
+      not retractable? coshInv => "failed"
+      retract coshInv
 
     cschIfCan uls ==
       sinh := sinhIfCan uls
       sinh case "failed" => "failed"
-      (sinhInv := recip(sinh :: ULS)) case "failed" => "failed"
-      sinhInv :: ULS
+      sinhInv := recip(sinh :: ULS)
+      not retractable? sinhInv => "failed"
+      retract sinhInv
 
     applyOrError:(ULS -> Union(ULS,"failed"),S,ULS) -> ULS
     applyOrError(fcn, name, uls) ==
@@ -314,9 +324,10 @@ ElementaryFunctionsUnivariateLaurentSeries(Coef, UTS, ULS) : _
         coef = 0 => 0
         TRANSFCN => atan coef
         error "atan: series expansion involves transcendental constants"
-      (z := recip(1 + uls*uls)) case "failed" =>
+      z := recip(1 + uls*uls)
+      not retractable? z =>
         error "atan: leading coefficient not invertible"
-      (cc :: ULS) + integrate(differentiate(uls) * (z :: ULS))
+      (cc :: ULS) + integrate(differentiate(uls) * retract(z))
 
     acot uls ==
     -- code is duplicated so that correct error messages will be returned
@@ -334,9 +345,10 @@ ElementaryFunctionsUnivariateLaurentSeries(Coef, UTS, ULS) : _
           0
         TRANSFCN => acot coef
         error "acot: series expansion involves transcendental constants"
-      (z := recip(1 + uls*uls)) case "failed" =>
+      z := recip(1 + uls*uls)
+      not retractable? z =>
         error "acot: leading coefficient not invertible"
-      (cc :: ULS) - integrate(differentiate(uls) * (z :: ULS))
+      (cc :: ULS) - integrate(differentiate(uls) * retract(z))
 
 --Copyright (c) 1991-2002, The Numerical ALgorithms Group Ltd.
 --All rights reserved.

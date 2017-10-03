@@ -79,7 +79,7 @@ MagmaWithUnit() : Category == Magma with
       "^": (%,NonNegativeInteger) -> %
         ++ \spad{a^n} returns the \spad{n}-th power of \spad{a},
         ++ defined by repeated squaring.
-      recip : % -> Union(%,"failed")
+      recip : % -> Maybe %
         ++ recip(a) returns an element, which is both a left and a right
         ++ inverse of \spad{a},
         ++ or \spad{"failed"} if such an element doesn't exist or cannot
@@ -110,8 +110,8 @@ MagmaWithUnit() : Category == Magma with
         for i in 1..n repeat res := a * res
         res
       recip x ==
-          (x = 1) => x
-          "failed"
+          (x = 1) => coerce x
+          failed
 
 )abbrev category NASRNG NonAssociativeSemiRng
 ++ Author: Waldek Hebisch
@@ -389,7 +389,7 @@ FiniteRankNonAssociativeAlgebra(R : CommutativeRing):
     if R has IntegralDomain then
       -- we not necessarily have a unit, hence we don't inherit
       -- the next 3 functions and hence copy them from MagmaWithUnit:
-      recip : % -> Union(%,"failed")
+      recip : % -> Maybe %
         ++ recip(a) returns an element, which is both a left and a right
         ++ inverse of \spad{a},
         ++ or \spad{"failed"} if there is no unit element, if such an
@@ -535,7 +535,7 @@ FiniteRankNonAssociativeAlgebra(R : CommutativeRing):
     jordanAdmissible?() ==
       b := someBasis()
       n := rank()
-      recip(2 * 1$R) case "failed" =>
+      not retractable? recip(2 * 1$R) =>
         messagePrint("this algebra is not Jordan admissible, as 2 is not invertible in the ground ring")$OutputForm
         false
       for i in 1..n repeat
@@ -615,8 +615,8 @@ FiniteRankNonAssociativeAlgebra(R : CommutativeRing):
           cond := horizConcat(cond, coordinates(xx, b) :: Matrix(R) )
         vectorOfCoef : Vector R := (nullSpace(cond)$Matrix(R)).first
         invC := recip vectorOfCoef.1
-        invC case "failed" => "failed"
-        invCR : R :=  - (invC :: R)
+        not retractable? invC => "failed"
+        invCR : R :=  - retract(invC)
         reduce(_+, [(invCR*vectorOfCoef.i)*power for i in _
          2..maxIndex vectorOfCoef for power in reverse listOfPowers])
 
@@ -637,19 +637,19 @@ FiniteRankNonAssociativeAlgebra(R : CommutativeRing):
           cond := horizConcat(cond, coordinates(xx, b) :: Matrix(R) )
         vectorOfCoef : Vector R := (nullSpace(cond)$Matrix(R)).first
         invC := recip vectorOfCoef.1
-        invC case "failed" => "failed"
-        invCR : R :=  - (invC :: R)
+        not retractable? invC => "failed"
+        invCR : R :=  - retract(invC)
         reduce(_+, [(invCR*vectorOfCoef.i)*power for i in _
          2..maxIndex vectorOfCoef for power in reverse listOfPowers])
 
 
       recip x ==
         lrx := leftRecip x
-        lrx case "failed" => "failed"
+        lrx case "failed" => failed
         rrx := rightRecip x
-        rrx case "failed" => "failed"
-        (lrx :: %) ~= (rrx :: %)  => "failed"
-        lrx :: %
+        rrx case "failed" => failed
+        (lrx :: %) ~= (rrx :: %)  => failed
+        coerce(lrx :: %)
 
 
       leftMinimalPolynomial x ==
@@ -738,7 +738,7 @@ FiniteRankNonAssociativeAlgebra(R : CommutativeRing):
     jordanAlgebra?()  ==
       b := someBasis()
       n := rank()
-      recip(2 * 1$R) case "failed" =>
+      not retractable? recip(2 * 1$R) =>
         messagePrint("this is not a Jordan algebra, as 2 is not invertible in the ground ring")$OutputForm
         false
       not commutative?() =>
@@ -758,7 +758,7 @@ FiniteRankNonAssociativeAlgebra(R : CommutativeRing):
     noncommutativeJordanAlgebra?() ==
       b := someBasis()
       n := rank()
-      recip(2 * 1$R) case "failed" =>
+      not retractable? recip(2 * 1$R) =>
         messagePrint("this is not a noncommutative Jordan algebra, as 2 is not invertible in the ground ring")$OutputForm
         false
       not flexible?()$% =>

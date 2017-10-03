@@ -454,9 +454,10 @@ DirectProduct(dim : NonNegativeInteger, R : Type):
         recip z ==
           w := new(dim, 1)$Vector(R)
           for i in minIndex w .. maxIndex w repeat
-            (u := recip qelt(z, i)) case "failed" => return "failed"
-            qsetelt!(w, i, u::R)
-          w pretend %
+            u := recip qelt(z, i)
+            not retractable? u => return failed
+            qsetelt!(w, i, retract u)
+          coerce(w pretend %)
 
       if R has AbelianMonoid and R has Monoid then
 

@@ -66,7 +66,8 @@ EllipticFunctionsUnivariateTaylorSeries(Coef, UTS):
           dn0 : Coef := jacobiDn(z0, m)
           c1 := m*sn0^2
           -- onelst : List Coef := [1]
-          invden := recip(1::ST - c1*$UPS scd.1 *$UPS scd.1)::ST
+          invden1 := recip(1::ST - c1*$UPS scd.1 *$UPS scd.1)
+          invden := retract invden1
           sn1 : ST := invden *$UPS (cn0*dn0*scd.1 + sn0*scd.2 *$UPS scd.3)
           cn1 : ST := invden *$UPS (cn0*scd.2 - sn0*dn0*scd.1 *$UPS scd.3)
           dn1 : ST := invden *$UPS (dn0*scd.3 - m*sn0*cn0*scd.1 *$UPS scd.2)

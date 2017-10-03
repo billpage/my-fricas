@@ -165,12 +165,14 @@ ComplexCategory(R : CommutativeRing) : Category ==
        coordinates(x : %, v : Vector %) : Vector(R) ==
          ra := real(a := v(minIndex v))
          rb := real(b := v(maxIndex v))
-         (#v ~= 2) or
-           ((d := recip(ra * (ib := imag b) - (ia := imag a) * rb))
-             case "failed") =>error "coordinates: vector is not a basis"
+         ia := imag a
+         ib := imag b
+         d := recip(ra * ib - ia * rb)
+         (#v ~= 2) or not retractable? d =>
+             error "coordinates: vector is not a basis"
          rx := real x
          ix := imag x
-         [d::R * (rx * ib - ix * rb), d::R * (ra * ix - ia * rx)]
+         [retract(d) * (rx * ib - ix * rb), retract(d) * (ra * ix - ia * rx)]
 
        coerce(x : %) : OutputForm ==
          re := (r := real x)::OutputForm
@@ -270,12 +272,15 @@ ComplexCategory(R : CommutativeRing) : Category ==
            zero? imag y => x exquo real y
            x * conjugate(y) exquo norm(y)
 
-         recip(x : %) == 1 exquo x
+         recip(x : %) ==
+           (r:=1 exquo x) case "failed" => failed
+           coerce r
 
          if R has OrderedRing then
            unitNormal x ==
              zero? x => [1, x, 1]
-             (u := recip x) case % => [x, 1, u]
+             u := recip x
+             retractable? u => [x, 1, retract u]
              zero? real x =>
                c := unitNormal imag x
                [complex(0, c.unit), (c.associate * imag x)::%,
@@ -289,7 +294,8 @@ ComplexCategory(R : CommutativeRing) : Category ==
          else
            unitNormal x ==
              zero? x => [1, x, 1]
-             (u := recip x) case % => [x, 1, u]
+             u := recip x
+             retractable? u => [x, 1, retract u]
              zero? real x =>
                c := unitNormal imag x
                [complex(0, c.unit), (c.associate * imag x)::%,
@@ -348,7 +354,8 @@ ComplexCategory(R : CommutativeRing) : Category ==
             [((x - y1) exquo y)::%, y1]
 
        if R has TranscendentalFunctionCategory then
-         half := recip(2::R)::R
+         half1 := recip(2::R)
+         half := retract half1
 
          if R has RealNumberSystem then
            atan2loc(x : R, y : R) : R ==
@@ -357,7 +364,7 @@ ComplexCategory(R : CommutativeRing) : Category ==
                x = 0 => if y >= 0 then pi2 else -pi2
 
                -- Atan in (-pi/2, pi/2]
-               theta := atan(y * recip(x)::R)
+               theta := atan(y * retract recip(x))
 
                x >= 0 => theta      -- I or IV
 
@@ -373,14 +380,14 @@ ComplexCategory(R : CommutativeRing) : Category ==
              argument x ==
                n1 := sqrt(norm(x))
                x1 := real(x) + n1
-               (2::R)*atan(imag(x) * recip(x1)::R)
+               (2::R)*atan(imag(x) * retract recip(x1))
 
            else
              -- Emulate sqrt using exp and log
              argument x ==
                n1 := exp(half*log(norm(x)))
                x1 := real(x) + n1
-               (2::R)*atan(imag(x) * recip(x1)::R)
+               (2::R)*atan(imag(x) * retract recip(x1))
 
          pi()  == pi()$R :: %
 
@@ -419,11 +426,13 @@ ComplexCategory(R : CommutativeRing) : Category ==
 
            cos x ==
              e := exp(imaginary() * x)
-             half * (e + recip(e)::%)
+             f := recip(e)
+             half * (e + retract f)
 
            sin x ==
              e := exp(imaginary() * x)
-             - imaginary() * half * (e - recip(e)::%)
+             f := recip(e)
+             - imaginary() * half * (e - retract f)
 
            asin x == - imaginary()*asinh(imaginary()*x)
 
@@ -459,7 +468,7 @@ ComplexCategory(R : CommutativeRing) : Category ==
                1
              r := real x
              zero?(i := imag x) => (r ^ q)::%
-             t := numer(q) * recip(denom(q)::R)::R * argument x
+             t := numer(q) * retract recip(denom(q)::R) * argument x
              e : R := norm(x) ^ (q / (2::Fraction(Integer)))
              complex(e * cos t, e * sin t)
 

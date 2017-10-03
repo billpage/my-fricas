@@ -151,7 +151,10 @@ ModMonic(R, Rep) : C == T
             uv case "failed" => "failed"
             return reduce(uv.coef1)
 
-         recip(y:%):Union(%, "failed") ==  1 exquo y
+         recip(y:%):Maybe % ==
+            r := 1 exquo y
+            r case "failed" => failed
+            coerce r
          divide(x : %, y : %) ==
             (q := (x exquo y)) case "failed" => error "not divisible"
             [q, 0]

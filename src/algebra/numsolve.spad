@@ -217,8 +217,8 @@ InnerNumericFloatSolvePackage(K, F, Par) : Cat == Cap where
            rpp := eval(rpp, zvar, z)
            upol := univariate(rpp, xvar)
            iden := recip(retract(leadingCoefficient upol)@CI)
-           iden case "failed" => "failed"
-           retract(-coefficient(upol, 0))@CI*(iden::CI)
+           not retractable?(iden)=> "failed"
+           retract(-coefficient(upol, 0))@CI*retract(iden)
 
        ieval(pol : P K, xvar : SE, zvar : SE, z : F, eps : Float) : UCI ==
            nz := F_to_CI1(z, eps)

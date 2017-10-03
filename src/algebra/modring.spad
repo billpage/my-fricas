@@ -28,7 +28,7 @@ ModularRing(R, Mod, reduction : (R, Mod) -> R,
                         ++ reduce(r, m) \undocumented
                 exQuo   :  (%,%)  -> Union(%,"failed")
                         ++ exQuo(x, y) \undocumented
-                recip   :    %    -> Union(%,"failed")
+                recip   :    %    -> Maybe %
                         ++ recip(x) \undocumented
                 inv     :    %    -> %
                         ++ inv(x) \undocumented
@@ -77,12 +77,13 @@ ModularRing(R, Mod, reduction : (R, Mod) -> R,
       --if R has EuclideanDomain then
       recip x ==
         r := exactQuo(1$R, x.val, x.modulo)
-        r case "failed" => "failed"
-        [r, x.modulo]$Rep
+        r case "failed" => failed
+        coerce([r, x.modulo]$Rep)
 
       inv x ==
-        if (u := recip x) case "failed" then error("not invertible")
-        else u::%
+        u := recip x
+        if not retractable? u then error("not invertible")
+        else retract u
 
 )abbrev domain EMR EuclideanModularRing
 ++ Description:
@@ -107,7 +108,7 @@ EuclideanModularRing(S, R, Mod, reduction : (R, Mod) -> R,
                         ++ reduce(r, m) \undocumented
                 exQuo   :  (%,%)  -> Union(%,"failed")
                         ++ exQuo(x, y) \undocumented
-                recip   :    %    -> Union(%,"failed")
+                recip   :    %    -> Maybe %
                         ++ recip(x) \undocumented
                 inv     :    %    -> %
                         ++ inv(x) \undocumented

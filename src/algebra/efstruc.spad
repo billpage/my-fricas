@@ -548,9 +548,9 @@ ElementaryFunctionStructurePackage(R, F) : Exports == Implementation where
           j := i
           h := h1
       for i in minIndex v .. maxIndex v for k in ll repeat
-        is?(k, s) and (i >= j) and
-           ((r := recip(qelt(v, i))) case Q) and
-            (retractIfCan(r::Q)@Union(Z, "failed") case Z)
+        r := recip(qelt(v, i))
+        is?(k, s) and (i >= j) and retractable?(r) and
+            (retractIfCan(retract r)@Union(Z, "failed") case Z)
               and gdCoef?(qelt(v, i), v) => return([i, k])
       "failed"
 

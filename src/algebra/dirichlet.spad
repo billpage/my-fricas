@@ -124,7 +124,9 @@ DirichletRing(Coef : Ring):
                         $ListFunctions2(Coef, Coef)
             conv::%
 
-        unit?(a : %) : Boolean == not (recip(a(1$PI))$Coef case "failed")
+        unit?(a : %) : Boolean ==
+          r := recip(a(1$PI))$Coef
+          retractable? r
 
         qrecip : (%, Coef, PI) -> Coef
         qrecip(f : %, f1inv : Coef, n : PI) : Coef ==
@@ -135,11 +137,11 @@ DirichletRing(Coef : Ring):
                                $ListFunctions2(Coef, Coef)
 
         recip f ==
-            if (f1inv := recip(f(1$PI))$Coef) case "failed" then "failed"
+            f1inv := recip(f(1$PI))$Coef
+            if not retractable? f1inv then failed
             else
-                mp := (n : PI) : Coef +-> qrecip(f, f1inv, n)
-
-                mp::%::Union(%, "failed")
+                mp := (n : PI) : Coef +-> qrecip(f, retract f1inv, n)
+                coerce(mp::%)
 
         multiplicative?(a, n) ==
             for i in 2..n repeat

@@ -645,8 +645,9 @@ MatrixLinearAlgebraFunctions(R, Row, Col, M) : Exports == Implementation where
             error "invertIfCan: matrix must be square"
         nr = 0 => y
         adjRec := adjoint y
-        (den := recip(adjRec.detMat)) case "failed" => "failed"
-        den::R * adjRec.adjMat
+        den := recip(adjRec.detMat)
+        not retractable? den => "failed"
+        retract(den) * adjRec.adjMat
 
       adjoint(y) ==
         (nr := nrows y) ~= (ncols y) => error "adjoint: matrix must be square"

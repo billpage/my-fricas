@@ -615,7 +615,7 @@ RecursivePolynomialCategory(R : Ring, E : OrderedAbelianMonoidSup, V : OrderedSe
 
      monic? p ==
        ground? p => false
-       (recip(init(p))$% case %)@Boolean
+       retractable?(recip(init(p))$%)
 
      quasiMonic?  p ==
        ground? p => false
@@ -855,11 +855,11 @@ RecursivePolynomialCategory(R : Ring, E : OrderedAbelianMonoidSup, V : OrderedSe
 
      monicModulo (a, b) ==
        ground?(b) => error "Error in monicModulo from RPOLCAT : #2 is constant"
-       rec : Union(%,"failed")
-       rec := recip((ib := init(b)))$%
-       (rec case "failed")@Boolean => error "Error in monicModulo from RPOLCAT : #2 is not monic"
+       ib := init(b)
+       rec := recip(ib)$%
+       not retractable? rec => error "Error in monicModulo from RPOLCAT : #2 is not monic"
        ground? a => a
-       ib * ((lazyPremWithDefault ((rec::%) * a, (rec::%) * b)).remainder)
+       ib * ((lazyPremWithDefault (retract(rec) * a, retract(rec) * b)).remainder)
 
      lazyResidueClass(a, b) ==
        zero? b => [a, 1$%, 0$NNI]
@@ -1441,12 +1441,12 @@ NewSparseMultivariatePolynomial(R, VarSet) : Exports == Implementation where
        if not ((ib) = 1)$%
          then
            r : R := ground(ib)$%
-           rec : Union(R,"failed") := recip(r)$R
-           (rec case "failed") =>
+           rec := recip(r)$R
+           not retractable? rec =>
              error "Error in monicModulo from NSMP : #2 is not monic"
            a case R => a
-           a := (rec::R) * a
-           b := (rec::R) * b
+           a := retract(rec) * a
+           b := retract(rec) * b
            mM := ib * localMonicModulo (a, b)
          else
            mM := localMonicModulo (a, b)

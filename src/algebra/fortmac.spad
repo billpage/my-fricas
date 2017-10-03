@@ -282,8 +282,8 @@ MachineFloat() : Exports == Implementation where
       wholePart(x)
 
     recip f1 ==
-      zero? f1 => "failed"
-      normalise [ locRound(B^(2*POWER)/mantissa f1), -(exponent f1 + 2*POWER)]
+      zero? f1 => failed
+      coerce normalise [ locRound(B^(2*POWER)/mantissa f1), -(exponent f1 + 2*POWER)]
 
     f1 * f2 ==
       normalise [mantissa(f1)*mantissa(f2), exponent(f1)+exponent(f2)]$Rep

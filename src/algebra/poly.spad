@@ -369,10 +369,11 @@ PolynomialRing(R : Join(SemiRng, AbelianMonoid), E : OrderedAbelianMonoid
                0$R
 
        recip(p) ==
-           empty?(p) => "failed"
-           p.first.k > 0$E => "failed"
-           (u := recip(p.first.c)) case "failed" => "failed"
-           (u::R)::%
+           empty?(p) => failed
+           p.first.k > 0$E => failed
+           u := recip(p.first.c)
+           not retractable? u => failed
+           coerce(retract(u)::%)
 
        coerce(r) == if zero? r then 0$% else [[0$E, r]]
        if R has Ring then

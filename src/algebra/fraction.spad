@@ -351,8 +351,8 @@ Fraction(S : IntegralDomain) : QuotientFieldCategory S with
         x
 
       recip x ==
-        zero?(x.num) => "failed"
-        normalize [x.den, x.num]
+        zero?(x.num) => failed
+        coerce normalize [x.den, x.num]
 
       cancelGcd x ==
         ((x.den) = 1) => x.den
@@ -432,8 +432,8 @@ Fraction(S : IntegralDomain) : QuotientFieldCategory S with
       nn:S/dd:S == if zero? dd then error "division by zero" else [nn,dd]
 
       recip x ==
-        zero?(x.num) => "failed"
-        [x.den, x.num]
+        zero?(x.num) => failed
+        coerce([x.den, x.num])
 
     if (S has RetractableTo Fraction Integer) then
       retract(x : %) : Fraction(Integer) == retract(retract(x)@S)

@@ -216,7 +216,7 @@ PartialFraction(R : EuclideanDomain) : Cat == Capsule where
         q := q + (s.num / (expand s.den))
       q
     coerce(q : Fraction FRR) : % ==
-      u : R := (recip unit denom q):: R
+      u : R := retract(recip unit denom q)
       r1 : R := u * expand numer q
       partialFractionNormalized(r1, u * denom q)
 
@@ -225,7 +225,10 @@ PartialFraction(R : EuclideanDomain) : Cat == Capsule where
       b = 1$% => a
       br : Fraction R := inv (b :: Fraction R)
       a * partialFraction(numer br, (denom br) :: FRR)
-    recip a == (1$% exquo a)
+    recip a ==
+      r := 1$% exquo a
+      retractable? r => coerce r
+      failed
 
     numberOfFractionalTerms a == # a.fract
     wholePart a == a.whole
@@ -236,7 +239,7 @@ PartialFraction(R : EuclideanDomain) : Cat == Capsule where
       nm = 0$R => 0$%
       -- move inv unit of den to numerator
       u : R := unit dn
-      u := (recip u) :: R
+      u := retract(recip u)
       partialFractionNormalized(u * nm, u * dn)
 
     padicallyExpand(p : R, r : R) ==

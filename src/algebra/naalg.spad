@@ -304,7 +304,7 @@ AlgebraGivenByStructuralConstants(R : Field, n : PositiveInteger, _
       true
 
     jordanAdmissible?()  ==
-      recip(2 * 1$R) case "failed" =>
+      not retractable? recip(2 * 1$R) =>
         messagePrint("this algebra is not Jordan admissible, as 2 is not invertible in the ground ring")$OutputForm
         false
       for i in 1..n repeat
@@ -341,7 +341,7 @@ AlgebraGivenByStructuralConstants(R : Field, n : PositiveInteger, _
       true
 
     jordanAlgebra?()  ==
-      recip(2 * 1$R) case "failed" =>
+      not retractable? recip(2 * 1$R) =>
         messagePrint("this is not a Jordan algebra, as 2 is not invertible in the ground ring")$OutputForm
         false
       not commutative?() =>

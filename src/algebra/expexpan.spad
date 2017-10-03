@@ -148,8 +148,8 @@ UnivariatePuiseuxSeriesWithExponentialSingularity(R, FE, var, cen) : _
 
     recip f ==
       numberOfMonomials f = 1 =>
-        monomial(inv leadingCoefficient f, - degree f)
-      "failed"
+        coerce monomial(inv leadingCoefficient f, - degree f)
+      failed
 
     makeTerm(coef, expon) == [coef, expon, empty()]
     coeff term == term.%coef
@@ -415,12 +415,14 @@ ExponentialExpansion(R, FE, var, cen) : Exports == Implementation where
       fff :: UPXS
 
     f : UPXSSING / g : UPXSSING ==
-      (rec := recip g) case "failed" => f /$Rep g
-      f * (rec :: UPXSSING) :: %
+      rec := recip g
+      not retractable? rec => f /$Rep g
+      f * retract(rec) :: %
 
     f : % / g : % ==
-      (rec := recip numer g) case "failed" => f /$Rep g
-      (rec :: UPXSSING) * (denom g) * f
+      rec := recip numer g
+      not retractable? rec => f /$Rep g
+      retract(rec) * (denom g) * f
 
     coerce(f : UPXS) == f :: UPXSSING :: %
 

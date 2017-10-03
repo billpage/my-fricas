@@ -187,15 +187,17 @@ MonoidRing(R : Ring, M : Monoid) : MonoidRingCategory(R, M) == MRdefinition wher
           if M has Group then
             recip a ==
               lt := terms a
-              #lt ~= 1 => "failed"
-              (u := recip lt.first.Cf) case "failed" => "failed"
+              #lt ~= 1 => failed
+              u := recip lt.first.Cf
+              not retractable? u => failed
               --(u::R) * inv lt.first.Mn
-              monomial((u::R), inv lt.first.Mn)$%
+              coerce(monomial(retract(u), inv lt.first.Mn)$%)
           else
             recip a ==
-              #a ~= 1 or a.first.Mn ~= 1 => "failed"
-              (u := recip a.first.Cf) case "failed" => "failed"
-              u::R::%
+              #a ~= 1 or a.first.Mn ~= 1 => failed
+              u := recip a.first.Cf
+              not retractable? u => failed
+              coerce(retract(u)::%)
 
         mkTerm(r : R, m : M) : Ex ==
             r = 1 => m::Ex

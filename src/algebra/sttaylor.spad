@@ -24,7 +24,7 @@ StreamTaylorSeriesOperations(A) : Exports == Implementation where
   L      ==> List
   LA     ==> List A
   YS     ==> Y$ParadoxicalCombinatorsForStreams(A)
-  UN     ==> Union(ST A,"failed")
+  UN     ==> Maybe(ST A)
   Exports ==> with
     "+"          : (ST A,ST A) -> ST A
       ++ a + b returns the power series sum of \spad{a} and \spad{b}:
@@ -210,24 +210,25 @@ StreamTaylorSeriesOperations(A) : Exports == Implementation where
           return "failed"
         -- first entry in y is non-zero
         break
-      (ry0 := recip frst y) case "failed" => "failed"
-      empty? rst y => map(z +-> z*(ry0 :: A), x)
-      iDiv(x, y, ry0 :: A)
+      ry0 := recip frst y
+      not retractable? ry0 => "failed"
+      empty? rst y => map(z +-> z*retract(ry0), x)
+      iDiv(x, y, retract(ry0))
 
     (x : ST A) / (y : ST A) == delay
       empty? y => error "/: division by zero"
       empty? x => empty()
-      (ry0 := recip frst y) case "failed" =>
-        error "/: second argument is not invertible"
-      empty? rst y => map(z +-> z*(ry0 :: A), x)
-      iDiv(x, y, ry0 :: A)
+      ry0 := recip frst y
+      not retractable? ry0 => error "/: second argument is not invertible"
+      empty? rst y => map(z +-> z*retract(ry0), x)
+      iDiv(x, y, retract ry0)
 
     recip x ==
-      empty? x => "failed"
+      empty? x => failed
       rh1 := recip frst x
-      rh1 case "failed" => "failed"
-      rh := rh1 :: A
-      delay
+      not retractable? rh1 => failed
+      rh := retract(rh1)
+      coerce delay
         concat(rh, iDiv(- rh * rst x, x, rh))
 
 --% coefficients
@@ -340,8 +341,7 @@ StreamTaylorSeriesOperations(A) : Exports == Implementation where
       zero? frst x =>
         empty? rst x => error "revert: should be nonzero"
         y := recip(rst x)
-        y case ST A =>
-            lagrange(recip(rst x) :: (ST A))
+        retractable? y => lagrange(retract y)
         error "revert: should start 0, x, ... with invertible x"
       error "revert: should start 0, x, ..."
 
@@ -489,7 +489,8 @@ StreamTaylorSeriesOperations(A) : Exports == Implementation where
         co := frst x
         if ord > 0 and rn < 0 then
            error "^: negative power does not exist"
-        (invCo := recip co) case "failed" =>
+        invCo := recip co
+        not retractable? invCo =>
            error "^ rational power of coefficient undefined"
 -- This error message is misleading, isn't it? see sups.spad/cRationalPower
         power :=
@@ -497,10 +498,10 @@ StreamTaylorSeriesOperations(A) : Exports == Implementation where
           (denom rn) = 1 =>
             not negative?(num := numer rn) =>
 -- It seems that this cannot happen, but I don't know why
-              (co^num::NNI) * YS(y +-> powerrn(rn, (invCo::A)*x, y))
-            (invCo::A)^((-num)::NNI) * YS(y +-> powerrn(rn, (invCo::A)*x, y))
+              (co^num::NNI) * YS(y +-> powerrn(rn, retract(invCo)*x, y))
+            retract(invCo)^((-num)::NNI) * YS(y +-> powerrn(rn, retract(invCo)*x, y))
 
-          RATPOWERS => co^rn * YS(y +-> powerrn(rn, (invCo::A)*x, y))
+          RATPOWERS => co^rn * YS(y +-> powerrn(rn, retract(invCo)*x, y))
           error "^ rational power of coefficient undefined"
         monom(1, (ord :: I) * numer(rn)) * power
 

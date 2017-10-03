@@ -784,10 +784,11 @@ FunctionalSpecialFunction(R, F) : Exports == Implementation where
     opdiff := operator(operator('%diff)$CommonOperators)$F
     dummy ==> new()$SE :: F
 
-    ahalf : F := recip(2::F)::F
-    athird : F    := recip(3::F)::F
-    afourth : F   := recip(4::F)::F
-    asixth : F := recip(6::F)::F
+    ahalf1 :=  recip(2::F)
+    ahalf : F := retract ahalf1
+    athird : F    := retract recip(3::F)
+    afourth : F   := retract recip(4::F)
+    asixth : F := retract recip(6::F)
     twothirds : F := 2*athird
     threehalfs : F := 3*ahalf
 

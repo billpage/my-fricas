@@ -194,8 +194,8 @@ UnivariatePuiseuxSeriesConstructor(Coef, ULS) : _
 
     recip pxs ==
       rec := recip getULS pxs
-      rec case "failed" => "failed"
-      puiseux(getExpon pxs, rec :: ULS)
+      not retractable?(rec) => failed
+      coerce puiseux(getExpon pxs, retract rec)
 
     RATALG : Boolean := Coef has Algebra(Fraction Integer)
 
@@ -227,9 +227,10 @@ UnivariatePuiseuxSeriesConstructor(Coef, ULS) : _
       pxs1 : % / pxs2 : % == applyFcn((z1 : ULS, z2 : ULS) : ULS +-> z1 /$ULS z2, pxs1, pxs2)
 
       inv upxs ==
-        (invUpxs := recip upxs) case "failed" =>
+        invUpxs := recip upxs
+        not retractable? invUpxs =>
           error "inv: multiplicative inverse does not exist"
-        invUpxs :: %
+        retract(invUpxs) :: %
 
 --% values
 

@@ -241,7 +241,7 @@ ApplyRules(Base, R, F) : Exports == Implementation where
         ee := e::Record(val : F, exponent : Integer)
         f  := app(lrule, ee.val)
         positive?(ee.exponent) => f ^ (ee.exponent)::NonNegativeInteger
-        recip(f)::F ^ (- ee.exponent)::NonNegativeInteger
+        retract(recip f) ^ (- ee.exponent)::NonNegativeInteger
       subject
 
 )abbrev domain RULESET Ruleset

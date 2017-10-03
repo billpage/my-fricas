@@ -22,8 +22,8 @@ SimpleAlgebraicExtension(R : CommutativeRing,
   == add
 
     --degree(M) > 0 and M must be monic if R is not a field.
-    if (r := recip leadingCoefficient M) case "failed" then
-                                    error "Modulus cannot be made monic"
+    r := recip leadingCoefficient M
+    if not retractable? r then error "Modulus cannot be made monic"
     Rep := UP
     x, y : %
     c : R

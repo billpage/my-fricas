@@ -483,7 +483,7 @@ DoubleFloat() : Join(FloatingPointSystem, DifferentialRing, OpenMath,
    negative? x      == negative?_DF(x)$Lisp
    zero? x          == zero?_DF(x)$Lisp
    hashUpdate!(hs, s) == update!(hs, SXHASH(s)$Lisp)$HashState
-   recip(x)         == (zero? x => "failed"; 1 / x)
+   recip(x)         == (zero? x => failed; coerce(1 / x))
    differentiate x  == 0
 
    SFSFUN           ==> DoubleFloatSpecialFunctions()

@@ -2471,7 +2471,7 @@ JetBundleExpression(JB : JBC) : Cat == Def where
         p case "failed" => "failed"
         p::SMP::%
 
-    recip(f : %) : Union(%, "failed") == 1/f
+    recip(f : %) : Maybe % == coerce(1/f)
 
     -- --------- --
     -- Dimension --
@@ -3092,12 +3092,12 @@ JetBundleLinearFunction(JB : JBC, D : BFC) : Cat == Def where
         l2.JVars = [1] => first(l2.Coeffs)*l1
         error errmsg1
 
-    recip(l : %) : Union(%, "failed") ==
+    recip(l : %) : Maybe % ==
         l.JVars = [1] =>
             rc := recip(first(l.Coeffs))$D
-            rc case D => rc::D::%
-            "failed"
-        "failed"
+            retractable? rc => coerce(retract rc)::%
+            failed
+        failed
 
     -- The following two functions are currently only for simple cases
     -- implemented. This suffices, however, for the needs of simplify!
@@ -3242,8 +3242,8 @@ JetBundleLinearFunction(JB : JBC, D : BFC) : Cat == Def where
         pos < minIndex(l.JVars) => "failed"
         one?(#l.JVars) => 0
         rc := recip(l.Coeffs.pos)$D
-        rc case "failed" => "failed"
-        [[-c*rc  for c in delete(l.Coeffs, pos)], delete(l.JVars, pos)]
+        not retractable? rc => "failed"
+        [[-c*retract(rc)  for c in delete(l.Coeffs, pos)], delete(l.JVars, pos)]
 
     subst(l : %, jv : JB, exp : %) : % ==
         -- Syntactic substitution.
@@ -5999,12 +5999,12 @@ JetLazyFunction(JB : JBC, D : JBFC) : Cat == Def where
         ref [resLD, resSharp?, false, resJV1, resJV2, resLazy]
 
 
-    recip(exp : %) : Union(%, "failed") ==
+    recip(exp : %) : Maybe % ==
         ground? exp =>
             rd := recip(extract exp)$D
-            rd case "failed" => "failed"
-            rd::D::%
-        "failed"
+            not retractable? rd => failed
+            retract(rd)::%
+        failed
 
 
     -- -------------- --
@@ -6517,8 +6517,8 @@ JetBundlePolynomial(R : Ring, JB : JBC) : Cat == Def where
             ground? c =>
                 cc : R := retract c
                 rc := recip cc
-                rc case "failed" => "failed"
-                rc::R * p - jv::%
+                not retractable? rc => "failed"
+                retract(rc) * p - jv::%
             "failed"
 
     if R has GcdDomain then
@@ -7108,10 +7108,10 @@ JetBundleQuasiLinearFunction(JB, D) : Cat == Def where
         [[], [], q1::D *$D q2::D, o1, true]
 
 
-    recip(q : %) : Union(%, "failed") ==
+    recip(q : %) : Maybe % ==
         r := recip(q::D)$D
-        r case "failed" => "failed"
-        convert(r::D)
+        not retractable? r => failed
+        coerce convert(retract r)
 
 
     if D has Field then
@@ -7218,8 +7218,8 @@ JetBundleQuasiLinearFunction(JB, D) : Cat == Def where
         pos := position(jv, q.hJV)
         pos < minIndex(q.hJV) => "failed"
         dr := recip(q.hCoeff.pos)$D
-        dr case "failed" => "failed"
-        d : D := - (dr::D)
+        not retractable? dr => "failed"
+        d : D := - reract dr
         #q.hJV = 1 => convert(d *$D q.low)
         [[d *$D c  for c in delete(q.hCoeff, pos)], delete(q.hJV, pos), _
          d *$D q.low, q.ord, false]

@@ -462,12 +462,12 @@ UnivariateSkewPolynomialCategoryOps(R, C) : Exports == Implementation where
         if R has IntegralDomain then
             monicLeftDivide(a, b, sigma) ==
                 unit?(u := leadingCoefficient b) =>
-                    localLeftDivide(a, b, sigma, recip(u)::R)
+                    localLeftDivide(a, b, sigma, retract recip(u))
                 error "monicLeftDivide: divisor is not monic"
 
             monicRightDivide(a, b, sigma) ==
                 unit?(u := leadingCoefficient b) =>
-                    localRightDivide(a, b, sigma, recip(u)::R)
+                    localRightDivide(a, b, sigma, retract recip(u))
                 error "monicRightDivide: divisor is not monic"
 
         if R has Field then

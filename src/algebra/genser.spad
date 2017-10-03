@@ -183,8 +183,9 @@ ElementaryFunctionsGeneralizedUnivariatePowerSeries(
     else
 
         do_quo(x, y) ==
-            (yinv := recip(y)) case "failed" => "failed"
-            x*yinv::PS
+            yinv := recip y
+            not retractable? yinv => "failed"
+            x*retract(yinv)
 
 
 
@@ -325,28 +326,32 @@ GeneralizedUnivariatePowerSeries(Coef : Ring,
             concat([dki, ci],
                    exquo1(rst(x) - monomial(ci, dki)*rst(y), y, cyinv, ky))
 
-        exquo2(x : %, y : %) : Union(%, "failed") ==
+        exquo2(x : %, y : %) : Maybe % ==
             ty : Term
             for n in 1.. repeat
-                n > 1000 => return "failed"
-                empty? y => return "failed"
+                n > 1000 => return failed
+                empty? y => return failed
                 ty := frst(y)
                 not(ty.c = 0) => break
                 y := rst(y)
             ky := ty.k
-            (cyinv := recip(ty.c)) case "failed" => "failed"
+            cyinv := recip(ty.c)
+            not retractable? cyinv => failed
             for n in 1.. repeat
-                n > 1000 => return "failed"
-                empty? x => return empty()
+                n > 1000 => return failed
+                empty? x => return coerce x
                 tx := frst(x)
                 wrap? subtractIfCan(tx.k, ky) => break
-                not(tx.c = 0) => return "failed"
+                not(tx.c = 0) => return failed
                 x := rst(x)
-            exquo1(x, y, cyinv::Coef, ky)
+            coerce exquo1(x, y, retract(cyinv), ky)
 
-        x : % exquo y : % == exquo2(x, y)
+        x : % exquo y : % ==
+          r:=exquo2(x, y)
+          retractable? r => retract r
+          "failed"
 
-        recip(x : %) : Union(%, "failed") == exquo2(1$%, x)
+        recip(x : %) : Maybe % == exquo2(1$%, x)
 
         if Coef has Field and Expon has AbelianGroup then
 

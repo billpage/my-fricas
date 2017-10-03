@@ -608,7 +608,7 @@ Float():
    truncate x ==
       if x.exponent >= 0 then return x
       normalize [shift2(x.mantissa, x.exponent), 0]
-   recip(x) == if x = 0 then "failed" else 1/x
+   recip(x) == if x = 0 then failed else coerce(1/x)
    differentiate x == 0
 
    - x == normalize negate x

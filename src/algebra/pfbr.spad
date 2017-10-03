@@ -215,7 +215,7 @@ PolynomialFactorizationByRecursion(R, E, VarSet : OrderedSet, S) : public ==
                         (w exquo lc)::SupS) for w in factors]
            not unit? lcppPow =>
                error "internal error in factorSquareFreeByRecursion"
-           return makeFR(lcu*(recip lcppPow)::S::SupS,
+           return makeFR(lcu*retract(recip lcppPow)::SupS,
                          [["irred", w, 1] for w in factors])
 
 --Copyright (c) 1991-2002, The Numerical ALgorithms Group Ltd.

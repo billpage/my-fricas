@@ -226,10 +226,11 @@ XPolynomialRing(R : Ring, E : OrderedMonoid) : T == C where
           [t for t in p | not(t.k = 1$E)]
 
        recip(p) ==
-           p = 0 => "failed"
-           p.first.k > 1$E => "failed"
-           (u := recip(p.first.c)) case "failed" => "failed"
-           (u::R)::%
+           p = 0 => failed
+           p.first.k > 1$E => failed
+           u := recip(p.first.c)
+           not retractable? u => failed
+           coerce(retract(u)::%)
 
        coerce(r : R) == if r = 0$R then 0$% else [[1$E, r]]
        coerce(n : Integer) == (n::R)::%
@@ -641,7 +642,7 @@ XRecursivePolynomial(VarSet : OrderedSet, R : Ring) :  Xcat == Xdef where
        characteristic == characteristic()$R
        recip p ==
          p case R => recip(p::R)
-         "failed"
+         failed
 
        mindeg p ==
          p case R =>

@@ -393,8 +393,13 @@ EntireRing() : Category == Join(Ring, noZeroDivisors) with
       if not (% has Field) then
         unitNormal(x) == [1$%, x, 1$%]$UCA -- the non-canonical definition
       unitCanonical(x) == unitNormal(x).canonical -- always true
-      recip(x) == if zero? x then "failed" else _exquo(1$%,x)
-      unit?(x) == (recip x case "failed" => false; true)
+      recip(x) ==
+        if zero? x then failed
+        if (r := _exquo(1$%,x)) case "failed" then failed
+        coerce(r::%)
+      unit?(x) ==
+        r := recip x
+        retractable? r
       if % has canonicalUnitNormal then
           associates?(x, y) ==
               (unitNormal x).canonical = (unitNormal y).canonical
@@ -593,7 +598,10 @@ Field() : Category == Join(EuclideanDomain, UniqueFactorizationDomain,
           if zero? x then [1$%, 0$%, 1$%]$UCA else [x, 1$%, inv(x)]$UCA
       unitCanonical(x) == if zero? x then x else 1
       associates?(x, y) == if zero? x then zero? y else not(zero? y)
-      inv x ==((u := recip x) case "failed" => error "not invertible"; u)
+      inv x ==
+        u := recip x
+        retractable? u => retract u
+        error "not invertible"
       x exquo y == (y = 0 => "failed"; x / y)
       gcd(x, y) ==
           x = 0 and y = 0 => 0
@@ -779,7 +787,7 @@ Group() : Category == Join(Monoid, unitsKnown) with
     add
       import from RepeatedSquaring(%)
       x : % / y : % == x*inv(y)
-      recip(x : %) == inv(x)
+      recip(x : %) == coerce inv(x)
       x : % ^ n : Integer ==
           zero? n => 1
           n < 0 => expt(inv(x), qcoerce(-n)@PositiveInteger)

@@ -478,9 +478,9 @@ FunctionSpaceToUnivariatePowerSeries2(R, FE, Expon, UPS, TRAN, UTS, TEXP,
         ecl := getEq(nargs, z0)
         cn := first(ecl)
         cn1u := recip(cn)
-        cn1u case "failed" =>
+        not retractable? cn1u =>
             error "do_diff_eq: called at singular point"
-        cn1 := -(cn1u::UTS)
+        cn1 := -retract(cn1u)
         ecl := [c*cn1 for c in rest(ecl)]
         nker : FE := kernel(operator(ker), nargs)
         lc : L(FE) := [nker]

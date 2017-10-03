@@ -183,10 +183,10 @@ Interval(R : Join(FloatingPointSystem, TranscendentalFunctionCategory)) : Interv
 
   0 == [0, 0]
 
-  recip(u:%):Union(%,"failed") ==
-   contains?(u,0) => "failed"
+  recip(u:%):Maybe % ==
+   contains?(u,0) => failed
    vals : List R := sort [1/inf(u), 1/sup(u)]$List(R)
-   qinterval(first vals, last vals)
+   coerce qinterval(first vals, last vals)
 
 
   unit?(u : %) : Boolean == contains?(u, 0)

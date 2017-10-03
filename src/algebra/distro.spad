@@ -555,13 +555,13 @@ $$
     moment2freeCumulant(mom : Sequence R) : Sequence R ==
         -- first divide
         g : Stream R := cons(1$R, stream mom)
-        g1:Union(Stream R, "failed") := recip(g)$STSOR -- value1 --$
+        g1:Maybe Stream R := recip(g)$STSOR -- value1 --$
         -- g1 case "failed" => "failed"
-        f : Stream R := lagrange(g1::Stream R)
+        f : Stream R := lagrange(retract g1)
         -- now we have f=z/C(z)
-        f1:Union(Stream R, "failed") := recip rest f
+        f1:Maybe Stream R := recip rest f
         -- f1 case "failed" => "failed"
-        coerce rest (f1::Stream R)
+        coerce rest (retract f1)
 
 )if false
 
@@ -576,15 +576,13 @@ $$
 
     booleanCumulant2moment(x : Sequence R) : Sequence R ==
         rec : Stream R := cons(1$R, stream(-x))
-        boo:Union(Stream R, "failed") :=
-            recip(rec)$(StreamTaylorSeriesOperations R)
-        rest sequence (boo::Stream R)
+        boo := recip(rec)$(StreamTaylorSeriesOperations R)
+        rest sequence retract boo
 
     moment2booleanCumulant(x : Sequence R) : Sequence R ==
         boo : Stream R := cons(1$R, stream x)
-        mom : Union(Stream R, "failed") :=
-            recip(boo)$(StreamTaylorSeriesOperations R)
-        rest (- sequence (mom::Stream R))
+        mom := recip(boo)$(StreamTaylorSeriesOperations R)
+        rest (- sequence retract(mom))
 
     -- \subsection{MomentPackage Jacobi Parameters and Orthogonal Polynomials}
 
@@ -656,8 +654,7 @@ $$
         moment2jacobi2(mom : Sequence R) : JAC2SEQ == delay
             gseries : Stream R := cons(1, (stream$(Sequence R)) mom)
             -- first divide
-            gseries1 := recip(gseries)$(StreamTaylorSeriesOperations R
-                                       )::Stream R
+            gseries1 := retract recip(gseries)$(StreamTaylorSeriesOperations R)
             gseries1 := rest gseries1
             a : R := - first gseries1
             gseries1 := rest gseries1
@@ -1668,7 +1665,7 @@ DistributionPackage(R : CommutativeRing) : Exports == Implementation where
           mgf := cons(0, mgf)
           half : Fraction Integer := 1/ (2::Integer)
           mgf := powern(half, cons(1, mgf))$STTR
-          mgf := (recip(mgf)$STTR)::Stream R
+          mgf := retract recip(mgf)$STTR
           distributionByMoments sequence rest mgf
 
 

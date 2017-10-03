@@ -115,9 +115,9 @@ WeierstrassPreparation(R) : Defn == Impl where
                     break
                 b := rest b
             e := recip b
-            f := if e case "failed"
+            f := if not retractable? e
                      then error "no reciprocal"
-                     else e::StS
+                   else retract(e)::StS
             q := (YSS qqq(a, f pretend SMPS, rest p))
             maptake(a, (p*q) pretend ST StS)
 

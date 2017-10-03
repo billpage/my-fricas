@@ -229,9 +229,10 @@ UnivariateLaurentSeriesConstructor(Coef, UTS) : _
 
     recip x ==
       x := removeZeroes(1000, x)
-      zero? coefficient(x,d := degree x) => "failed"
-      (uts := recip getUTS x) case "failed" => "failed"
-      laurent(-d, uts :: UTS)
+      zero? coefficient(x,d := degree x) => failed
+      uts := recip getUTS x
+      not retractable? uts => failed
+      coerce laurent(-d, retract uts)
 
     elt(uls1 : %, uls2 : %) ==
       (uts := taylorIfCan uls2) case "failed" =>
@@ -241,10 +242,11 @@ UnivariateLaurentSeriesConstructor(Coef, UTS) : _
         error "elt: second argument must have positive order"
       if (deg := getExpon uls1) < 0 then uls1 := removeZeroes(-deg, uls1)
       (deg := getExpon uls1) < 0 =>
-        (recipr := recip(uts2 :: %)) case "failed" =>
+        recipr := recip(uts2 :: %)
+        not retractable? recipr =>
           error "elt: second argument not invertible"
         uts1 := taylor(uls1 * monomial(1, -deg))
-        (elt(uts1, uts2) :: %) * (recipr :: %) ^ ((-deg) :: NNI)
+        (elt(uts1, uts2) :: %) * retract(recipr) ^ ((-deg) :: NNI)
       elt(taylor uls1, uts2) :: %
 
     eval(uls : %, r : Coef) ==
@@ -252,9 +254,10 @@ UnivariateLaurentSeriesConstructor(Coef, UTS) : _
       uts := getUTS uls
       (n := getExpon uls) < 0 =>
         zero? r => error "eval: 0 raised to negative power"
-        (recipr := recip r) case "failed" =>
+        recipr := recip r
+        not retractable? recipr =>
           error "eval: non-unit raised to negative power"
-        (recipr :: Coef) ^ ((-n) :: NNI) *$STTAYLOR eval(uts, r)
+        retract(recipr) ^ ((-n) :: NNI) *$STTAYLOR eval(uts, r)
       zero? n => eval(uts, r)
       r ^ (n :: NNI) *$STTAYLOR eval(uts, r)
 
@@ -374,14 +377,16 @@ UnivariateLaurentSeriesConstructor(Coef, UTS) : _
       (x : %) * (y : UTS) == x * (y :: %)
 
       inv x ==
-        (xInv := recip x) case "failed" =>
+        xInv := recip x
+        not retractable? xInv =>
           error "multiplicative inverse does not exist"
-        xInv :: %
+        retract xInv
 
       (x : %) / (y : %) ==
-        (yInv := recip y) case "failed" =>
+        yInv := recip y
+        not retractable? yInv =>
           error "inv: multiplicative inverse does not exist"
-        x * (yInv :: %)
+        x * retract(yInv)
 
       (x : UTS) / (y : UTS) == (x :: %) / (y :: %)
 

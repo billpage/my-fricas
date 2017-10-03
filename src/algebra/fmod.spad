@@ -49,8 +49,8 @@ IntegerMod(p : PositiveInteger):
 
     recip x ==
        (c1, c2, g) := extendedEuclidean(x, q)$Rep
-       not (g = 1) => "failed"
-       positiveRemainder(c1, q)
+       not (g = 1) => failed
+       coerce positiveRemainder(c1, q)
 
     hashUpdate!(hs, s) == update!(hs, s pretend SingleInteger)$HashState
 
@@ -79,8 +79,8 @@ IntegerMod(p : PositiveInteger):
 
     recip x ==
        (c1, c2, g) := extendedEuclidean(x, p)$Rep
-       not (g = 1) => "failed"
-       positiveRemainder(c1, p)
+       not (g = 1) => failed
+       coerce positiveRemainder(c1, p)
 
     hashUpdate!(hs, s) == update!(hs, SXHASH(s)$Lisp)$HashState
 

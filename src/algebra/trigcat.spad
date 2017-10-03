@@ -78,11 +78,13 @@ ArcTrigonometricFunctionCategory() : Category == with
  add
     if % has Ring then
        asec(x) ==
-         (a := recip x) case "failed" => error "asec: no reciprocal"
-         acos(a::%)
+         a := recip x
+         not retractable?(a) => error "asec: no reciprocal"
+         acos(retract a)
        acsc(x) ==
-         (a := recip x) case "failed" => error "acsc: no reciprocal"
-         asin(a::%)
+         a := recip x
+         not retractable?(a) => error "acsc: no reciprocal"
+         asin(retract a)
 
 )abbrev category HYPCAT HyperbolicFunctionCategory
 ++ Category for the hyperbolic trigonometric functions
@@ -98,20 +100,24 @@ HyperbolicFunctionCategory() : Category == with
  add
     if % has Ring then
        csch x ==
-         (a := recip(sinh x)) case "failed" => error "csch: no reciprocal"
-         a::%
+         a := recip(sinh x)
+         not retractable?(a) => error "csch: no reciprocal"
+         retract a
        sech x ==
-         (a := recip(cosh x)) case "failed" => error "sech: no reciprocal"
-         a::%
+         a := recip(cosh x)
+         not retractable?(a) => error "sech: no reciprocal"
+         retract a
        tanh x == sinh x * sech x
        coth x == cosh x * csch x
        if % has ElementaryFunctionCategory then
          cosh x ==
            e := exp x
-           (e + recip(e)::%) * recip(2::%)::%
+           f := recip e
+           (e + retract f) * retract(recip(2::%))
          sinh(x) : % ==
            e := exp x
-           (e - recip(e)::%) * recip(2::%)::%
+           f := recip e
+           (e - retract f) * retract(recip(2::%))
 
 )abbrev category TRANFUN TranscendentalFunctionCategory
 ++ Category for the transcendental elementary functions
@@ -126,14 +132,17 @@ TranscendentalFunctionCategory() : Category ==
      if % has Ring then
        pi()   == 2*asin(1)
        acsch x ==
-         (a := recip x) case "failed" => error "acsch: no reciprocal"
-         asinh(a::%)
+         a := recip x
+         retractable? a => asinh(retract a)
+         error "acsch: no reciprocal"
        asech x ==
-         (a := recip x) case "failed" => error "asech: no reciprocal"
-         acosh(a::%)
+         a := recip x
+         retractable? a => acosh(retract a)
+         error "asech: no reciprocal"
        acoth x ==
-         (a := recip x) case "failed" => error "acoth: no reciprocal"
-         atanh(a::%)
+         a := recip x
+         retractable? a => atanh(retract a)
+         error "acoth: no reciprocal"
      if % has Field and % has sqrt : % -> % then
        asin x == atan(x/sqrt(1-x^2))
        acos x == pi()/2::% - asin x
@@ -156,11 +165,13 @@ TrigonometricFunctionCategory() : Category == with
  add
     if % has Ring then
        csc x ==
-         (a := recip(sin x)) case "failed" => error "csc: no reciprocal"
-         a::%
+         a := recip(sin x)
+         not retractable?(a) => error "csc: no reciprocal"
+         retract a
        sec x ==
-         (a := recip(cos x)) case "failed" => error "sec: no reciprocal"
-         a::%
+         a := recip(cos x)
+         not retractable?(a) => error "sec: no reciprocal"
+         retract a
        tan x == sin x * sec x
        cot x == cos x * csc x
 

@@ -231,9 +231,10 @@ FunctionSpaceToExponentialExpansion(R, FE, x, cen) : _
       -- numerator of 'xxp' has exactly one monomial
       numberOfMonomials(num := numer xxp) > 1 => [xxp ^ n]
       negativePowerOK? leadingCoefficient num =>
-        (rec := recip num) case "failed" => error "FS2EXPXP: can't happen"
+        rec := recip num
+        not retractable? rec => error "FS2EXPXP: can't happen"
         nn := (-n)::NNI
-        [(((denom xxp)^nn) * ((rec::UPXSSING)^nn))::XXP]
+        [(((denom xxp)^nn) * (retract(rec)^nn))::XXP]
       --!! we may want to create a fraction instead of trying to
       --!! reciprocate the numerator
       stateProblem("inv", "lowest order coefficient involves x")

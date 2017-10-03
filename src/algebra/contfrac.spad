@@ -293,8 +293,8 @@ ContinuedFraction(R) : Exports == Implementation where
     q * d   == genFromSequence map(x +-> q*x, apx d)
     n * d   == genFromSequence map(x +-> n*x, apx d)
     c / d   == genFromSequence map((x, y) +-> x/y, apx c, rest apx d)
-    recip c ==(c = 0 => "failed";
-               genFromSequence map(x +-> 1/x, rest apx c))
+    recip c == (c = 0 => failed;
+               coerce genFromSequence map(x +-> 1/x, rest apx c))
 
     showAll? : () -> Boolean
     showAll?() == _$streamsShowAll$Lisp

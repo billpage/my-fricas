@@ -431,21 +431,24 @@ SquareMatrix(ndim, R) : Exports == Implementation where
       nullSpace x ==
         [directProduct c for c in nullSpace(x pretend Matrix(R))]
       recip(x) ==
-          (u := invertIfCan(x pretend Matrix(R))) case "failed" => "failed"
-          (u :: Matrix(R)) pretend %
+          (u := invertIfCan(x pretend Matrix(R))) case "failed" => failed
+          coerce((u :: Matrix(R)) pretend %)
 
     if R has Field then
 
       -- dimension() == (m * n) :: CardinalNumber
 
       inverse x ==
-        (u := inverse(x pretend Matrix(R))) case "failed" => "failed"
-        (u :: Matrix(R)) pretend %
+          (u := inverse(x pretend Matrix(R))) case "failed" => "failed"
+          (u :: Matrix(R)) pretend %
 
       x : % ^ n : Integer ==
         ((x pretend Matrix(R)) ^ n) pretend %
 
-      recip x == inverse x
+      recip x ==
+        r:=inverse x
+        r case "failed" => failed
+        coerce r
 
     if R has ConvertibleTo InputForm then
       convert(x : %) : InputForm ==
