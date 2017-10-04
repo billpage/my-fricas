@@ -3095,7 +3095,7 @@ JetBundleLinearFunction(JB : JBC, D : BFC) : Cat == Def where
     recip(l : %) : Maybe % ==
         l.JVars = [1] =>
             rc := recip(first(l.Coeffs))$D
-            retractable? rc => coerce(retract rc)::%
+            retractable? rc => coerce(retract rc)
             failed
         failed
 
