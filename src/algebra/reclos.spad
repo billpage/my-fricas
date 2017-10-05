@@ -729,7 +729,7 @@ RightOpenIntervalRootCharacterization(TheField, ThePolDom) : PUB == PRIV where
           newPol := (rootChar.defPol exquo toTest)::P
           ((1$ThePolDom - inv(newPol.c)*newPol) exquo toTest)::P
       else
-         ((1$ThePolDom - (r::TheField)*rootChar.defPol) exquo toTest)::P
+         ((1$ThePolDom - retract(r)*rootChar.defPol) exquo toTest)::P
 
    recip(toTest, rootChar) ==
      degree(toTest) = 0 or degree(rootChar.defPol) <= degree(toTest) =>
@@ -1062,16 +1062,16 @@ RealClosure(TheField) : PUB == PRIV where
        inv(x) ==
           res := recip x
           not retractable? res => error "Division by 0"
-          coerce(res)
+          retract(res)
 
        recip(x) ==
          x case TheField =>
-           r := recip(x)$TheField
-           if retractable? r then coerce(retract(r)::%)
+           r1 := recip(x)$TheField
+           if retractable? r1 then coerce(retract(r1)::%)
            else failed
-         r := recip(x.val,x.seg)$SEG
-         if not retractable? r then failed
-       else coerce lessAlgebraic([x.seg, retract(r), x.outForm, x.order]$Rec)
+         if ((r2 := recip(x.val,x.seg)$SEG) case "failed")
+         then failed
+         else coerce lessAlgebraic([x.seg, r2::PME, x.outForm, x.order]$Rec)
 
        (n : Z * x : %) : % ==
           x case TheField => n *$TheField x

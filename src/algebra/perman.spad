@@ -169,7 +169,7 @@ Permanent(n : PositiveInteger, R : Join(Ring, CommutativeStar)):
       -- [Nijenhuis and Wilf, ch.19, p.158]
       n = 1 => x(1, 1)
       two : R := (2::I) :: R
-      half := recip(two)
+      half : Maybe R := recip two
       if not retractable? half then
         if n < 7 then return permanent3(x)
         else return permanent2(x)
@@ -184,7 +184,7 @@ Permanent(n : PositiveInteger, R : Join(Ring, CommutativeStar)):
         b := 0$R
         for j in 1..n repeat
           b := b + rowi.j
-        w.i := rowi(n) - (half*b)$R
+        w.i := rowi(n) - (retract(half)*b)$R
       vv : V V I := firstSubsetGray((n-1):: PI)$GRAY
        -- For the meaning of the elements of vv, see GRAY.
       n :: I

@@ -31,7 +31,7 @@ SimpleAlgebraicExtension(R : CommutativeRing,
     mkDisc   : Boolean -> Void
     mkDiscMat : Boolean -> Void
 
-    M   := r::R * M
+    M   := retract(r) * M
     d   := degree M
     d1  := unwrap subtractIfCan(d, 1)
     discmat : Matrix(R) := zero(d, d)

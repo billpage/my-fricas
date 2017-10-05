@@ -197,10 +197,11 @@ LinearOrdinaryDifferentialOperatorFactorizer2(var, cen) : Exports == Impl where
         ftmp := f
         while ftmp ~= 0 repeat
             lc := leadingCoefficient(ftmp)
-            den := convertUPtoUTS(denom lc) :: US
+            den1 := recip(convertUPtoUTS(denom lc) :: US)
+            den := retract den1
             apf := (apf +
-                    monomial((convertUPtoUTS(numer lc) *
-                    retract(recip den)) :: US, degree(ftmp)))
+                    monomial((convertUPtoUTS(numer lc) * den),
+                    degree(ftmp)))
             ftmp := reductum ftmp
         apf
 
