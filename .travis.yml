@@ -7,6 +7,6 @@ addons:
       - sbcl
 compiler: gcc
 script:
-  - ./configure && make -j1 2>&1 | grep -F -e '"echo )co' -e 'user error' -e 'error in function' -e 'Spad syntax error' make.log | sed 's/ | DAASE.*//'
+  - ./configure && make -j1 2>&1 | grep -F -e '"echo )co' -e 'user error' -e 'error in function' -e 'Spad syntax error' | sed 's/ | DAASE.*//'
   - cd src/input && make -j2 | grep 'tee.*output'
   - ../scripts/test.sh
