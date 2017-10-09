@@ -61,7 +61,7 @@ NRTaddDeltaCode() ==
 
 deltaTran(item,compItem) ==
   item is ['domain,lhs,:.] => NRTencode(lhs,compItem)
-  --NOTE: all items but signatures are wrapped with domain forms id:665
+  --NOTE: all items but signatures are wrapped with domain forms
   [op,:modemap] := item
   [dcSig,[.,[kind,:.]]] := modemap
   [dc,:sig] := dcSig
@@ -137,10 +137,12 @@ optDeltaEntry(op,sig,dc,eltOrConst) ==
   -- substitute guarantees to use EQUAL testing
   sig := substitute(ddcval, ndc, sig)
   if rest ndc then
-     sig := substitute(CADR ddcval, "$$", sig)
+     for new in rest ddcval for old in rest ndc repeat
+         if old ~= '$ then sig := substitute(new, old, sig)
      -- optCallEval sends (List X) to (List (Integer)) etc,
      -- so we should make the same transformation
-     -- by transforming "$$" to CADR(ddcval) which is '(Integer)
+     sig := substitute(CADR ddcval, "$$", sig)
+     -- also transform "$$" to CADR(ddcval) which is '(Integer)
   fn := compiledLookup(op,sig,dcval)
   if null fn then
     -- following code is to handle selectors like first, rest
@@ -305,7 +307,7 @@ consDomainForm(x,dc) ==
   get(x,'value,$e) or get(x,'mode,$e) => x
   MKQ x
 
--- First cut at resolving self-referential conditions.  FIXME: should id:666
+-- First cut at resolving self-referential conditions.  FIXME: should
 -- handle cyclic dependencies and conditions requiring matching at
 -- runtime.
 
@@ -706,7 +708,7 @@ NRTputInLocalReferences bod ==
 NRTputInHead bod ==
   atom bod => bod
   bod is ['SPADCALL,:args,fn] =>
-    NRTputInTail rest bod --NOTE: args = COPY of rest bod id:667
+    NRTputInTail rest bod --NOTE: args = COPY of rest bod
     -- The following test allows function-returning expressions
     fn is [elt,dom,ind] and not (dom='$) and MEMQ(elt,'(ELT QREFELT CONST)) =>
       k:= NRTassocIndex dom => RPLACA(LASTNODE bod,[$elt,'_$,k])

@@ -448,7 +448,7 @@
             ;" used by optCallSpecially"
             ; if there are arguments to the constructor,
             ; then also modify 'optCallEval' in g-opt.boot
-            ; and add to DOMLIST of src/algebra/Makefile.in
+            ; and add it to DOMLIST in src/algebra/Makefile.in
 (SETQ |$Zero| '(|Zero|))
 (SETQ |$One| '(|One|))
 (SETQ |$NonMentionableDomainNames|

@@ -22,9 +22,6 @@ Maybe(R : Type) : Exports == Implementation where
       unwrapOr : (%, R) -> R
           ++ unwrapOr(x, default) returns x as type R if it's not failed(),
           ++ otherwise returns default.
-      coerce : R -> %
-          ++ coerce(x) returns x wrapped in type Maybe(R).  This is the same
-          ++ as wrap(x), and provides auto-coercion in interpreter.
       retractable? : % -> Boolean
           ++ retractable?(x) checks if x is of type R.
       retract : % -> R
@@ -36,35 +33,36 @@ Maybe(R : Type) : Exports == Implementation where
       if R has SetCategory then SetCategory
 
   Implementation == add
-      Qfailed ==> _*MAYBEFAIL_*$Lisp
-      Qfailed? ==> maybe_failp$Lisp
+      Rep := List R
+      -- the representation should have 0 or 1 element
 
-      failed() == Qfailed
-      failed? x == Qfailed?(x)
-      wrap x == x pretend %
-      coerce(x : R) : % == x pretend %
-      wrap? x == maybe_wrapp(x)$Lisp
-      retractable? x == not maybe_wrapp(x)$Lisp
-      unwrap x == maybe_unwrap(x)$Lisp
-      retract x == maybe_unwrap(x)$Lisp
-      unwrap! x == x pretend R
-      unwrapOr(x, default) == if Qfailed?(x) then default else x pretend R
-      retractIfCan(x) == if Qfailed?(x) then "failed" else x pretend R
+      errMsg ==> "unwrap: the argument is failed()"
+
+      failed() == []
+      failed? x == empty? x
+      wrap x == [x]
+      wrap? x == CONSP(x)$Lisp
+      retractable? x == CONSP(x)$Lisp
+      unwrap! x == QCAR(x)$Lisp
+      retract x == QCAR(x)$Lisp
+      unwrap x == if failed?(x) then error errMsg else unwrap! x
+      unwrapOr(x, default) == if failed?(x) then default else unwrap! x
+      retractIfCan x == if failed?(x) then "failed" else retract x
+
+      coerce(x : R) : % == wrap x
 
       if R has CoercibleTo OutputForm then
           coerce(x : %) : OutputForm ==
-              Qfailed?(x) => 'failed::OutputForm
-              (x pretend R)::OutputForm
+              failed?(x) => 'failed::OutputForm
+              unwrap!(x)::OutputForm
 
       if R has BasicType then
           x = y ==
-              Qfailed?(x) =>
-                  Qfailed?(y) => true
+              failed?(x) =>
+                  failed?(y) => true
                   false
-              Qfailed?(y) => false
-              (x pretend R) = (y pretend R)
+              failed?(y) => false
+              unwrap!(x) = unwrap!(y)
 
       if R has SetCategory then
-          hashUpdate!(hs : HashState, x : %) ==
-              Qfailed?(x) => update!(hs, SXHASH(Qfailed)$Lisp)$HashState
-              hashUpdate!(hs, x pretend R)
+          hashUpdate!(hs : HashState, x : %) == hashUpdate!(hs, x)$Rep
