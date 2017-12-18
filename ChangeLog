@@ -1,3 +1,151 @@
+2017-10-25  Qian Yun  <oldk1331@gmail.com>
+
+	* src/algebra/free.spad: Fix for unspecified order of evaluation
+	of arguments
+
+2017-09-30  Qian Yun  <oldk1331@gmail.com>
+
+	* src/interp/i-output.boot, src/input/i_bugs.input: fix the
+	display of 'overbar', 'overlabel' in multi-line output
+
+2017-09-17  Qian Yun  <oldk1331@gmail.com>
+	    Ralf Hemmecke  <ralf@hemmecke.org>
+
+	* src/algebra/gbintern.spad: avoid recursion in critical pair list
+	update
+
+2017-08-07  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+
+	* src/interp/cparse.boot, src/interp/pile.boot,
+	src/interp/scan.boot, src/interp/scwrap2.boot:
+	Simplify scanner and interpreter parser
+
+2017-08-05  Piet van Oostrum  <piet-l@vanoostrum.org>
+
+	* configure.ac, src/lib/Makefile.in, src/lisp/Makefile.in:
+	Support GMP in nonstandard location
+
+2017-07-20  Qian Yun  <oldk1331@gmail.com>
+
+	* src/algebra/elemntry.spad: Don't cache constants in
+	Expression(Float)
+
+2017-07-20  Piet van Oostrum  <piet-l@vanoostrum.org>
+
+	* src/lisp/num_gmp.lisp: Fix scope
+
+2017-07-07  Ralf Hemmecke  <ralf@hemmecke.org>
+
+	* src/algebra/intlocp.spad: new domain IntegerLocalizedAtPrime
+
+2017-07-07  Qian Yun  <oldk1331@gmail.com>
+
+	* src/algebra/fspace.spad: Remove 'paren/box' for lists
+
+2017-07-02  Ralf Hemmecke  <ralf@hemmecke.org>
+
+	* src/algebra/coerce.spad: Docfix
+
+2017-06-30  Qian Yun  <oldk1331@gmail.com>
+
+	* src/algebra/algfunc.spad: Fix nthRoot for negative EXPR FLOAT
+
+2017-06-30  Qian Yun  <oldk1331@gmail.com>
+
+	* src/algebra/expr.spad: Do not export 'simplifyPower'
+
+2017-06-30  Qian Yun  <oldk1331@gmail.com>
+
+	* src/algebra/float.spad: Make sure 'x^(1/2) = sqrt(x)'
+	in Float
+
+2017-06-29  Ralf Hemmecke  <ralf@hemmecke.org>
+
+	* src/algebra/polycat.spad: generalize PolynomialCategoryLifting
+
+2017-06-10  Qian Yun  <oldk1331@gmail.com>
+
+	* src/algebra/intden.spad, src/algebra/pfr.spad: Clean up
+	exports of PartialFraction
+
+2017-06-09  Qian Yun  <oldk1331@gmail.com>
+
+	* src/algebra/intden.spad: Small optimization
+
+2017-06-05  Qian Yun  <oldk1331@gmail.com>
+
+	* src/algebra/acplot.spad, src/algebra/algfact.spad,
+	src/algebra/fr.spad, src/algebra/galfact.spad,
+	src/algebra/padiclib.spad, src/algebra/pfr.spad,
+	src/algebra/twofact.spad:  Cleanup of exports of Factored
+
+2017-06-05  Qian Yun  <oldk1331@gmail.com>
+
+	* src/algebra/constant.spad: Remove InnerAlgebraicNumber
+	src/algebra/Makefile.in, src/algebra/exposed.lsp: Adjust
+
+2017-06-02  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+
+	* src/algebra/mts.spad: Add few missing functions
+
+2017-05-31  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+
+	* src/algebra/gpgcd.spad: Fix another GENPGCD problems
+
+2017-05-30  Qian Yun  <oldk1331@gmail.com>
+
+	* src/algebra/random.spad: Fix and cleanup IntegerBits
+
+2017-05-30  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+
+	* src/algebra/seg.spad: Add 'reverse'
+
+2017-05-30  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+
+	* src/algebra/pfbr.spad: Avoid infinite loop
+
+2017-05-30  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+
+	Add LLL reduction
+	* src/algebra/lll.spad: New file
+        src/algebra/Makefile.in: Adjust
+
+2017-05-29  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+
+	* src/algebra/list.spad, src/algebra/seg.spad:
+	Remove obsolete functions
+
+2017-05-29  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+
+	* src/algebra/allfact.spad, src/algebra/defintef.spad,
+	src/algebra/groebf.spad, src/algebra/intef.spad,
+	src/algebra/integrat.spad, src/algebra/laplace.spad,
+	src/algebra/multfact.spad, src/algebra/nlode.spad,
+	src/algebra/odeef.spad, src/algebra/oderf.spad,
+	src/algebra/pfr.spad, src/algebra/pleqn.spad,
+	src/algebra/qalgset.spad, src/algebra/rdeefx.spad,
+	src/algebra/solverad.spad, src/algebra/transsolve.spad,
+	src/algebra/triset.spad, src/algebra/zerodim.spad:
+	Use PolynomialFactorizationExplicit instead of
+	EuclideanDomain
+
+2017-05-28  Qian Yun  <oldk1331@gmail.com>
+
+	* src/algebra/fr.spad: Avoid side effects in 'mergeFactors'
+
+2017-05-28  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+
+	* src/algebra/catdef.spad: Fix gcd in field
+
+2017-05-28  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+
+	* src/algebra/gpgcd.spad, src/algebra/integrat.spad,
+	src/algebra/pgcd.spad: Misc cleanups
+
+2017-05-28  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
+
+	* src/algebra/gpgcd.spad: Fix handling of content
+
 2017-05-23  Waldek Hebisch  <hebisch@math.uni.wroc.pl>
 
 	* src/algebra/gpgcd.spad: Fix handling of leading
@@ -92,7 +240,7 @@
 	    Barry Trager
 
 	* src/algebra/rep1.spad: Generalize tensor
-	representaions
+	representations
 
 2017-04-11  Qian Yun  <oldk1331@gmail.com>
 
