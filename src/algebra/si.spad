@@ -1,8 +1,6 @@
 )abbrev category INS IntegerNumberSystem
 ++ Author: Stephen M. Watt
-++ Date Created:
-++   January 1988
-++ Change History:
+++ Date Created: January 1988
 ++ Basic Operations:
 ++   addmod, base, bit?, copy, dec, even?, hash, inc, invmod, length, mask,
 ++   positiveRemainder, symmetricRemainder, multiplicativeValuation, mulmod,
@@ -10,12 +8,12 @@
 ++ Description:  An \spad{IntegerNumberSystem} is a model for the integers.
 IntegerNumberSystem() : Category ==
   Join(UniqueFactorizationDomain, EuclideanDomain, OrderedIntegralDomain,
-         DifferentialRing, ConvertibleTo Integer, RetractableTo Integer,
-           LinearlyExplicitRingOver Integer, ConvertibleTo InputForm,
-             ConvertibleTo Pattern Integer, PatternMatchable Integer,
-               CombinatorialFunctionCategory, RealConstant,
-                 CharacteristicZero, StepThrough, canonicalUnitNormal,
-                   multiplicativeValuation) with
+       DifferentialRing, ConvertibleTo Integer, RetractableTo Integer,
+       ConvertibleTo InputForm,
+       ConvertibleTo Pattern Integer, PatternMatchable Integer,
+       CombinatorialFunctionCategory, RealConstant,
+       CharacteristicZero, StepThrough, canonicalUnitNormal,
+       multiplicativeValuation) with
    odd?     : % -> Boolean
       ++ odd?(n) returns true if and only if n is odd.
    even?    : % -> Boolean
@@ -38,14 +36,11 @@ IntegerNumberSystem() : Category ==
       ++ rational?(n) tests if n is a rational number
       ++ (see \spadtype{Fraction Integer}).
    rational : % -> Fraction Integer
-      ++ rational(n) creates a rational number (see \spadtype{Fraction Integer})..
+      ++ rational(n) creates a rational number (see \spadtype{Fraction Integer}).
    rationalIfCan : % -> Union(Fraction Integer, "failed")
       ++ rationalIfCan(n) creates a rational number, or returns "failed" if this is not possible.
--- FIXME: strange random distribution used (#227).
-   random   : () -> %
-      ++ random() creates a random element. This function is deprecated.
    random   : % -> %
-      ++ random(a) creates a random element from 0 to \spad{n-1}.
+      ++ random(n) creates a random element from 0 to \spad{n-1}.
    copy     : % -> %
       ++ copy(n) gives a copy of n.
    inc      : % -> %
@@ -128,7 +123,6 @@ IntegerNumberSystem() : Category ==
          r1 := c1-q*d1
          c := d; c1 := d1
          d := r; d1 := r1
---      not one? c => error "inverse does not exist"
       not (c = 1) => error "inverse does not exist"
       negative? c1 => c1 + b
       c1
@@ -148,9 +142,7 @@ IntegerNumberSystem() : Category ==
 )abbrev domain SINT SingleInteger
 
 ++ Author:  Michael Monagan
-++ Date Created:
-++    January 1988
-++ Change History:
+++ Date Created: January 1988
 ++ Basic Operations: max, min,
 ++    not, and, or, xor, Not, And, Or
 ++ Related Constructors:
@@ -158,8 +150,7 @@ IntegerNumberSystem() : Category ==
 ++ Description: SingleInteger is intended to support machine integer
 ++ arithmetic.
 
--- MAXINT, BASE (machine integer constants)
--- MODULUS, MULTIPLIER (random number generator constants)
+-- MAXINT  (machine integer constants)
 
 
 -- Lisp dependencies
@@ -184,7 +175,7 @@ SingleInteger() : Join(IntegerNumberSystem, ConvertibleTo String,
    "not":   % -> %
       ++ not(n) returns the bit-by-bit logical {\em not} of the single integer n.
    "~"  :   % -> %
-      ++  ~ n returns the bit-by-bit logical {\em not } of the single integer n.
+      ++  ~ n returns the bit-by-bit logical {\em not} of the single integer n.
    "/\": (%, %) -> %
       ++ n /\ m  returns the bit-by-bit logical {\em and} of
       ++ the single integers n and m.
@@ -205,12 +196,8 @@ SingleInteger() : Join(IntegerNumberSystem, ConvertibleTo String,
 
  == add
 
-   seed : % := 1$Lisp               -- for random()
    MAXINT ==> MOST_-POSITIVE_-FIXNUM$Lisp
    MININT ==> MOST_-NEGATIVE_-FIXNUM$Lisp
-   BASE ==> 67108864$Lisp           -- 2^26
-   MULTIPLIER ==> 314159269$Lisp    -- from Knuth's table
-   MODULUS ==> 2147483647$Lisp      -- 2^31-1
 
    writeOMSingleInt(dev : OpenMathDevice, x : %) : Void ==
     if x < 0 then
@@ -228,7 +215,6 @@ SingleInteger() : Join(IntegerNumberSystem, ConvertibleTo String,
     if wholeObj then
       OMputEndObject(dev)
 
-   reducedSystem m      == m pretend Matrix(Integer)
    coerce(x) : OutputForm == (convert(x)@Integer)::OutputForm
    convert(x : %) : Integer == x pretend Integer
    convert(x : %) : String == string(convert(x)@Integer)
@@ -262,7 +248,6 @@ SingleInteger() : Join(IntegerNumberSystem, ConvertibleTo String,
    abs(x)    == abs_SI(x)$Lisp
    odd?(x)   == odd?_SI(x)$Lisp
    zero?(x)  == zero?_SI(x)$Lisp
---   one?(x)   == ONEP(x)$Lisp
    one?(x)   == x = 1
    max(x, y)  == max_SI(x, y)$Lisp
    min(x, y)  == min_SI(x, y)$Lisp
@@ -274,9 +259,6 @@ SingleInteger() : Join(IntegerNumberSystem, ConvertibleTo String,
    submod(a, b, p) == submod_SI(a, b, p)$Lisp
    negative?(x)  == negative?_SI$Lisp x
 
-
-   reducedSystem(m, v) ==
-        [m pretend Matrix(Integer), v pretend Vector(Integer)]
 
    positiveRemainder(x, n) ==
       r : % := rem_SI(x, n)$Lisp
@@ -291,11 +273,6 @@ SingleInteger() : Join(IntegerNumberSystem, ConvertibleTo String,
       (x <= max pretend Integer) and (x >= min pretend Integer) =>
         x pretend %
       error "integer too large to represent in a machine word"
-
--- FIXME: strange random distribution used (#227).
-   random() ==
-      seed := REMAINDER((MULTIPLIER*seed)$Lisp, MODULUS)$Lisp
-      REMAINDER(seed, BASE)$Lisp
 
    random(n) == RANDOM(n)$Lisp
 

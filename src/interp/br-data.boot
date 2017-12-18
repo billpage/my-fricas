@@ -343,7 +343,7 @@ spreadGlossText(line) ==
 ----- XXX`and this is the second
 ----- XXX`and this is the third
 ----- key2`and this is the fourth
---where XXX is the file position of key1
+--where XXX is the file position of key1 id:653
 --this is because grepping will only pick up the first 512 characters
   line = '"" => nil
   MAXINDEX line > 500 => [SUBSTRING(line,0,500),:spreadGlossText(SUBSTRING(line,500,nil))]

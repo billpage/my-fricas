@@ -272,7 +272,7 @@ dbOuttran form ==
 
 dbConformGen form == dbConformGen1(form,true)
 --many buttons: one for the type and one for each inner type
---NOTE: must only be called on types KNOWN to be correct
+--NOTE: must only be called on types KNOWN to be correct id:724
 
 dbConformGenUnder form == dbConformGen1(form,false)
 --same as above, except buttons only for the inner types
@@ -625,7 +625,7 @@ dbShowOpDocumentation(htPage,opAlist,which,data) ==
     opAlist :=
       which = '"operation" => htpProperty(htPage,'opAlist)
       htpProperty(htPage,'attrAlist)
-    --NOTE: this line is necessary to get indexing right.
+    --NOTE: this line is necessary to get indexing right. id:725
     --The test below for $exposedOnlyIfTrue causes unexposed items
     --to be skipped.
   newWhich :=
@@ -693,7 +693,7 @@ dbShowOperationsFromConform(htPage,which,opAlist) ==  --branch in with lists
       HPUT($topicHash,x,c)
   if domform := htpProperty(htPage,'domname) then
     $conformsAreDomains : local := true
-    reduceOpAlistForDomain(opAlist,domform,conform)
+    opAlist := reduceOpAlistForDomain(opAlist, domform, conform)
   conform := domform or conform
   kind := capitalize htpProperty(htPage,'kind)
   exposePart :=
@@ -726,15 +726,19 @@ reduceOpAlistForDomain(opAlist,domform,conform) ==
 --destructively simplify all predicates; filter out any that fail
   form1 := [domform,:rest domform]
   form2 := ['$,:rest conform]
+  new_opAlist := []
   for pair in opAlist repeat
-    RPLACD(pair,[test for item in rest pair | test]) where test ==
+    n_items := [test for item in rest pair | test] where test ==
       [head,:tail] := item
       first tail = true => item
       pred := simpHasPred SUBLISLIS(form1,form2,QCAR tail)
       null pred => false
       RPLACD(item,[pred])
       item
-  opAlist
+    if not(null(n_items)) then
+        n_pair := cons(first(pair), n_items)
+        new_opAlist := cons(n_pair, new_opAlist)
+  NREVERSE(new_opAlist)
 
 dbShowOperationLines(which,linelist) ==  --branch in with lines
   htPage := htInitPage(nil,nil)  --create empty page
@@ -804,7 +808,7 @@ dbExpandOpAlistIfNecessary(htPage,opAlist,which,needOrigins?,condition?) ==
         [op,:lines] := pair
         acc := nil
         for line in lines repeat
-        --NOTE: we must expand all lines here for a given op
+        --NOTE: we must expand all lines here for a given op id:726
         --      since below we will change opAlist
         --Case 1: Already expanded; just cons it onto ACC
           null STRINGP line => --already expanded
@@ -891,6 +895,18 @@ evalableConstructor2HtString domform ==
       typ := sublisFormal(arglist,ftype)
       mathform2HtString algCoerceInteractive(arg,typ,'(OutputForm))
 
+fortexp0 x ==
+  e_to_f := getFunctionFromDomain("expression2Fortran", ['FortranCodeTools],
+                                 [$OutputForm])
+  f := SPADCALL(x, e_to_f)
+  p := position('"%l",f)
+  p < 0 => f
+  l := NIL
+  while p < 0 repeat
+    [t,:f] := f
+    l := [t,:l]
+  NREVERSE ['"...",:l]
+
 mathform2HtString form == escapeString
   form is ['QUOTE,a] => STRCONC('"'","STRCONC"/fortexp0 a)
   form is ['BRACKET,['AGGLST,:arg]] =>
@@ -920,7 +936,7 @@ getDomainOpTable(dom,fromIfTrue,:options) ==
   abb := getConstructorAbbreviation conname
   opAlist := getOperationAlistFromLisplib conname
   "append"/[REMDUP [[op1,:fn] for [sig,slot,pred,key,:.] in u
-              | key ~= 'Subsumed and ((null ops and (op1 := op)) or (op1 := memq(op,ops)))]
+              | ((null ops and (op1 := op)) or (op1 := memq(op, ops)))]
                  for [op,:u] in opAlist] where
     memq(op,ops) ==   --dirty trick to get 0 and 1 instead of Zero and One
       MEMQ(op,ops) => op

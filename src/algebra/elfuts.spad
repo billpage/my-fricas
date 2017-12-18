@@ -3,7 +3,6 @@
 ++ Elliptic functions expanded as Taylor series
 ++ Author: Bill Burge, Clifton J. Williamson
 ++ Date Created: 1986
-++ Date Last Updated: 17 February 1992
 ++ Keywords: elliptic function, Taylor series
 ++ Examples:
 ++ References:
@@ -118,7 +117,7 @@ EllipticFunctionsUnivariateTaylorSeries(Coef, UTS):
                 c0 : Coef := ellipticPi(z0, n, m)
                 c0::UTS + integrate(ss)
             error "ELFUTS:ellipticPi: constant coefficient should be 0"
-
+)boot $tryRecompileArguments := true
 
 --Copyright (c) 1991-2002, The Numerical ALgorithms Group Ltd.
 --All rights reserved.

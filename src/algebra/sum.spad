@@ -1,8 +1,6 @@
 )abbrev package ISUMP InnerPolySum
 ++ Summation of polynomials
 ++ Author: SMW
-++ Date Created: ???
-++ Date Last Updated: 19 April 1991
 ++ Description: tools for the summation packages.
 InnerPolySum(E, V, R, P) : Exports == Impl where
     E : OrderedAbelianMonoidSup
@@ -35,13 +33,13 @@ InnerPolySum(E, V, R, P) : Exports == Impl where
 
         sum(p, v, s) ==
           indef := sum(p, v)
-          [eval(indef.num, v, 1 + hi s) - eval(indef.num, v, lo s),
+          [eval(indef.num, v, 1 + high(s)) - eval(indef.num, v, low(s)),
            indef.den]
 
         sum(p, v) ==
             up := univariate(p, v)
-            lp := nil()$List(SUP P)
-            ld := nil()$List(Z)
+            lp := []$List(SUP P)
+            ld := []$List(Z)
             while up ~= 0 repeat
                 ud  := degree up; uc := leadingCoefficient up
                 up  := reductum up
@@ -55,8 +53,6 @@ InnerPolySum(E, V, R, P) : Exports == Impl where
 )abbrev package GOSPER GosperSummationMethod
 ++ Gosper's summation algorithm
 ++ Author: SMW
-++ Date Created: ???
-++ Date Last Updated: 19 August 1991
 ++ Description: Gosper's summation algorithm.
 GosperSummationMethod(E, V, R, P, Q) : Exports == Impl where
     E : OrderedAbelianMonoidSup
@@ -266,8 +262,6 @@ GosperSummationMethod(E, V, R, P, Q) : Exports == Impl where
 )abbrev package SUMRF RationalFunctionSum
 ++ Summation of rational functions
 ++ Author: Manuel Bronstein
-++ Date Created: ???
-++ Date Last Updated: 19 April 1991
 ++ Description: Computes sums of rational functions;
 RationalFunctionSum(R) : Exports == Impl where
     R : Join(IntegralDomain, Comparable, RetractableTo Integer)
@@ -302,8 +296,8 @@ RationalFunctionSum(R) : Exports == Impl where
         (indef := innersum(f, v := variable s)) case "failed" =>
           summation(f::FE, map((z : RF) : FE +-> z::FE,
                                s)$SegmentBindingFunctions2(RF, FE))
-        eval(indef::RF, v, 1 + hi segment s)
-          - eval(indef::RF, v, lo segment s)
+        eval(indef::RF, v, 1 + high(segment(s)))
+          - eval(indef::RF, v, low(segment(s)))
 
       sum(an : RF, n : SE) ==
         (u := innersum(an, n)) case "failed" => summation(an::FE, n)
@@ -311,7 +305,8 @@ RationalFunctionSum(R) : Exports == Impl where
 
       sum(p : P, s : SegmentBinding P) ==
         f := sum(p, v := variable s)
-        eval(f, v, (1 + hi segment s)::RF) - eval(f, v, lo(segment s)::RF)
+        eval(f, v, (1 + high(segment(s)))::RF) -
+            eval(f, v, low(segment(s))::RF)
 
       innersum(an, n) ==
         (r := retractIfCan(an)@Union(P, "failed")) case "failed" =>

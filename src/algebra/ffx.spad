@@ -1,7 +1,5 @@
 )abbrev package IRREDFFX IrredPolyOverFiniteField
 ++ Author: Robert S. Sutor (original)
-++ Date Created: ???
-++ Date Last Updated: 29 May 1990
 ++ Description:
 ++ This package exports the function generateIrredPoly that computes
 ++ a monic irreducible polynomial of degree n over a finite field.
@@ -53,9 +51,7 @@ IrredPolyOverFiniteField(GF : FiniteFieldCategory) : Exports == Impl where
 
     generateIrredPoly(n : N) : SUP ==
       -- want same poly every time
---      one?(n) => monomial(1, 1)$SUP
       (n = 1) => monomial(1, 1)$SUP
---      one?(gcd(p, n)) or (n < q) =>
       (gcd(p, n) = 1) or (n < q) =>
         odd?(n) => getIrredPoly(2, n)
         getIrredPoly(1, n)

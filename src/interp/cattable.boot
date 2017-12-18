@@ -33,7 +33,6 @@
 
 DEFVAR($has_category_hash, nil)
 DEFVAR($ancestor_hash, nil)
-DEFVAR($ct)
 
 compressHashTable(ht) == ht
 
@@ -46,13 +45,13 @@ showCategoryTable con ==
      | a = con and (val := HGET($has_category_hash, key))]
 
 displayCategoryTable(:options) ==
-  conList := IFCAR options
-  $ct := MAKE_-HASHTABLE('ID)
-  for (key := [a, :b]) in HKEYS $has_category_hash repeat
-    HPUT($ct, a, [[b, :HGET($has_category_hash, key)], :HGET($ct, a)])
-  for id in HKEYS $ct | null conList or MEMQ(id,conList) repeat
-    sayMSG [:bright id,'"extends:"]
-    PRINT HGET($ct,id)
+    conList := IFCAR options
+    ct := MAKE_-HASHTABLE('ID)
+    for (key := [a, :b]) in HKEYS $has_category_hash repeat
+        HPUT(ct, a, [[b, :HGET($has_category_hash, key)], :HGET(ct, a)])
+    for id in HKEYS ct | null conList or MEMQ(id,conList) repeat
+        sayMSG [:bright id, '"extends:"]
+        PRINT HGET(ct, id)
 
 genCategoryTable() ==
   $ancestors_hash := MAKE_-HASHTABLE('ID)
@@ -110,7 +109,6 @@ simpHasPred(pred,:options) == main where
       null r and opOf op = 'has => simp first pred
       pred is '(QUOTE T) => true
       op1 := LASSOC(op,'((and . AND)(or . OR)(not . NOT))) => simp [op1,:r]
-      simp first pred   --REMOVE THIS HACK !!!!
     pred in '(T etc) => pred
     null pred => nil
     pred

@@ -3,7 +3,6 @@
 ++ a generalized Viskovatov continued fraction algorithm.
 ++ Authors: Trager, Burge, Hassner & Watt.
 ++ Date Created: April 1987
-++ Date Last Updated: 12 April 1990
 ++ Keywords: Pade, series
 ++ Examples:
 ++ References:
@@ -51,7 +50,6 @@ PadeApproximantPackage(R : Field, x : Symbol, pt : R) : Exports == Implementatio
 ++ a generalized Viskovatov continued fraction algorithm.
 ++ Authors: Burge, Hassner & Watt.
 ++ Date Created: April 1987
-++ Date Last Updated: 12 April 1990
 ++ Keywords: Pade, series
 ++ Examples:
 ++ References:
@@ -137,8 +135,8 @@ PadeApproximants(R, PS, UP) : Exports == Implementation where
     padeInner(l, m, gps, dps) ==
       zero? coefficient(gps, 0) and zero? coefficient(dps, 0) =>
         error "Pade' problem not normalized."
-      plist : List UP := nil()
-      alist : List NNI := nil()
+      plist : List UP := []
+      alist : List NNI := []
       -- Ensure denom has constant term.
       if zero? coefficient(dps, 0) then
         -- g/d = 0 + z^0/(d/g)

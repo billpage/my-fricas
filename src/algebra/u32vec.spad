@@ -30,9 +30,7 @@ U32Vector() : OneDimensionalArrayAggregate Integer == add
 
 U32Matrix : MatrixCategory(Integer,
                          U32Vector,
-                         U32Vector) with
-    qnew : (Integer, Integer) -> %
-      ++ qnew(n, m) creates a new uninitialized n by m matrix.
+                         U32Vector)
   == add
 
     R ==> Integer
@@ -95,9 +93,7 @@ U16Vector() : OneDimensionalArrayAggregate Integer == add
 
 U16Matrix : MatrixCategory(Integer,
                          U16Vector,
-                         U16Vector) with
-    qnew : (Integer, Integer) -> %
-      ++ qnew(n, m) creates a new uninitialized n by m matrix.
+                         U16Vector)
   == add
 
     R ==> Integer
@@ -160,9 +156,7 @@ U8Vector() : OneDimensionalArrayAggregate Integer == add
 
 U8Matrix : MatrixCategory(Integer,
                          U8Vector,
-                         U8Vector) with
-    qnew : (Integer, Integer) -> %
-      ++ qnew(n, m) creates a new uninitialized n by m matrix.
+                         U8Vector)
   == add
 
     R ==> Integer
@@ -205,7 +199,7 @@ U32VectorPolynomialOperations() : Export == Implementation where
           ++ copy_first(v1, v2, n) copies first n elements
           ++ of v2 into n first positions in v1.
         copy_slice : (PA, PA, Integer, Integer) -> Void
-          ++ copy_first(v1, v2, m, n) copies the slice of v2 starting
+          ++ copy_slice(v1, v2, m, n) copies the slice of v2 starting
           ++ at m elements and having n elements into corresponding
           ++ positions in v1.
         eval_at : (PA, Integer, Integer, Integer) -> Integer

@@ -1,8 +1,5 @@
 )abbrev package MESH MeshCreationRoutinesForThreeDimensions
-++ <description of package>
 ++ Author: Jim Wen
-++ Date Created: ??
-++ Date Last Updated: October 1991 by Jon Steinbach
 ++ Keywords:
 ++ Examples:
 ++ References:
@@ -48,18 +45,6 @@ MeshCreationRoutinesForThreeDimensions() : Exports == Implementation where
     import from SPACE3
     --import from TUBE()
 
-    -- local functions
-    numberCheck(nums : Point SF) : Void ==
-      -- this function checks to see that the small floats are
-      -- actually just that - rather than complex numbers or
-      -- whatever (the whatever includes nothing presently
-      -- since NaN, Not a Number, is not necessarily supported
-      -- by common lisp). note that this function is dependent
-      -- upon the fact that Common Lisp supports complex numbers.
-      for i in minIndex(nums)..maxIndex(nums) repeat
-        COMPLEXP(nums.(i::PositiveInteger))$Lisp =>
-          error "An unexpected complex number was encountered in the calculations."
-
     makePt : (SF, SF, SF, SF) -> POINT
     makePt(x, y, z, c) == point(l : List SF := [x, y, z, c])
     ptFunc(f, g, h, c) ==
@@ -72,22 +57,21 @@ MeshCreationRoutinesForThreeDimensions() : Exports == Implementation where
       -- the issue of open and closed needs to be addressed, here, we are
       -- defaulting to open (which is probably the correct default)
       -- the user should be able to override that (optional argument?)
-      llp : L L POINT := nil()
+      llp : L L POINT := []
       uNum : PI  := var1Steps(opts, var1StepsDefault())
       vNum : PI  := var2Steps(opts, var2StepsDefault())
-      ustep := (lo uSeg - hi uSeg)/uNum
-      vstep := (lo vSeg - hi vSeg)/vNum
-      someV := hi vSeg
+      ustep := (low(uSeg) - high(uSeg))/uNum
+      vstep := (low(vSeg) - high(vSeg))/vNum
+      someV := high(vSeg)
       for iv in vNum..0 by -1 repeat
-        if zero? iv then someV := lo vSeg
+        if zero? iv then someV := low(vSeg)
         -- hack: get last number in segment within segment
-        lp : L POINT := nil()
-        someU := hi uSeg
+        lp : L POINT := []
+        someU := high(uSeg)
         for iu in uNum..0 by -1 repeat
-          if zero? iu then someU := lo uSeg
+          if zero? iu then someU := low(uSeg)
           -- hack: get last number in segment within segment
           pt := ptFun(someU, someV)
-          numberCheck pt
           lp := concat(pt, lp)
           someU := someU + ustep
         llp := concat(lp, llp)

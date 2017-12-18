@@ -100,6 +100,18 @@ position1(x,y) ==
   -- this is used where we want to assume a 1-based index
   1 + position(x,y)
 
+Zeros n ==
+    BOUNDP '$ZeroVecCache and #$ZeroVecCache = n => $ZeroVecCache
+    $ZeroVecCache := MAKE_-VEC n
+    for i in 0..n-1 repeat $ZeroVecCache.i := 0
+    $ZeroVecCache
+
+LZeros n ==
+    n < 1 => nil
+    l := [0]
+    for i in 2..n repeat l := [0, :l]
+    l
+
 --% Direct Product, New and Old
 
 DP2DP(u,source is [.,n,S],target is [.,m,T]) ==
@@ -688,10 +700,10 @@ L2Sm(u,source is [.,D],[.,n,R]) ==
 
 L2Set(x,source is [.,S],target is [.,T]) ==
   x = '_$fromCoerceable_$ => canCoerce(S,T)
-  -- call library function  brace  to get a set
+  -- call library function set to get a set
   target' := ['Set,S]
   u := objNewWrap(
-    SPADCALL(x,getFunctionFromDomain('brace,target',[source])),
+    SPADCALL(x, getFunctionFromDomain1('set, target', target', [source])),
       target')
   (u := coerceInt(u,target)) or coercionFailure()
   objValUnwrap u
@@ -2001,20 +2013,8 @@ DEFPARAMETER($CoerceTable, '(                                          _
     (UnivariatePuiseuxSeries              indeterm   P2Upxs) _
     (UnivariateTaylorSeries               indeterm   P2Uts) _
     ))_
-  (Int . ( _
-    (Expression                           total      ncI2E) _
-    (Integer                              total      ncI2I) _
-  ))_
-  (Baby . ( _
-    (Expression                           total      ncI2E) _
-    (Integer                              total      ncI2I) _
-  ))_
   (Integer . ( _
-    (Baby                                 total      I2ncI) _
-    (EvenInteger                          partial    I2EI) _
-    (Int                                  total      I2ncI) _
     (NonNegativeInteger                   partial    I2NNI) _
-    (OddInteger                           partial    I2OI) _
     (PositiveInteger                      partial    I2PI) _
     ))_
   (List . ( _

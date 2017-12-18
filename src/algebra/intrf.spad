@@ -2,10 +2,9 @@
 ++ Subresultants
 ++ Author: Barry Trager, Renaud Rioboo
 ++ Date Created: 1987
-++ Date Last Updated: August 2000
 ++ Description:
 ++ This package computes the subresultants of two polynomials which is needed
-++ for the `Lazard Rioboo' enhancement to Tragers integrations formula
+++ for the `Lazard Rioboo' enhancement to Tragers integrations formula.
 ++ For efficiency reasons this has been rewritten to call Lionel Ducos
 ++ package which is currently the best one.
 ++
@@ -39,21 +38,11 @@ SubResultantPackage(R, UP) : Exports == Implementation where
          unitCanonical primitivePart map(x1+->(rec.coef1 * x1) rem q, p)
 
     subresultantVector(p1, p2) ==
-       F : UP -- auxiliary stuff !
        res : PrimitiveArray(UP) := new(2+max(degree(p1), degree(p2)), 0)
-       --
-       -- kind of stupid interface to Lionel's  Package !!!!!!!!!!!!
-       -- might have been wiser to rewrite the loop ...
-       -- But I'm too lazy. [rr]
-       --
        l := chainSubResultants(p1, p2)$Lionel
-       --
        -- this returns the chain of non null subresultants !
-       -- we must  rebuild subresultants from this.
-       -- we really hope Lionel Ducos minded what he wrote
-       -- since we are fully blind !
-       --
-       null l =>
+       -- we rebuild subresultants from this, using Fundamental PRS Theorem.
+       empty?(l) =>
          -- Hum it seems that Lionel returns [] when min(|p1|, |p2|) = 0
          zero?(degree(p1)) =>
            res.degree(p2) := p2
@@ -75,17 +64,14 @@ SubResultantPackage(R, UP) : Exports == Implementation where
              res.0 := 1
            res
          error "SUBRESP: strange Subresultant chain from PRS"
-       Sn := first(l)
        --
        -- as of Loos definitions last subresultant should not be defective
        --
-       l := rest(l)
-       n := degree(Sn)
-       F := Sn
-       null l => error "SUBRESP: strange Subresultant chain from PRS"
-       zero? Sn => error "SUBRESP: strange Subresultant chain from PRS"
+       F := first l
+       l := rest l
+       n := degree F
+       res.n := F
        while (l ~= []) repeat
-         res.(n) := Sn
          F := first(l)
          l := rest(l)
          -- F is potentially defective
@@ -94,25 +80,23 @@ SubResultantPackage(R, UP) : Exports == Implementation where
            --
            -- F is defective
            --
-           null l => error "SUBRESP: strange Subresultant chain from PRS"
-           Sn := first(l)
-           l := rest(l)
-           n := degree(Sn)
-           res.((n-1)::NonNegativeInteger) := F
+           empty?(l) => error "SUBRESP: strange Subresultant chain from PRS"
+           nextn := degree first l
+           n := degree F
+           res.((nextn-1)::NonNegativeInteger) := F
          else
            --
            -- F is non defective
            --
            degree(F) < n => error "strange result !"
-           Sn := F
-           n := degree(Sn)
+           n := degree F
+           res.n := F
        --
        -- Lionel forgets about p1 if |p1| > |p2|
        -- forgets about p2 if |p2| > |p1|
        -- but he reminds p2 if |p1| = |p2|
        -- a glance at Loos should correct this !
        --
-       res.n := Sn
        --
        -- Loos definition
        --
@@ -131,7 +115,6 @@ SubResultantPackage(R, UP) : Exports == Implementation where
 ++ Tools for handling monomial extensions
 ++ Author: Manuel Bronstein
 ++ Date Created: 18 August 1992
-++ Date Last Updated: 3 June 1993
 ++ Description: Tools for handling monomial extensions.
 MonomialExtensionTools(F, UP) : Exports == Implementation where
   F : Field
@@ -231,7 +214,6 @@ ParallelIntegrationTools(R, V, P) : Exports == Implementation where
 ++ Hermite integration, transcendental case
 ++ Author: Manuel Bronstein
 ++ Date Created: 1987
-++ Date Last Updated: 12 August 1992
 ++ Description: Hermite integration, transcendental case.
 TranscendentalHermiteIntegration(F, UP) : Exports == Implementation where
   F  : Field
@@ -302,7 +284,6 @@ TranscendentalHermiteIntegration(F, UP) : Exports == Implementation where
 ++ Risch algorithm, transcendental case
 ++ Author: Manuel Bronstein
 ++ Date Created: 1987
-++ Date Last Updated: 24 October 1995
 ++ Description:
 ++   This package provides functions for the transcendental
 ++   case of the Risch algorithm.
@@ -425,7 +406,6 @@ TranscendentalIntegration(F, UP) : Exports == Implementation where
                UP22UPR swap primitivePart(resultvec(term.exponent), term.factor)]
                      for term in factors(rec.special)]
       dlog :=
---           one? derivation x => dr.logpart
            ((derivation x) = 1) => dr.logpart
            differentiate(mkAnswer(0, logs, empty()),
                          (x1 : RF) : RF+->differentiate(x1, derivation))
@@ -513,7 +493,7 @@ TranscendentalIntegration(F, UP) : Exports == Implementation where
         ri2 := lamintegratepoly(sp, dx, n, fderiv, extint, lfint)
         [i1 + ri2.answer, ri2.a0]
 
-    -- FIXME: very incomplete
+    -- FIXME: very incomplete id:703
     lamintegratepoly(p : GP, dx :F, n : Integer, fderiv : F -> F,
                      extint : F -> UF, lfint : F -> IR0) : IRIR ==
         answr := 0$GP
@@ -521,7 +501,7 @@ TranscendentalIntegration(F, UP) : Exports == Implementation where
         i0 : IR0 := 0
         while p ~= 0 repeat
             d := degree p
-            -- XXX FIXME early abort
+            -- XXX FIXME early abort id:704
             d < n - 2 => return [mkir(answr, lcoeff, p), i0]
             p0 := leadingCoefficient p
             b1 : F
@@ -548,7 +528,7 @@ TranscendentalIntegration(F, UP) : Exports == Implementation where
             p ~= 0 and degree(p) >= d =>
                 print(p::OutputForm)
                 error "impossible"
-        -- XXX FIXME handle part in F
+        -- XXX FIXME handle part in F id:705
         [mkir(answr, lcoeff, 0), i0]
 
 -- returns either
@@ -570,7 +550,6 @@ TranscendentalIntegration(F, UP) : Exports == Implementation where
 ++ Rational function integration
 ++ Author: Manuel Bronstein
 ++ Date Created: 1987
-++ Date Last Updated: 24 October 1995
 ++ Description:
 ++   This package provides functions for the base
 ++   case of the Risch algorithm.
@@ -616,7 +595,6 @@ RationalIntegration(F, UP) : Exports == Implementation where
 ++ Integration of rational functions
 ++ Author: Manuel Bronstein
 ++ Date Created: 1987
-++ Date Last Updated: 29 Mar 1990
 ++ Keywords: polynomial, fraction, integration.
 ++ Description:
 ++   This package provides functions for the integration
@@ -684,9 +662,3 @@ RationalFunctionIntegration(F) : Exports == Implementation where
 --LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 --NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 --SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
--- SPAD files for the integration world should be compiled in the
--- following order:
---
---   intaux  rderf  INTRF  curve  curvepkg  divisor  pfo
---   intalg  intaf  efstruc  rdeef  intpm  intef  irexpand  integrat

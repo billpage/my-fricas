@@ -180,7 +180,7 @@ UnittestCount() : with
 
      testsuiteNoClear s ==
          if #s > 15
-         then messagePrint("WARNING: string for testsuite should have less then "
+         then messagePrint("WARNING: string for testsuite should have less than "
                            "15 characters!")$OutputForm
 
          currentTestsuite := s
@@ -190,7 +190,7 @@ UnittestCount() : with
 
      testcaseNoClear s ==
          if #s > maxWidth - # "  Testcase: "
-         then messagePrint("WARNING: string for testcase should have less then "
+         then messagePrint("WARNING: string for testcase should have less than "
                            string(maxWidth - # "  Testcase: ") _
                            " characters!")$OutputForm
 
@@ -448,8 +448,8 @@ UnittestAux(R : BasicType) : with
        ++ like testEquals, but expects failure.
 
      testLibraryErrorAux : (String, R) -> Void
-       ++ testLibraryError(inp, ex) states that ex should throw an error. Such
-       ++ a test will never count as a fatal error.
+       ++ testLibraryErrorAux(inp, ex) states that ex should throw an
+       ++ error. Such a test will never count as a fatal error.
 
      xftestLibraryErrorAux : (String, R) -> Void
        ++ like testEquals, but expects failure.
@@ -459,8 +459,8 @@ UnittestAux(R : BasicType) : with
 
      if R has RealNumberSystem then
          testRealEqualsAux : (String, R, R) -> Void
-           ++ testRealEquals(inp, ex1, ex2) states that ex1 and ex2 should be
-           ++ approximately equal as real numbers, taking into acount
+           ++ testRealEqualsAux(inp, ex1, ex2) states that ex1 and ex2 should
+           ++ be approximately equal as real numbers, taking into acount
            ++ \spadfun{testAbsolutePrecision} and
            ++ \spadfun{testRelativePrecision}.
 
@@ -468,8 +468,8 @@ UnittestAux(R : BasicType) : with
            ++ like testEquals, but expects failure.
 
          testComplexEqualsAux : (String, Complex R, Complex R) -> Void
-           ++ testComplexEquals(inp ex1, ex2) states that ex1 and ex2 should be
-           ++ approximately equal as complex numbers, taking into acount
+           ++ testComplexEqualsAux(inp ex1, ex2) states that ex1 and ex2 should
+           ++ be approximately equal as complex numbers, taking into acount
            ++ \spadfun{testAbsolutePrecision} and
            ++ \spadfun{testRelativePrecision}.
 
@@ -656,22 +656,18 @@ UnittestAux(R : BasicType) : with
          then incXfLibraryError(inp, [ex::O])$U
          else incXfLibraryError(inp, [])$U
 
-@
-
-\section{package TESTUNIT Unittest}
-<<package TESTUNIT Unittest>>=
 )abbrev package TESTUNIT Unittest
 ++ Author: Martin Rubey
 ++ Description: Unittest is a package that provides functions for regression
 ++              testing.  Note that it calls the interpreter, thus, all
-++              functions require that there arguments be passed as strings.
+++              functions require that their arguments be passed as strings.
 Unittest : with
 
      testEquals : (String, String) -> Void
        ++ testEquals(ex1, ex2) states that ex1 and ex2 should be equal.  To
        ++ sidestep the possibility that the equality function of the domain R
        ++ performs some simplifications, we convert ex1 and ex2 to
-       ++ \spad{InputForm}, if possible
+       ++ \spad{InputForm}, if possible.
 
      xftestEquals : (String, String) -> Void
        ++ like testEquals, but expects failure.

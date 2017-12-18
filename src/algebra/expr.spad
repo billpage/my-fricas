@@ -2,7 +2,6 @@
 ++ Top-level mathematical expressions
 ++ Author: Manuel Bronstein
 ++ Date Created: 19 July 1988
-++ Date Last Updated: October 1993 (P.Gianni), February 1995 (MB)
 ++ Description: Expressions involving symbolic functions.
 ++ Keywords: operator, kernel, function.
 Expression(R : Comparable) : Exports == Implementation where
@@ -34,11 +33,8 @@ Expression(R : Comparable) : Exports == Implementation where
         ++ present in f by applying their defining relations.
       number? : % -> Boolean
         ++ number?(f) tests if f is rational
-      simplifyPower : (%, Integer) -> %
-        ++ simplifyPower(f, n) \undocumented{}
       if R has PolynomialFactorizationExplicit then
           PolynomialFactorizationExplicit
-      if R has RetractableTo Integer then RetractableTo AN
       setSimplifyDenomsFlag : Boolean -> Boolean
         ++ setSimplifyDenomsFlag(x) sets flag affecting simplification
         ++ of denominators.  If true irrational algebraics are removed from
@@ -93,11 +89,11 @@ Expression(R : Comparable) : Exports == Implementation where
             algkernels : List K -> List K
             evl       : (MP, K, SparseUnivariatePolynomial %) -> Fraction MP
             evl0      : (MP, K) -> SparseUnivariatePolynomial Fraction MP
+            simplifyPower : (%, Integer) -> %
 
             Rep := Fraction MP
             0                == 0$Rep
             1                == 1$Rep
-      --      one? x           == one?(x)$Rep
             one? x           == (x = 1)$Rep
             zero? x          == zero?(x)$Rep
             - x : %            == -$Rep x
@@ -326,7 +322,7 @@ Expression(R : Comparable) : Exports == Implementation where
             jacobiCn(z, m) == jacobiCn(z, m)$FSF
             jacobiDn(z, m) == jacobiDn(z, m)$FSF
             jacobiZeta(z, m) == jacobiZeta(z, m)$FSF
-            jacobiTheta(q, z) == jacobiTheta(q, z)$FSF
+            jacobiTheta(z, m) == jacobiTheta(z, m)$FSF
             lerchPhi(z, s, a) == lerchPhi(z, s, a)$FSF
             riemannZeta(z) == riemannZeta(z)$FSF
             charlierC(n, a, z) == charlierC(n, a, z)$FSF
@@ -777,14 +773,14 @@ Expression(R : Comparable) : Exports == Implementation where
           kereval        : (K, List K, List %) -> %
           subeval        : (K, List K, List %) -> %
 
-          Rep := FreeAbelianGroup K
+          Rep := FreeModule(Integer, K)
 
           0              == 0$Rep
           x : % + y : %      == x +$Rep y
           x : % = y : %      == x =$Rep y
           smaller?(x : %, y : %)      == smaller?(x, y)$Rep
           coerce(k : K) : %  == coerce(k)$Rep
-          kernels(x : %) : List(K) == [f.gen for f in terms x]
+          kernels(x : %) : List(K) == [f.k for f in listOfTerms x]
           coerce(x : R) : %  == (zero? x => 0; constantKernel(x)::%)
           retract(x : %) : R == (zero? x => 0; retNotUnit x)
           coerce(x : %) : OutputForm == coerce(x)$Rep
@@ -798,19 +794,19 @@ Expression(R : Comparable) : Exports == Implementation where
                 kernel(operator x, [subst(a, lk, lv) for a in argument x]))
 
           isPlus x ==
-            empty?(l := terms x) or empty? rest l => "failed"
-            [t.exp *$Rep t.gen for t in l]$List(%)
+            empty?(l := listOfTerms x) or empty? rest l => "failed"
+            [t.c *$Rep t.k for t in l]$List(%)
 
           isMult x ==
-            empty?(l := terms x) or not empty? rest l => "failed"
+            empty?(l := listOfTerms x) or not empty? rest l => "failed"
             t := first l
-            [t.exp, t.gen]
+            [t.c, t.k]
 
           eval(x : %, lk : List K, lv : List %) ==
-            _+/[t.exp * kereval(t.gen, lk, lv) for t in terms x]
+            _+/[t.c * kereval(t.k, lk, lv) for t in listOfTerms x]
 
           subst(x : %, lk : List K, lv : List %) ==
-            _+/[t.exp * subeval(t.gen, lk, lv) for t in terms x]
+            _+/[t.c * subeval(t.k, lk, lv) for t in listOfTerms x]
 
           retractIfCan(x:%):Union(R, "failed") ==
             zero? x => 0
@@ -826,12 +822,9 @@ Expression(R : Comparable) : Exports == Implementation where
 --    x: % = y: %      == x =$Rep y
 --    coerce(k: K): %  == k::Rep
 --    kernels(x : %) : List(K) == [f.gen for f in factors x]
---    coerce(x: R): %  == (one? x => 1; constantKernel x)
---    retract(x: %): R == (one? x => 1; retNotUnit x)
 --    coerce(x: %): OutputForm == coerce(x)$Rep
 
 --    retractIfCan(x:%):Union(R, "failed") ==
---      one? x => 1
 --      retNotUnitIfCan x
 
 --    if R has Group then inv(x: %): % == inv(x)$Rep
@@ -879,7 +872,7 @@ Expression(R : Comparable) : Exports == Implementation where
 ++ Author: Barry Trager
 ++ Date Created: 8 Oct 1991
 ++ Description: This package provides a coerce from polynomials over
-++ algebraic numbers to \spadtype{Expression AlgebraicNumber}.
+++ algebraic numbers to \spadtype{Expression Integer}.
 PolynomialAN2Expression() : Target == Implementation where
   EXPR ==> Expression(Integer)
   AN ==> AlgebraicNumber
@@ -904,8 +897,7 @@ PolynomialAN2Expression() : Target == Implementation where
 ++ Author: Manuel Bronstein
 ++ Description: Lifting of maps to Expressions.
 ++ Date Created: 16 Jan 1989
-++ Date Last Updated: 22 Jan 1990
-ExpressionFunctions2(R : Comparable, S : Comparable):
+ExpressionFunctions2(R : Join(Ring, Comparable), S : Join(Ring, Comparable)):
  Exports == Implementation where
   K   ==> Kernel R
   F2  ==> FunctionSpaceFunctions2(R, Expression R, S, Expression S)
@@ -926,7 +918,6 @@ ExpressionFunctions2(R : Comparable, S : Comparable):
 ++ Author: Manuel Bronstein
 ++ Description: Attaching predicates to symbols for pattern matching.
 ++ Date Created: 21 Mar 1989
-++ Date Last Updated: 23 May 1990
 ++ Keywords: pattern, matching.
 FunctionSpaceAttachPredicates(R, F, D) : Exports == Implementation where
   R : Comparable
@@ -960,10 +951,6 @@ FunctionSpaceAttachPredicates(R, F, D) : Exports == Implementation where
       (u := property(operator k, PMPRED)) case "failed" => empty()
       (u::None) pretend List(Any)
 
---    st(k, l) ==
---      mkk assert(setProperty(copy operator k, PMPRED,
---                 concat(preds k, l) pretend None), string(new()$Symbol))
-
     -- Looks fishy, but we try to preserve meaning
     st(k, l) ==
       kk := copy operator k
@@ -980,7 +967,6 @@ FunctionSpaceAttachPredicates(R, F, D) : Exports == Implementation where
 ++ Author: Manuel Bronstein
 ++ Description: Attaching assertions to symbols for pattern matching;
 ++ Date Created: 21 Mar 1989
-++ Date Last Updated: 23 May 1990
 ++ Keywords: pattern, matching.
 FunctionSpaceAssertions(R, F) : Exports == Implementation where
   R : Comparable
@@ -992,9 +978,6 @@ FunctionSpaceAssertions(R, F) : Exports == Implementation where
   PMCONST ==> '%pmconstant
 
   Exports ==> with
---    assert  : (F, String) -> F
---      ++ assert(x, s) makes the assertion s about x.
---      ++ Error: if x is not a symbol.
     constant : F -> F
       ++ constant(x) tells the pattern matcher that x should
       ++ match only the symbol 'x and no other quantity.
@@ -1012,7 +995,6 @@ FunctionSpaceAssertions(R, F) : Exports == Implementation where
 
   Implementation ==> add
     ass  : (K, Symbol) -> F
-    asst : (K, Symbol) -> F
     mkk  : BasicOperator -> F
 
     mkk op == kernel(op, empty()$List(F))
@@ -1020,15 +1002,6 @@ FunctionSpaceAssertions(R, F) : Exports == Implementation where
     ass(k, s) ==
       has?(op := operator k, s) => k::F
       mkk assert(copy op, s)
-
-    asst(k, s) ==
-      has?(op := operator k, s) => k::F
-      mkk assert(op, s)
-
---    assert(x, s) ==
---      retractIfCan(x)@Union(Symbol, "failed") case Symbol =>
---        asst(retract(x)@K, s)
---      error "assert must be applied to symbols only"
 
     constant x ==
       retractIfCan(x)@Union(Symbol, "failed") case Symbol =>
@@ -1050,7 +1023,6 @@ FunctionSpaceAssertions(R, F) : Exports == Implementation where
 ++ Author: Manuel Bronstein
 ++ Description: Attaching predicates to symbols for pattern matching.
 ++ Date Created: 21 Mar 1989
-++ Date Last Updated: 23 May 1990
 ++ Keywords: pattern, matching.
 AttachPredicates(D : Type) : Exports == Implementation where
   FE ==> Expression Integer
@@ -1073,14 +1045,11 @@ AttachPredicates(D : Type) : Exports == Implementation where
 ++ Author: Manuel Bronstein
 ++ Description: Attaching assertions to symbols for pattern matching.
 ++ Date Created: 21 Mar 1989
-++ Date Last Updated: 23 May 1990
 ++ Keywords: pattern, matching.
 PatternMatchAssertions() : Exports == Implementation where
   FE ==> Expression Integer
 
   Exports ==> with
---    assert  : (Symbol, String) -> FE
---      ++ assert(x, s) makes the assertion s about x.
     constant : Symbol -> FE
       ++ constant(x) tells the pattern matcher that x should
       ++ match only the symbol 'x and no other quantity.
@@ -1099,7 +1068,6 @@ PatternMatchAssertions() : Exports == Implementation where
     constant x   == constant(x::FE)
     multiple x   == multiple(x::FE)
     optional x   == optional(x::FE)
---    assert(x, s) == assert(x::FE, s)
 
 )abbrev domain HACKPI Pi
 ++ Expressions in %pi only
@@ -1109,7 +1077,6 @@ PatternMatchAssertions() : Exports == Implementation where
 ++  The point for using Pi as the default domain for those fractions
 ++  is that Pi is coercible to the float types, and not Expression.
 ++ Date Created: 21 Feb 1990
-++ Date Last Updated: 12 Mai 1992
 Pi() : Exports == Implementation where
   PZ ==> Polynomial Integer
   UP ==> SparseUnivariatePolynomial Integer
@@ -1172,7 +1139,6 @@ Pi() : Exports == Implementation where
 ++  Provides a coercion from the symbolic fractions in %pi with
 ++ integer coefficients to any Expression type.
 ++ Date Created: 21 Feb 1990
-++ Date Last Updated: 21 Feb 1990
 PiCoercions(R : Join(Comparable, IntegralDomain)) : with
   coerce : Pi -> Expression R
     ++ coerce(f) returns f as an Expression(R).

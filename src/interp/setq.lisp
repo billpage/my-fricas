@@ -48,7 +48,7 @@
 (setq |nonnullstream| '|nonnullstream|)
 (setq *print-escape* nil) ;; so stringimage doesn't escape idents?
 
-;;; FIXME: do we need this?
+;;; FIXME: do we need this? id:673
 #+(and :GCL :IEEE-FLOATING-POINT)
   (setq system:*print-nans* T)
 
@@ -62,8 +62,6 @@
 (defvar |$displayStartMsgs| nil)
 
 (setq |$localVars| ())  ;checked by isType
-
-(setq identity #'identity) ;to make LispVM code for handling constants to work
 
 ;; For the browser, used for building local databases when a user compiles
 ;; their own code.

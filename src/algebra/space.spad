@@ -1,7 +1,5 @@
 )abbrev category SPACEC ThreeSpaceCategory
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Operations: create3Space, numberOfComponents, numberOfComposites,
 ++ merge, composite, components, copy, enterPointData, modifyPointData, point,
 ++ point?, curve, curve?, closedCurve, closedCurve?, polygon, polygon? mesh,
@@ -279,8 +277,6 @@ ThreeSpaceCategory(R : Ring) : Exports == Implementation where
 
 )abbrev domain SPACE3 ThreeSpace
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Operations: create3Space, numberOfComponents, numberOfComposites,
 ++ merge, composite, components, copy, enterPointData, modifyPointData, point,
 ++ point?, curve, curve?, closedCurve, closedCurve?, polygon, polygon? mesh,
@@ -506,7 +502,7 @@ ThreeSpace(R : Ring) : Exports == Implementation where
           -- curve sizes exist, then the set would hold all the sizes;
           -- otherwise it would just have the one element indicating
           -- the sizes for all the curves
-          whatSizes := brace()$Set(NNI)
+          whatSizes := empty()$Set(NNI)
           for eachCurve in kid repeat
             insert!(#children eachCurve, whatSizes)
           #whatSizes > 1 => error "Mesh defined with curves of different sizes"
@@ -619,9 +615,9 @@ ThreeSpace(R : Ring) : Exports == Implementation where
 
     coerce(s) ==
       if not s.converted then s := convertSpace s
-      hconcat(["3-Space with "::O, _
+      hconcat([message("3-Space with "), _
                (sizo := #(s.rep3DField.llliPt))::O, _
-               (sizo = 1=>" component"::O;" components"::O)])
+               message(sizo = 1=>" component";" components")])
 
 )abbrev package TOPSP TopLevelThreeSpace
 ++ Description:

@@ -3,7 +3,6 @@
 -- This domain does not check, PrimeField does.
 ++ Authors: N.N., J.Grabmeier, A.Scheerhorn
 ++ Date Created: ?, November 1990, 26.03.1991
-++ Date Last Updated: 12 April 1991
 ++ Basic Operations:
 ++ Related Constructors: PrimeField
 ++ Also See:
@@ -12,7 +11,8 @@
 ++ References:
 ++  R.Lidl, H.Niederreiter: Finite Field, Encycoldia of Mathematics and
 ++  Its Applications, Vol. 20, Cambridge Univ. Press, 1983, ISBN 0 521 30240 4
-++  AXIOM Technical Report Series, to appear.
+++  J. Grabmeier, A. Scheerhorn: Finite Fields in Axiom.
+++   Axiom Technical Report Series, ATR/5 NP2522.
 ++ Description:
 ++   InnerPrimeField(p) implements the field with p elements.
 ++   Note: argument p MUST be a prime (this domain does not check).
@@ -45,7 +45,7 @@ InnerPrimeField(p : PositiveInteger) : Exports == Implementation where
     sizeCG  := qcoerce(p-1)@NonNegativeInteger
     -- the size of the cyclic group
 
-    facOfGroupSize := nil()$(List Record(factor : Integer, exponent : Integer))
+    facOfGroupSize := []$(List Record(factor : Integer, exponent : Integer))
     -- the factorization of the cyclic group size
 
     initlog? : Boolean := true
@@ -181,7 +181,6 @@ InnerPrimeField(p : PositiveInteger) : Exports == Implementation where
 )abbrev domain PF PrimeField
 ++ Authors: N.N.,
 ++ Date Created: November 1990, 26.03.1991
-++ Date Last Updated: 31 March 1991
 ++ Basic Operations:
 ++ Related Constructors:
 ++ Also See:

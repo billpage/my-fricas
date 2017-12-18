@@ -1,7 +1,6 @@
 )abbrev package SMITH SmithNormalForm
 ++ Author: Patrizia Gianni
 ++ Date Created: October 1992
-++ Date Last Updated:
 ++ Basic Operations:
 ++ Related Domains: Matrix(R)
 ++ Also See:
@@ -22,8 +21,8 @@ SmithNormalForm(R, Row, Col, M) : Exports == Implementation where
 
   I            ==> Integer
   NNI          ==> NonNegativeInteger
-  HermiteForm  ==>   Record(Hermite : M, eqMat : M)
-  SmithForm    ==>   Record(Smith : M, leftEqMat : M, rightEqMat : M)
+  HermiteForm  ==> Record(Hermite : M, eqMat : M)
+  SmithForm    ==> Record(Smith : M, leftEqMat : M, rightEqMat : M)
   PartialV     ==> Union(Col, "failed")
   Both         ==> Record(particular : PartialV, basis : List Col)
 
@@ -32,18 +31,18 @@ SmithNormalForm(R, Row, Col, M) : Exports == Implementation where
       ++ \spad{hermite(m)} returns the Hermite normal form of the
       ++ matrix m.
     completeHermite : M -> HermiteForm
-      ++ \spad{completeHermite} returns a record  that contains
+      ++ \spad{completeHermite} returns a record that contains
       ++ the Hermite normal form H of the matrix and the equivalence matrix
       ++ U such that U*m = H
     smith : M -> M
       ++ \spad{smith(m)} returns the Smith Normal form of the matrix m.
     completeSmith : M ->  SmithForm
-      ++ \spad{completeSmith} returns a record  that contains
+      ++ \spad{completeSmith} returns a record that contains
       ++ the Smith normal form H of the matrix and the left and right
       ++ equivalence matrices U and V such that U*m*v = H
     diophantineSystem : (M, Col) -> Both
       ++ \spad{diophantineSystem(A, B)} returns a particular integer solution and
-      ++ an integer  basis  of the equation \spad{AX = B}.
+      ++ an integer basis of the equation \spad{A X = B}.
 
   Implementation == add
     MATCAT1 ==> MatrixCategoryFunctions2(R, Row, Col, M, QF, Row2, Col2, M2)
@@ -60,26 +59,28 @@ SmithNormalForm(R, Row, Col, M) : Exports == Implementation where
     isDiagonal?  :      M            ->  Boolean
     ijDivide     : (SmithForm , I, I)  ->  SmithForm
     lastStep     :   SmithForm       ->  SmithForm
-    test1        :  (M,Col,NNI)      ->  Union(NNI, "failed")
-    test2        : (M, Col,NNI,NNI)  ->  Union( Col, "failed")
+    test1        : (M, Col, I) -> Union(I, "failed")
+    test2        : (M, Col, NNI, I) -> Union(Col, "failed")
 
      -- inconsistent system : case  0 = c --
-    test1(sm:M,b:Col,m1 : NNI) : Union(NNI , "failed") ==
-      km := m1
-      while zero? sm(km, km) repeat
-        if not zero?(b(km)) then return "failed"
-        km := (km - 1) :: NNI
-      km
+    test1(sm : M, b : Col, m1 : I) : Union(I, "failed") ==
+        m0 := minColIndex(sm)
+        km := m1
+        while not(km < m0) and zero? sm(km, km) repeat
+            if not zero?(b(km)) then return "failed"
+            km := (km - 1)
+        km
 
-    if Col has shallowlyMutable then
-
-      test2(sm : M ,b : Col, n1:NNI,dk:NNI) : Union( Col, "failed") ==
-        -- test divisibility --
-        sol : Col := new(n1, 0)
-        for k in 1..dk repeat
-          if (c := (b(k) exquo sm(k,k))) case "failed" then return "failed"
-          sol(k) := c::R
-        sol
+    test2(sm : M, b : Col, n1 : NNI, dk : I) : Union(Col, "failed") ==
+        sol := []$List(R)
+        m0 := minColIndex(sm)
+        -- test divisibility
+        for k in m0..dk repeat
+            if (c := (b(k) exquo sm(k, k))) case "failed" then return "failed"
+            sol := cons(c::R, sol)
+        for k in (dk - m0 + 2)..n1 repeat
+            sol := cons(0, sol)
+        construct(reverse!(sol))$Col
 
      -- test if the matrix is diagonal or pseudo-diagonal --
     isDiagonal?(m : M) : Boolean ==
@@ -155,6 +156,7 @@ SmithNormalForm(R, Row, Col, M) : Exports == Implementation where
     findEqMat(m :  M, t : M) : Record(Hermite : M, eqMat : M) ==
       m1 := nrows m
       n1 := ncols m
+      m1 = 0 => [m, zero(0, 0)$M]
       "and"/[zero? t(m1,j) for j in 1..n1] => -- there are 0 rows
          if "and"/[zero? t(1,j) for j in 1..n1]
          then return [m, scalarMatrix(m1, 1)]  -- m is the zero matrix
@@ -187,17 +189,24 @@ SmithNormalForm(R, Row, Col, M) : Exports == Implementation where
     completeHermite(m : M) : Record(Hermite : M, eqMat : M) ==
       findEqMat(m, rowEchelon m)
 
-    smith0(m : M) : M == completeSmith(m).Smith
+    completeSmith0 : M -> SmithForm
+
+    smith0(m : M) : M == completeSmith0(m).Smith
 
     if M is Matrix(Integer) then
 
         smith(m : M) : M == smith(m, smith0)$IntegerSmithNormalForm
 
+        completeSmith(m : M) : SmithForm ==
+            completeSmith(m, completeSmith0)$IntegerSmithNormalForm
+
     else
 
         smith(m : M) : M == smith0(m)
 
-    completeSmith(m : M) : Record(Smith : M, leftEqMat : M, rightEqMat : M) ==
+        completeSmith(m : M) : SmithForm == completeSmith0(m)
+
+    completeSmith0(m : M) : SmithForm ==
       cm1 := completeHermite m
       leftm := cm1.eqMat
       m1 := cm1.Hermite
@@ -224,12 +233,11 @@ SmithNormalForm(R, Row, Col, M) : Exports == Implementation where
       lm := sf.leftEqMat
       b1 : Col := lm* b
       (t1 := test1(sm,b1,m1)) case "failed" => ["failed",empty()]
-      dk := t1 :: NNI
+      dk := t1::I
       n1 := ncols sm
       (t2 := test2(sm,b1,n1,dk)) case "failed" => ["failed",empty()]
       rm := sf.rightEqMat
       sol := rm*(t2 :: Col)  -- particular solution
-      dk = n1  => [sol, list new(n1, 0)]
       lsol : List Col := [column(rm, i) for i in (dk+1)..n1]
       [sol, lsol]
 

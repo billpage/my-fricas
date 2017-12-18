@@ -286,7 +286,7 @@ setInputLibrary arg ==
    true
   nil
 
--- FIXME: Is this used ??
+-- FIXME: Is this used ?? id:674
 setOutputLibrary arg == false
 
 describeOutputLibraryArgs() ==

@@ -51,8 +51,6 @@ the following flags are used:
  if $SubDom is true, then runtime checks have to be compiled
 )endif
 
-DEFPARAMETER($constructorExposureList, '(Boolean Integer String))
-
 sayFunctionSelection(op,args,target,dc,func) ==
   $abbreviateTypes : local := true
   startTimingProcess 'debug
@@ -849,26 +847,20 @@ findFunctionInDomain1(omm,op,tar,args1,args2,SL) ==
   mm:= subCopy(omm, SL)
   -- tests whether modemap mm is appropriate for the function
   -- defined by op, target type tar and argument types args
-  $RTC:local:= NIL
-  -- $RTC is a list of run-time checks to be performed
 
   [sig,slot,cond,y] := mm
   [osig,:.]  := omm
   osig := subCopy(osig, SUBSTQ(CONS('$,'$), dollarPair, SL))
   if CONTAINED('_#, sig) or CONTAINED('construct, sig) then
     sig := [replaceSharpCalls t for t in sig]
-  matchMmCond cond and matchMmSig(mm,tar,args1,args2) and
-    EQ(y,'Subsumed) and
-      -- hmmmm: do Union check in following because (as in DP)
-      -- Unions are subsumed by total modemaps which are in the
-      -- mm list in findFunctionInDomain.
-      y := 'ELT      -- if subsumed fails try it again
-      not $SubDom and first sig isnt ['Union, :.] and slot is [tar, :args] and
-        (f := findFunctionInDomain(op,dc,tar,args,args,NIL,NIL)) => f
-    EQ(y,'ELT) => [[CONS(dc,sig),osig,nreverse $RTC]]
-    EQ(y,'CONST) => [[CONS(dc,sig),osig,nreverse $RTC]]
-    EQ(y,'ASCONST) => [[CONS(dc,sig),osig,nreverse $RTC]]
-    y is ['XLAM,:.] => [[CONS(dc,sig),y,nreverse $RTC]]
+  rtcp := [[]]
+  matchMmCond cond and matchMmSig(mm,tar,args1,args2, rtcp) and
+    -- RTC is a list of run-time checks to be performed
+    RTC := nreverse CAR(rtcp)
+    EQ(y, 'ELT) => [[CONS(dc, sig), osig, RTC]]
+    EQ(y, 'CONST) => [[CONS(dc,sig),osig, RTC]]
+    EQ(y, 'ASCONST) => [[CONS(dc, sig), osig, RTC]]
+    y is ['XLAM, :.] => [[CONS(dc,sig), y, RTC]]
     sayKeyedMsg("S2IF0006",[y])
     NIL
 
@@ -924,7 +916,7 @@ matchMmCond(cond) ==
     keyedSystemError("S2GE0016",
       ['"matchMmCond",'"unknown form of condition"])
 
-matchMmSig(mm,tar,args1,args2) ==
+matchMmSig(mm, tar, args1, args2, rtcp) ==
   -- matches the modemap signature against  args1 -> tar
   -- if necessary, runtime checks are created for subdomains
   -- then the modemap condition is evaluated
@@ -948,7 +940,7 @@ matchMmSig(mm,tar,args1,args2) ==
         $SubDom and isSubDomain(x,x1) => rtc:= 'T
         $Coerce => x2=x or canCoerceFrom(x1,x)
         x1 is ['Variable,:.] and x = '(Symbol)
-    $RTC:= CONS(rtc,$RTC)
+    RPLACA(rtcp, CONS(rtc, CAR(rtcp)))
   null args1 and null a and b and matchMmSigTar(tar, first sig)
 
 matchMmSigTar(t1,t2) ==
@@ -981,12 +973,6 @@ filterModemapsFromPackages(mms, names, op) ==
   -- rest of the modemaps in the second element.
   good := NIL
   bad  := NIL
-  -- hack to speed up factorization choices for mpolys and to overcome
-  -- some poor naming of packages
-  mpolys := '("Polynomial" "MultivariatePolynomial"
-   "DistributedMultivariatePolynomial"
-      "HomogeneousDistributedMultivariatePolynomial")
-  mpacks := '("MFactorize" "MRationalFactorize")
   for mm in mms repeat
     isFreeFunctionFromMm(mm) => bad := cons(mm, bad)
     type := getDomainFromMm mm
@@ -997,9 +983,6 @@ filterModemapsFromPackages(mms, names, op) ==
     found := nil
     for n in names while not found repeat
       STRPOS(n,name,0,NIL) => found := true
-      -- hack, hack
-      (op = 'factor) and member(n,mpolys) and member(name,mpacks) =>
-        found := true
     if found
       then good := cons(mm, good)
       else bad := cons(mm,bad)
@@ -1432,9 +1415,7 @@ hasCateSpecialNew(v,dom,cat,SL) ==
   fefull := fe or alg or EQCAR(cat, 'CombinatorialFunctionCategory)
   partialResult :=
     EQCAR(dom, 'Variable) or EQCAR(dom, 'Symbol) =>
-      first(cat) in
-       '(SemiGroup AbelianSemiGroup Monoid AbelianGroup AbelianMonoid
-         PartialDifferentialRing Ring InputForm) =>
+      first(cat) in '(Magma AbelianSemiGroup AbelianGroup) =>
                 d := ['Polynomial, $Integer]
                 augmentSub(v, d, SL)
       EQCAR(cat, 'Group) =>
@@ -1496,6 +1477,12 @@ hasCaty(d,cat,SL) ==
     atom x => SL
     ncond := subCopy(x, constructSubst d)
     ncond is ['has, =d, =cat] => 'failed
+    if ncond is ['OR, :nconds] then
+        nnconds := nconds
+        for nc in nconds repeat
+            if nc is ['has, =d, =cat] then
+                nnconds := delete(nc, nnconds)
+        ncond := ['OR, :nnconds]
     hasCaty1(ncond, SL)
   'failed
 

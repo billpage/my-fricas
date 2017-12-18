@@ -137,7 +137,6 @@ cacheKeyedMsg(db_name) ==
     CATCH('DONE, handle_input_file(db_name, function cacheKeyedMsg1, []))
 
 getKeyedMsg(key) ==
-    key := object2Identifier(key)
     if not($msg_hash) then
         $msg_hash := MAKE_-HASHTABLE('ID)
         cacheKeyedMsg($defaultMsgDatabaseName)
@@ -276,7 +275,7 @@ addBlanks msg ==
 
 
 DEFPARAMETER($msgdbPrims, '( %b %d %l %i %u %U %n %x %ce %rj "%U" "%b" "%d" "%l" "%i" "%u" "%U" "%n" "%x" "%ce" "%rj"))
-DEFPARAMETER($msgdbPunct, '(_. _, _! _: _; _? _] _)  "." "," "!" ":" ";" "?" "]" ")"  ))
+DEFPARAMETER($msgdbPunct, '(_. _, _! _: _; _] _)  "." "," "!" ":" ";" "]" ")"  ))
 DEFPARAMETER($msgdbNoBlanksBeforeGroup, ['" ", " ", '"%", "%",_
                             :$msgdbPrims, :$msgdbPunct])
 DEFPARAMETER($msgdbListPrims, '(%m %s %ce %rj "%m" "%s" "%ce" "%rj"))
@@ -339,18 +338,29 @@ throwPatternMsg(key,args) ==
   sayPatternMsg(key,args)
   spadThrow()
 
+say_msg(msg, args) ==
+    ioHook("say_msg", msg, args)
+    say_msg_local(msg, args)
+    ioHook("end_say_msg", msg)
+
+throw_msg(msg, args) ==
+    sayMSG '" "
+    if $testingSystem then sayMSG $testingErrorPrefix
+    say_Msg(msg, args)
+    spadThrow()
+
 sayKeyedMsgAsTeX(key, args) ==
   $texFormatting: fluid := true
-  sayKeyedMsgLocal(key, args)
+  say_msg_local(getKeyedMsg key, args)
 
 sayKeyedMsg(key,args) ==
   $texFormatting: fluid := false
   ioHook("startKeyedMsg", key, args)
-  sayKeyedMsgLocal(key, args)
+  say_msg_local(getKeyedMsg key, args)
   ioHook("endOfKeyedMsg", key)
 
-sayKeyedMsgLocal(key, args) ==
-  msg := segmentKeyedMsg getKeyedMsg key
+say_msg_local(msg, args) ==
+  msg := segmentKeyedMsg msg
   msg := substituteSegmentedMsg(msg,args)
   msg' := flowSegmentedMsg(msg,$LINELENGTH,$MARGIN)
   if $printMsgsToFile then sayMSG2File msg'
@@ -382,12 +392,6 @@ saturnThrowKeyedMsg(key,args) ==
   spadThrow()
 
 throwKeyedMsg1(key,args) ==
-  -- greg, following statement do nothing
-  -- (see sayMsg in macros.lisp where the message is printed
-  -- on the Algebra output stream)
-  -- Furthermore we MUSTN'T "play" with these type of variables
-  -- at this level
-  -- _*STANDARD_-OUTPUT_* : fluid := $texOutputStream
   sayMSG '" "
   if $testingSystem then sayMSG $testingErrorPrefix
   sayKeyedMsg(key,args)

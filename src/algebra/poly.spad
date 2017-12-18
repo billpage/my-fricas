@@ -1,6 +1,6 @@
 )abbrev domain SAOS SingletonAsOrderedSet
-++ This trivial domain lets us build Univariate Polynomials
-++  in an anonymous variable
+++ This trivial domain let us build Univariate Polynomials
+++ in an anonymous variable.
 SingletonAsOrderedSet() : OrderedSet with
               create : () -> %
               convert : % -> Symbol
@@ -16,8 +16,6 @@ SingletonAsOrderedSet() : OrderedSet with
 )abbrev category FMCAT FreeModuleCategory
 ++ Author: Michel Petitot petitot@lifl.fr
 ++ Date Created: 91
-++ Date Last Updated: 7 Juillet 92
-++ Fix History: compilation v 2.1 le 13 dec 98
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -49,7 +47,6 @@ SingletonAsOrderedSet() : OrderedSet with
 FreeModuleCategory(R, S) : Category == Exports where
    R : Join(SemiRng, AbelianMonoid)
    S : Comparable
-   Term ==> Record(k : S, c : R)
 
    Exports == Join(BiModule(R, R), IndexedDirectProductCategory(R, S)) with
         if R has SemiRing then RetractableTo S
@@ -65,22 +62,6 @@ FreeModuleCategory(R, S) : Category == Exports where
         monomials          : % -> List %
           ++ \spad{monomials(x)} returns the list of \spad{r_i*b_i}
           ++ whose sum is \spad{x}.
-        numberOfMonomials  : % -> NonNegativeInteger
-          ++ \spad{numberOfMonomials(x)} returns the number of monomials of \spad{x}.
-        monomial? : % -> Boolean
-          ++ \spad{monomial?(x)} returns true if \spad{x} contains a single
-          ++ monomial.
-        leadingSupport    : % -> S
-          ++ \spad{leadingSupport(x)} returns the first element from \spad{S}
-          ++ which appears in \spad{listOfTerms(x)}.
-        leadingMonomial    : % -> %
-          ++ \spad{leadingMonomial(x)} returns the monomial supported by the
-          ++ first element from \spad{S} which appears in \spad{listOfTerms(x)}.
-        leadingCoefficient : % -> R
-          ++ \spad{leadingCoefficient(x)} returns the first coefficient
-          ++ which appears in \spad{listOfTerms(x)}.
-        monom : (S, R) -> %
-          ++ \spad{monom(s, r)} returns the product of the basis element \spad{s} by the coefficient \spad{r}.
         coefficient : (%, S) -> R
           ++ \spad{coefficient(x, s)} returns the coefficient of the basis element s
         -- attributs
@@ -108,8 +89,6 @@ FreeModuleCategory(R, S) : Category == Exports where
 
 )abbrev domain FM FreeModule
 ++ Author: Dave Barton, James Davenport, Barry Trager
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions: BiModule(R, R)
 ++ Related Constructors:
 ++ Also See:
@@ -192,8 +171,8 @@ FreeModule(R : Join(SemiRng, AbelianMonoid), S : Comparable) :
 
        if R has Monoid then
            coerce(x) : OutputForm ==
-               null x => (0$R) :: OutputForm
-               le : List OutputForm := nil
+               empty?(x) => (0$R) :: OutputForm
+               le : List OutputForm := []
                for rec in reverse x repeat
                    rec.c = 1 => le := cons(rec.k :: OutputForm, le)
                    le := cons(rec.c :: OutputForm *  rec.k :: OutputForm, le)
@@ -203,13 +182,13 @@ FreeModule(R : Join(SemiRng, AbelianMonoid), S : Comparable) :
                reduce("+", [rec.c :: OutputForm *  rec.k :: OutputForm
                              for rec in x])
 
-       leadingMonomial x == monomial((first rep x).c, (first x).k)
-
        support x == [t.k for t in x]
 
        coefficients x == [t.c for t in x]
 
-       monomials x == [ monom (t.k, t.c) for t in x]
+       monom(b : S, r : R) : % == [[b, r]$Term]
+
+       monomials x == [ monom(t.k, t.c) for t in x]
 
        if R has SemiRing then
            retractIfCan x ==
@@ -224,24 +203,11 @@ FreeModule(R : Join(SemiRng, AbelianMonoid), S : Comparable) :
 
            coerce(s : S) : % == [[s, 1$R]]
 
--- the following is to be replaced by monomial(r, b) everywhere
-       monom(b, r) : % == [[b, r]$Term]
-
        coefficient(x, s) ==
-         null x => 0$R
+         empty?(x) => 0$R
          smaller?(s, x.first.k) => coefficient(rest x, s)
          x.first.k = s => x.first.c
          0$R
-
-       monomial? x ==
-         numberOfMonomials x = 1
-
-       listOfTerms(x) ==
---          (x::Rep)
---          coerce(x)@Rep
-         x pretend Rep
-
-       numberOfMonomials x == # (listOfTerms x)
 
        if R has CommutativeRing then
            f : S->R
@@ -258,8 +224,6 @@ FreeModule(R : Join(SemiRng, AbelianMonoid), S : Comparable) :
 )abbrev package FM2 FreeModuleFunctions2
 ++ Author: Franz Lehner lehner@finanz.math.tugraz.at
 ++ Date Created: 2009
-++ Date Last Updated: 7 June 2009
-++ Fix History:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -291,7 +255,6 @@ FreeModuleFunctions2(R : CommutativeRing, S : Comparable, M1 : FreeModuleCategor
 )abbrev package FMCF2 FreeModuleCoefficientFunctions2
 ++ Author: Franz Lehner
 ++ Date Created: 31.12.2014
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -321,8 +284,6 @@ FreeModuleCoefficientFunctions2(R1, R2, S, M1, M2) : Exports == Implementation w
 
 )abbrev domain PR PolynomialRing
 ++ Author: Dave Barton, James Davenport, Barry Trager
-++ Date Created:
-++ Date Last Updated: 14.08.2000. Improved exponentiation [MMM/TTT]
 ++ Basic Functions: Ring, degree, coefficient, monomial, reductum
 ++ Related Constructors:
 ++ Also See:
@@ -343,9 +304,6 @@ PolynomialRing(R : Join(SemiRng, AbelianMonoid), E : OrderedAbelianMonoid
   T == Join(FiniteAbelianMonoidRing(R, E),
             VariablesCommuteWithCoefficients) with
     --assertions
-       if R has IntegralDomain and E has CancellationAbelianMonoid then
-            fmecg : (%, E, R, %) -> %
-            ++ fmecg(p1, e, r, p2) finds X : p1 - r * X^e * p2
        if R has canonicalUnitNormal then canonicalUnitNormal
           ++ canonicalUnitNormal guarantees that the function
           ++ unitCanonical returns the same representative for all
@@ -375,21 +333,20 @@ PolynomialRing(R : Join(SemiRng, AbelianMonoid), E : OrderedAbelianMonoid
            1  == [[0$E, 1$R]]
        if R has Ring then
            characteristic  == characteristic$R
-       numberOfMonomials x  == (# x)$Rep
-       degree p == if null p then 0 else p.first.k
-       minimumDegree p == if null p then 0 else (last p).k
-       leadingCoefficient p == if null p then 0$R else p.first.c
-       leadingMonomial p == if null p then 0 else [p.first]
-       reductum p == if null p then p else p.rest
+       degree p == if empty?(p) then 0 else p.first.k
+       minimumDegree p == if empty?(p) then 0 else (last p).k
+       leadingCoefficient p == if empty?(p) then 0$R else p.first.c
+       leadingMonomial p == if empty?(p) then 0 else [p.first]
+       reductum p == if empty?(p) then p else p.rest
        retractIfCan(p:%):Union(R,"failed") ==
-         null p => 0$R
-         not null p.rest => "failed"
+         empty?(p) => 0$R
+         not(empty?(p.rest)) => "failed"
          zero?(p.first.k) => p.first.c
          "failed"
 
        if E is NonNegativeInteger then
            coefficient(p : %, e : E)  ==
-               null(p) => 0$R
+               empty?(p) => 0$R
                degp := first(p).k pretend Integer
                degp < max()$SingleInteger =>
                    not(e pretend Integer < max()$SingleInteger) => 0$R
@@ -412,7 +369,7 @@ PolynomialRing(R : Join(SemiRng, AbelianMonoid), E : OrderedAbelianMonoid
                0$R
 
        recip(p) ==
-           null p => "failed"
+           empty?(p) => "failed"
            p.first.k > 0$E => "failed"
            (u := recip(p.first.c)) case "failed" => "failed"
            (u::R)::%
@@ -589,34 +546,13 @@ PolynomialRing(R : Join(SemiRng, AbelianMonoid), E : OrderedAbelianMonoid
                 for tx in xx repeat res := addm!(res, tx.c, tx.k, yy)
                 res
 
---     if R has noZeroDivisors then
---         p1 * p2  ==
---            null p1 => 0
---            null p2 => 0
---            zero?(p1.first.k) => p1.first.c * p2
---            one? p2 => p1
---            +/[[[t1.k+t2.k, t1.c*t2.c]$Term for t2 in p2]
---                   for t1 in reverse(p1)]
---                   -- This 'reverse' is an efficiency improvement:
---                   -- reduces both time and space [Abbott/Bradford/Davenport]
---        else
---         p1 * p2  ==
---            null p1 => 0
---            null p2 => 0
---            zero?(p1.first.k) => p1.first.c * p2
---            one? p2 => p1
---            +/[[[t1.k+t2.k, r]$Term for t2 in p2 | (r := t1.c*t2.c) ~= 0]
---                 for t1 in reverse(p1)]
---                  -- This 'reverse' is an efficiency improvement:
---                  -- reduces both time and space [Abbott/Bradford/Davenport]
        if % has CommutativeRing  then
 
          p ^ np == p^(np::NonNegativeInteger)
 
          p ^ nn  ==
-            null p => 0
             zero? nn => 1
---            one? nn => p
+            empty?(p) => 0
             (nn = 1) => p
             empty? p.rest =>
               zero?(cc := p.first.c ^ nn) => 0
@@ -624,27 +560,43 @@ PolynomialRing(R : Join(SemiRng, AbelianMonoid), E : OrderedAbelianMonoid
             binomThmExpt([p.first], p.rest, nn)
 
        if R has Field then
+         x/r == inv(r)*x
          unitNormal(p) ==
-            null p or (lcf : R := p.first.c) = 1 => [1, p, 1]
+            empty?(p) or (lcf : R := p.first.c) = 1 => [1, p, 1]
             a := inv lcf
             [lcf::%, cons([p.first.k, 1], (a * p.rest)), a::%]
          unitCanonical(p) ==
-            null p or (lcf : R := p.first.c) = 1 => p
+            empty?(p) or (lcf : R := p.first.c) = 1 => p
             a := inv lcf
             cons([p.first.k, 1], (a * p.rest))
        else if R has IntegralDomain then
          unitNormal(p) ==
-            null p or p.first.c = 1 => [1, p, 1]
+            empty?(p) or p.first.c = 1 => [1, p, 1]
             (u, cf, a) := unitNormal(p.first.c)
             [u::%, cons([p.first.k, cf], (a * p.rest)), a::%]
          unitCanonical(p) ==
-            null p or p.first.c = 1 => p
+            empty?(p) or p.first.c = 1 => p
             (u, cf, a) := unitNormal(p.first.c)
             cons([p.first.k, cf], (a * p.rest))
+       if R has Ring then
+         fmecg(p1 : %, e : E, r : R, p2 : %) : % ==       -- p1 - r * X^e * p2
+            rout : % := []
+            r := - r
+            for tm in p2 repeat
+               c2 := r * tm.c
+               c2 = 0 => "iterate"
+               e2 := e + tm.k
+               while not(empty?(p1)) and p1.first.k > e2 repeat
+                 (rout := cons(p1.first, rout); p1 := p1.rest)  --use PUSH and POP?
+               empty?(p1) or p1.first.k < e2 => rout := cons([e2, c2], rout)
+               if (u := p1.first.c + c2) ~= 0 then
+                   rout := cons([e2, u], rout)
+               p1 := p1.rest
+            concat!(reverse! rout, p1)
        if R has IntegralDomain then
          associates?(p1, p2) ==
-            null p1 => null p2
-            null p2 => false
+            empty?(p1) => empty?(p2)
+            empty?(p2) => false
             p1.first.k = p2.first.k and
               associates?(p1.first.c, p2.first.c) and
                ((p2.first.c exquo p1.first.c)::R * p1.rest = p2.rest)
@@ -653,58 +605,40 @@ PolynomialRing(R : Join(SemiRng, AbelianMonoid), E : OrderedAbelianMonoid
                then return "failed" else [tm.k,a])
                   for tm in p] :: Union(%,"failed")
          if E has CancellationAbelianMonoid then
-           fmecg(p1 : %, e : E, r : R, p2 : %) : % ==       -- p1 - r * X^e * p2
-              rout : % := []
-              r := - r
-              for tm in p2 repeat
-                 e2 := e + tm.k
-                 c2 := r * tm.c
-                 c2 = 0 => "next term"
-                 while not null p1 and p1.first.k > e2 repeat
-                   (rout := cons(p1.first, rout); p1 := p1.rest)  --use PUSH and POP?
-                 null p1 or p1.first.k < e2 => rout := cons([e2, c2], rout)
-                 if (u := p1.first.c + c2) ~= 0 then
-                     rout := cons([e2, u], rout)
-                 p1 := p1.rest
-              NRECONC(rout, p1)$Lisp
            if R has Approximate then
              p1 exquo p2  ==
-               null p2 => error "Division by 0"
+               empty?(p2) => error "Division by 0"
                p2 = 1 => p1
                p1 = p2 => 1
              --(p1.lastElt.c exquo p2.lastElt.c) case "failed" => "failed"
                rout := []@List(Term)
-               while not null p1 repeat
+               while not(empty?(p1)) repeat
                   (a := p1.first.c exquo p2.first.c)
                   a case "failed" => return "failed"
                   ee := subtractIfCan(p1.first.k, p2.first.k)
                   ee case "failed" => return "failed"
                   p1 := fmecg(p1.rest, ee, a, p2.rest)
                   rout := cons([ee, a], rout)
-               null p1 => reverse(rout)::%    -- nreverse?
+               empty?(p1) => reverse!(rout)::%
                "failed"
            else -- R not Approximate
              p1 exquo p2  ==
-               null p2 => error "Division by 0"
+               empty?(p2) => error "Division by 0"
                p2 = 1 => p1
              --(p1.lastElt.c exquo p2.lastElt.c) case "failed" => "failed"
                rout := []@List(Term)
-               while not null p1 repeat
+               while not(empty?(p1)) repeat
                   (a := p1.first.c exquo p2.first.c)
                   a case "failed" => return "failed"
                   ee := subtractIfCan(p1.first.k, p2.first.k)
                   ee case "failed" => return "failed"
                   p1 := fmecg(p1.rest, ee, a, p2.rest)
                   rout := cons([ee, a], rout)
-               null p1 => reverse(rout)::%    -- nreverse?
+               empty?(p1) => reverse!(rout)::%
                "failed"
-       if R has Field then
-          x/r == inv(r)*x
 
 )abbrev domain SUP SparseUnivariatePolynomial
 ++ Author: Dave Barton, Barry Trager
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions: Ring, monomial, coefficient, reductum, differentiate,
 ++ elt, map, resultant, discriminant
 ++ Related Constructors: UnivariatePolynomial, Polynomial
@@ -715,7 +649,7 @@ PolynomialRing(R : Join(SemiRng, AbelianMonoid), E : OrderedAbelianMonoid
 ++ Description:
 ++ This domain represents univariate polynomials over arbitrary
 ++ (not necessarily commutative) coefficient rings. The variable is
-++ unspecified  so that the variable displays as \spad{?} on output.
+++ unspecified so that the variable displays as \spad{?} in output.
 ++ If it is necessary to specify the variable name, use type \spadtype{UnivariatePolynomial}.
 ++ The representation is sparse
 ++ in the sense that only non-zero terms are represented.
@@ -726,10 +660,7 @@ SparseUnivariatePolynomial(R : Join(SemiRng, AbelianMonoid)
      outputForm : (%, OutputForm) -> OutputForm
         ++ outputForm(p, var) converts the SparseUnivariatePolynomial p to
         ++ an output form (see \spadtype{OutputForm}) printed as a polynomial in the
-        ++ output form variable.
-     if R has Ring then
-       fmecg : (%, NonNegativeInteger, R, %) -> %
-         ++ fmecg(p1, e, r, p2) finds X : p1 - r * X^e * p2
+        ++ output form \spad{var}.
     == PolynomialRing(R, NonNegativeInteger)
   add
    --representations
@@ -757,9 +688,8 @@ SparseUnivariatePolynomial(R : Join(SemiRng, AbelianMonoid)
    if R has FieldOfPrimeCharacteristic  then
          p ^ np == p^(np::NonNegativeInteger)
          p ^ n  ==
-            null p => 0
             zero? n => 1
---            one? n => p
+            empty?(p) => 0
             (n = 1) => p
             empty? p.rest =>
               zero?(cc := p.first.c ^ n) => 0
@@ -795,7 +725,7 @@ SparseUnivariatePolynomial(R : Join(SemiRng, AbelianMonoid)
    ground?(p) : Boolean == empty? p or (empty? rest p and zero? first(p).k)
    multiplyExponents(p, n) == [ [u.k*n, u.c] for u in p]
    divideExponents(p, n) ==
-     null p => p
+     empty?(p) => p
      m := (p.first.k :: Integer exquo n::Integer)
      m case "failed" => "failed"
      u := divideExponents(p.rest, n)
@@ -816,18 +746,6 @@ SparseUnivariatePolynomial(R : Join(SemiRng, AbelianMonoid)
       [[subtractIfCan(t.k, n)::NonNegativeInteger, t.c]$Term for t in p]
    shiftLeft(p, n)  ==
       [[t.k + n, t.c]$Term for t in p]
-   pomopo!(p1, r, e, p2) ==
-          rout : % := []
-          for tm in p2 repeat
-             e2 := e + tm.k
-             c2 := r * tm.c
-             c2 = 0 => "next term"
-             while not null p1 and p1.first.k > e2 repeat
-                 (rout := cons(p1.first, rout); p1 := p1.rest)
-             null p1 or p1.first.k < e2 => rout := cons([e2, c2], rout)
-             if (u := p1.first.c + c2) ~= 0 then rout := cons([e2, u], rout)
-             p1 := p1.rest
-          NRECONC(rout, p1)$Lisp
 
 -- implementation using karatsuba algorithm conditionally
 --
@@ -873,66 +791,6 @@ SparseUnivariatePolynomial(R : Join(SemiRng, AbelianMonoid)
      solveLinearPolynomialEquation(lpp, pp) ==
        solveLinearPolynomialEquation(lpp, pp)$FiniteFieldSolveLinearPolynomialEquation(R, %, FP)
 
-   if R has IntegralDomain then
-    if R has Approximate then
-     p1 exquo p2  ==
-        null p2 => error "Division by 0"
-        p2 = 1 => p1
-        p1 = p2 => 1
-      --(p1.lastElt.c exquo p2.lastElt.c) case "failed" => "failed"
-        rout := []@List(Term)
-        while not null p1 repeat
-           (a := p1.first.c exquo p2.first.c)
-           a case "failed" => return "failed"
-           ee := subtractIfCan(p1.first.k, p2.first.k)
-           ee case "failed" => return "failed"
-           p1 := fmecg(p1.rest, ee, a, p2.rest)
-           rout := cons([ee, a], rout)
-        null p1 => reverse(rout)::%    -- nreverse?
-        "failed"
-    else -- R not Approximate
-     p1 exquo p2  ==
-        null p2 => error "Division by 0"
-        p2 = 1 => p1
-      --(p1.lastElt.c exquo p2.lastElt.c) case "failed" => "failed"
-        rout := []@List(Term)
-        while not null p1 repeat
-           (a := p1.first.c exquo p2.first.c)
-           a case "failed" => return "failed"
-           ee := subtractIfCan(p1.first.k, p2.first.k)
-           ee case "failed" => return "failed"
-           p1 := fmecg(p1.rest, ee, a, p2.rest)
-           rout := cons([ee, a], rout)
-        null p1 => reverse(rout)::%    -- nreverse?
-        "failed"
-   if R has Ring then
-       fmecg(p1, e, r, p2) ==       -- p1 - r * X^e * p2
-          rout : % := []
-          r := - r
-          for tm in p2 repeat
-             e2 := e + tm.k
-             c2 := r * tm.c
-             c2 = 0 => "next term"
-             while not null p1 and p1.first.k > e2 repeat
-               (rout := cons(p1.first, rout); p1 := p1.rest)
-             null p1 or p1.first.k < e2 => rout := cons([e2, c2], rout)
-             if (u := p1.first.c + c2) ~= 0 then rout := cons([e2, u], rout)
-             p1 := p1.rest
-          NRECONC(rout, p1)$Lisp
-       pseudoRemainder(p1, p2) ==
-           null p2 => error "PseudoDivision by Zero"
-           null p1 => 0
-           co := p2.first.c
-           e := p2.first.k
-           p2 := p2.rest
-           e1 := max((p1.first.k)::Integer-e+1, 0)::NonNegativeInteger
-           while not null p1 repeat
-               if (u := subtractIfCan(p1.first.k, e)) case "failed" then break
-               p1 := fmecg(co * p1.rest, u, p1.first.c, p2)
-               e1 := (e1 - 1)::NonNegativeInteger
-           e1 = 0 => p1
-           co ^ e1 * p1
-
    -- Ugly, but we want to avoid conditonal exports or testing
    -- in inner loops
    mm_one : R := 0$R
@@ -963,12 +821,12 @@ SparseUnivariatePolynomial(R : Join(SemiRng, AbelianMonoid)
    outputForm(p : %, v : OutputForm) ==
      l : List(OutputForm)
      l := [toutput(t, v) for t in p]
-     null l => (0$Integer)::OutputForm -- else FreeModule 0 problems
-     reduce("+",l)
+     empty?(l) => (0$Integer)::OutputForm -- else FreeModule 0 problems
+     reduce(_+, l)
 
-   coerce(p:%):OutputForm == outputForm(p, "?"::OutputForm)
+   coerce(p:%):OutputForm == outputForm(p, message("?"))
    elt(p : %, val : R) ==
-      null p => 0$R
+      empty?(p) => 0$R
       co := p.first.c
       n := p.first.k
       for tm in p.rest repeat
@@ -976,7 +834,7 @@ SparseUnivariatePolynomial(R : Join(SemiRng, AbelianMonoid)
       n = 0 => co
       co*val^(n::PositiveInteger)
    elt(p : %, val : %) ==
-      null p => 0$%
+      empty?(p) => 0$%
       coef : % := p.first.c :: %
       n := p.first.k
       for tm in p.rest repeat
@@ -986,14 +844,14 @@ SparseUnivariatePolynomial(R : Join(SemiRng, AbelianMonoid)
 
    if R has Ring then
        monicDivide(p1 : %, p2 : %) ==
-           null p2 => error "monicDivide: division by 0"
+           empty?(p2) => error "monicDivide: division by 0"
            leadingCoefficient p2 ~= 1 => error "Divisor Not Monic"
            p2 = 1 => [p1, 0]
-           null p1 => [0, 0]
+           empty?(p1) => [0, 0]
            degree p1 < (n := degree p2) => [0, p1]
            rout : Rep := []
            p2 := p2.rest
-           while not null p1 repeat
+           while not(empty?(p1)) repeat
                (u := subtractIfCan(p1.first.k, n)) case "failed" => break
                rout := cons([u, p1.first.c], rout)
                p1 := fmecg(p1.rest, rout.first.k, rout.first.c, p2)
@@ -1001,51 +859,17 @@ SparseUnivariatePolynomial(R : Join(SemiRng, AbelianMonoid)
 
    if R has IntegralDomain then
        discriminant(p) == discriminant(p)$PseudoRemainderSequence(R, %)
---     discriminant(p) ==
---       null p or zero?(p.first.k) => error "cannot take discriminant of constants"
---       dp := differentiate p
---       corr :=  p.first.c ^ ((degree p - 1 - degree dp)::NonNegativeInteger)
---       (-1)^((p.first.k*(p.first.k-1)) quo 2): NonNegativeInteger
---         * (corr * resultant(p, dp) exquo p.first.c)::R
 
        subResultantGcd(p1, p2) == subResultantGcd(p1, p2)$PseudoRemainderSequence(R, %)
---     subResultantGcd(p1, p2) ==    --args # 0, non-coef, prim, ans not prim
---       --see algorithm 1 (p. 4) of Brown's latest (unpublished) paper
---       if p1.first.k < p2.first.k then (p1, p2) := (p2, p1)
---       p := pseudoRemainder(p1, p2)
---       co := 1$R;
---       e := (p1.first.k - p2.first.k): NonNegativeInteger
---       while not null p and p.first.k ~= 0 repeat
---         p1 := p2; p2 := p; p := pseudoRemainder(p1, p2)
---         null p or p.first.k = 0 => "enuf"
---         co := (p1.first.c ^ e exquo co ^ max(0, (e-1))::NonNegativeInteger)::R
---         e := (p1.first.k - p2.first.k): NonNegativeInteger;  c1 := co^e
---         p := [[tm.k, ((tm.c exquo p1.first.c)::R exquo c1)::R] for tm in p]
---       if null p then p2 else 1$%
 
        resultant(p1, p2) == resultant(p1, p2)$PseudoRemainderSequence(R, %)
---     resultant(p1, p2) ==      --SubResultant PRS Algorithm
---        null p1 or null p2 => 0$R
---        0 = degree(p1) => ((first p1).c)^degree(p2)
---        0 = degree(p2) => ((first p2).c)^degree(p1)
---        if p1.first.k < p2.first.k then
---          (if odd?(p1.first.k) then p1 := -p1;  (p1, p2) := (p2, p1))
---        p := pseudoRemainder(p1, p2)
---        co := 1$R;  e := (p1.first.k-p2.first.k): NonNegativeInteger
---        while not null p repeat
---           if not odd?(e) then p := -p
---           p1 := p2;  p2 := p;  p := pseudoRemainder(p1, p2)
---           co := (p1.first.c ^ e exquo co ^ max(e: Integer-1, 0): NonNegativeInteger)::R
---           e := (p1.first.k - p2.first.k): NonNegativeInteger;  c1 := co^e
---           p := (p exquo ((leadingCoefficient p1) * c1))::%
---        degree p2 > 0 => 0$R
---        (p2.first.c^e exquo co^((e-1)::NonNegativeInteger))::R
+
    if R has GcdDomain then
-     content(p) == if null p then 0$R else "gcd"/[tm.c for tm in p]
+     content(p) == if empty?(p) then 0$R else "gcd"/[tm.c for tm in p]
         --make CONTENT more efficient?
 
      primitivePart(p) ==
-        null p => p
+        empty?(p) => p
         ct := content(p)
         unitCanonical((p exquo ct)::%)
                -- exquo  present since % is now an IntegralDomain
@@ -1057,7 +881,6 @@ SparseUnivariatePolynomial(R : Join(SemiRng, AbelianMonoid)
    if R has Field then
      divide( p1, p2)  ==
        zero? p2 => error "Division by 0"
---       one? p2 => [p1, 0]
        (p2 = 1) => [p1, 0]
        ct := inv(p2.first.c)
        n := p2.first.k
@@ -1073,8 +896,6 @@ SparseUnivariatePolynomial(R : Join(SemiRng, AbelianMonoid)
 
 )abbrev package SUP2 SparseUnivariatePolynomialFunctions2
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1099,8 +920,6 @@ SparseUnivariatePolynomialFunctions2(R : Ring, S : Ring) : with
 
 )abbrev domain UP UnivariatePolynomial
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions: Ring, monomial, coefficient, reductum, differentiate,
 ++ elt, map, resultant, discriminant
 ++ Related Constructors: SparseUnivariatePolynomial, MultivariatePolynomial
@@ -1119,8 +938,6 @@ UnivariatePolynomial(x : Symbol, R : Ring):
   UnivariatePolynomialCategory(R) with
     coerce : Variable(x) -> %
       ++ coerce(x) converts the variable x to a univariate polynomial.
-    fmecg : (%, NonNegativeInteger, R, %) -> %
-        ++ fmecg(p1, e, r, p2) finds X : p1 - r * X^e * p2
    == SparseUnivariatePolynomial(R)   add
     Rep := SparseUnivariatePolynomial(R)
     coerce(p : %) : OutputForm  == outputForm(p, outputForm x)
@@ -1128,8 +945,6 @@ UnivariatePolynomial(x : Symbol, R : Ring):
 
 )abbrev package UP2 UnivariatePolynomialFunctions2
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1153,8 +968,6 @@ UnivariatePolynomialFunctions2(x : Symbol, R : Ring, y : Symbol, S : Ring) : wit
 
 )abbrev package POLY2UP PolynomialToUnivariatePolynomial
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1182,8 +995,6 @@ PolynomialToUnivariatePolynomial(x : Symbol, R : Ring) : with
 
 )abbrev package UPSQFREE UnivariatePolynomialSquareFree
 ++ Author: Dave Barton, Barry Trager
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions: squareFree, squareFreePart
 ++ Related Constructors:
 ++ Also See:
@@ -1300,8 +1111,6 @@ UnivariatePolynomialSquareFree(RC : IntegralDomain, P) : C == T
 
 )abbrev package PSQFR PolynomialSquareFree
 ++ Author:
-++ Date Created:
-++ Date Last Updated: November 1993, (P.Gianni)
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:

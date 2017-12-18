@@ -2,7 +2,6 @@
 ++ The elementary symmetric functions
 ++ Author: Manuel Bronstein
 ++ Date Created: 13 Feb 1989
-++ Date Last Updated: 28 Jun 1990
 ++ Description: Computes all the symmetric functions in n variables.
 SymmetricFunctions(R : Ring) : Exports == Implementation where
   UP  ==> SparseUnivariatePolynomial R
@@ -17,24 +16,19 @@ SymmetricFunctions(R : Ring) : Exports == Implementation where
       ++ symmetric functions in \spad{[r, r, ..., r]} \spad{n} times.
 
   Implementation ==> add
-    signFix : (UP, NonNegativeInteger) -> Vector R
 
-    symFunc(x, n) == signFix((monomial(1, 1)$UP - x::UP) ^ n, 1 + n)
+    coef_vect(p : UP, n : NonNegativeInteger) : Vector R ==
+        reverse! vectorise(p, n)
+
+    symFunc(x, n) == coef_vect((monomial(1, 1)$UP + x::UP) ^ n, n)
 
     symFunc l ==
-      signFix(*/[monomial(1, 1)$UP - a::UP for a in l], 1 + #l)
-
-    signFix(p, n) ==
-      m := minIndex(v := vectorise(p, n)) + 1
-      for i in 0..((#v quo 2) - 1)::NonNegativeInteger repeat
-        qsetelt!(v, 2*i + m, - qelt(v, 2*i + m))
-      reverse! v
+        coef_vect(*/[monomial(1, 1)$UP + a::UP for a in l], #l)
 
 )abbrev package TANEXP TangentExpansions
 ++ Expansions of tangents of sums and quotients
 ++ Author: Manuel Bronstein
 ++ Date Created: 13 Feb 1989
-++ Date Last Updated: 20 Apr 1990
 ++ Description: Expands tangents of sums and scalar products.
 TangentExpansions(R : Field) : Exports == Implementation where
   PI ==> PositiveInteger
@@ -69,22 +63,22 @@ TangentExpansions(R : Field) : Exports == Implementation where
       (numer(t := tanPIa(n::PI)) a) / ((denom t) a)
 
     tanSum l ==
-      m := minIndex(v := symFunc l)
-      +/[m1toN(i+1) * v(2*i - 1 + m) for i in 1..(#v quo 2)]
-        / +/[m1toN(i) * v(2*i + m) for i in 0..((#v - 1) quo 2)]
+        empty?(l) => 0
+        m := minIndex(v := symFunc l)
+        +/[m1toN(i) * v(2*i + m) for i in 0..((#v - 1) quo 2)]
+          /(1 + +/[m1toN(i) * v(2*i - 1 + m) for i in 1..(#v quo 2)])
 
--- tanPIa(n) returns P(a)/Q(a) such that
--- if a = tan(u) then P(a)/Q(a) = tan(n * u);
+    -- tanPIa(n) returns P(a)/Q(a) such that
+    -- if a = tan(u) then P(a)/Q(a) = tan(n * u);
     tanPIa n ==
-      m := minIndex(v := symFunc(monomial(1, 1)$UP, n))
-      +/[m1toN(i+1) * v(2*i - 1 + m) for i in 1..(#v quo 2)]
-        / +/[m1toN(i) * v(2*i + m) for i in 0..((#v - 1) quo 2)]
+        m := minIndex(v := symFunc(monomial(1, 1)$UP, n))
+        +/[m1toN(i) * v(2*i + m) for i in 0..((#v - 1) quo 2)]
+          /(1 + +/[m1toN(i) * v(2*i - 1 + m) for i in 1..(#v quo 2)])
 
 )abbrev package EFSTRUC ElementaryFunctionStructurePackage
 ++ Risch structure theorem
 ++ Author: Manuel Bronstein, Waldek Hebisch
 ++ Date Created: 1987
-++ Date Last Updated: 9 October 2006
 ++ Description:
 ++   ElementaryFunctionStructurePackage provides functions to test the
 ++   algebraic independence of various elementary functions, using the
@@ -94,7 +88,7 @@ TangentExpansions(R : Field) : Exports == Implementation where
 ++ Keywords: elementary, function, structure.
 ElementaryFunctionStructurePackage(R, F) : Exports == Implementation where
   R : Join(IntegralDomain, Comparable, RetractableTo Integer,
-           LinearlyExplicitRingOver Integer)
+           LinearlyExplicitOver Integer)
   F : Join(AlgebraicallyClosedField, TranscendentalFunctionCategory,
            FunctionSpace R)
 
@@ -124,7 +118,7 @@ ElementaryFunctionStructurePackage(R, F) : Exports == Implementation where
       ++ normalize([f1, ..., fn], lx) rewrites \spad{f1, ..., fn} using the
       ++ least possible number of real algebraically independent kernels.
       ++ Additionally, it tries to ensure that any expression in
-      ++ resulting kernels which syntactially depends on a variable \spad{x}
+      ++ resulting kernels which syntactically depends on a variable \spad{x}
       ++ from \spad{lx} has nonzero derivative with respect to \spad{x}.
     rischNormalize : (F, SY) -> REC
       ++ rischNormalize(f, x) is rischNormalize([f], [x])
@@ -183,7 +177,6 @@ ElementaryFunctionStructurePackage(R, F) : Exports == Implementation where
     k2Elem             : (K, List SY) -> F
     realElem           : (F, List SY) -> F
     rootDep            : (List K, K)     -> U
-    findQRelation      : (List SY, List F, F) -> U
     findRelation       : (List SY, List SY, List K, K) -> U
     factdeprel         : (List K, K)     -> U
     toR                : (List K, F) -> List K
@@ -246,7 +239,7 @@ ElementaryFunctionStructurePackage(R, F) : Exports == Implementation where
     findQRelation(lv : List Symbol, lpar : List Symbol, lk : List F, _
              ker : F) : U ==
 
-        null lk => [true]
+        empty?(lk) => [true]
         isconstant := true
         m := #lv
         lvv := lv
@@ -277,13 +270,13 @@ ElementaryFunctionStructurePackage(R, F) : Exports == Implementation where
     -- This is only correct if Schanuel Conjecture is true, otherwise
     -- we may miss some relations.
     findLinearRelation1(lk : List F, ker : F) : U ==
-        null lk => [true]
+        empty?(lk) => [true]
 
         n := #lk
         mat := new(1, n, 0)$(Matrix F)
         v := new(1, ker)$(Vector F)
         for j in 1..n for k in lk repeat
-            if null(variables(k)) then
+            if empty?(variables(k)) then
                 mat(1, j) := k
             else
                 mat(1, j) := 0::F
@@ -364,12 +357,12 @@ ElementaryFunctionStructurePackage(R, F) : Exports == Implementation where
     findRelation(lv : List Symbol, lpar : List Symbol, lk : List K, _
               ker : K) : U ==
         is?(ker, 'log) or is?(ker, 'exp) =>
-            null(variables(ker::F)) =>
+            empty?(variables(ker::F)) =>
                 is?(ker, 'exp) => findLinearRelation1(toY lk, ktoY ker)
                 findLinearRelation2(lk, toZ lk, ker)
             findQRelation(lv, lpar, toY lk, ktoY ker)
         is?(ker, 'atan) or is?(ker, 'tan) =>
-            null(variables(ker::F)) =>
+            empty?(variables(ker::F)) =>
                 is?(ker, 'tan) => findLinearRelation1(toU lk, ktoU ker)
                 findLinearRelation2(lk, toV lk, ker)
             findQRelation(lv, lpar, toU lk, ktoU ker)
@@ -382,11 +375,13 @@ ElementaryFunctionStructurePackage(R, F) : Exports == Implementation where
     ktoY k ==
       is?(k, 'log) => k::F
       is?(k, 'exp) => first argument k
+      is?(k, 'lambertW) => k::F
       0
 
     ktoZ k ==
       is?(k, 'log) => first argument k
       is?(k, 'exp) => k::F
+      is?(k, 'lambertW) => (first argument k)/k::F
       0
 
     ktoU k ==
@@ -531,7 +526,7 @@ ElementaryFunctionStructurePackage(R, F) : Exports == Implementation where
 
 
     -- If k1 is part of k2 we should not express k1 in terms of k2
-    -- (othewise we would get infinite recursion).
+    -- (otherwise we would get infinite recursion).
     -- Below we impose a stronger condition : we require
     -- height(k1) to be maximal
 
@@ -597,7 +592,8 @@ ElementaryFunctionStructurePackage(R, F) : Exports == Implementation where
 
     expnosimp(lf, lk, k, v, fns, g) ==
         n := maxIndex v
-        lk := [x for x in lk | is?(x, 'exp) or is?(x, 'log)]
+        lk := [x for x in lk | is?(x, 'exp) or is?(x, 'log)
+                               or is?(x, 'lambertW)]
         d := (cd := splitDenominator v).den
         vnum := cd.num
         h : F := g
@@ -623,7 +619,7 @@ ElementaryFunctionStructurePackage(R, F) : Exports == Implementation where
                 ]$List(Z))
       c := z^dd / (*/[x^(dd*qelt(v, i))
                    for x in toZ lk for i in minIndex v .. maxIndex v])
--- CHANGED log ktoZ x TO ktoY x SINCE WE WANT log exp f TO BE REPLACED BY f.
+-- CHANGED log ktoZ x TO ktoY x SINCE WE WANT log exp f TO BE REPLACED BY f. id:693
       g := +/[qelt(v, i) * x
               for i in minIndex v .. maxIndex v for x in toY lk]
                 + log(c)/(dd::R::F)
@@ -747,7 +743,6 @@ ElementaryFunctionStructurePackage(R, F) : Exports == Implementation where
 ++ Trigs to/from exps and logs
 ++ Author: Manuel Bronstein
 ++ Date Created: 4 April 1988
-++ Date Last Updated: 9 October 1993
 ++ Description:
 ++   This package provides transformations from trigonometric functions
 ++   to exponentials and logarithms, and back.
@@ -953,19 +948,19 @@ InnerTrigonometricManipulations(R, F, FG) : Exports == Implementation where
     smp2explogs(p, l) ==
       map(x +-> ker2explogs(x, l), y +-> y::FG,
            p)$PolynomialCategoryLifting(IndexedExponents KG, KG, GR, PG, FG)
+)boot $tryRecompileArguments := true
 
 )abbrev package TRIGMNIP TrigonometricManipulations
 ++ Trigs to/from exps and logs
 ++ Author: Manuel Bronstein
 ++ Date Created: 4 April 1988
-++ Date Last Updated: 14 February 1994
 ++ Description:
 ++   \spadtype{TrigonometricManipulations} provides transformations from
 ++   trigonometric functions to complex exponentials and logarithms, and back.
 ++ Keywords: trigonometric, function, manipulation.
 TrigonometricManipulations(R, F) : Exports == Implementation where
   R : Join(GcdDomain, Comparable, RetractableTo Integer,
-           LinearlyExplicitRingOver Integer)
+           LinearlyExplicitOver Integer)
   F : Join(AlgebraicallyClosedField, TranscendentalFunctionCategory,
            FunctionSpace R)
 
@@ -1107,7 +1102,6 @@ TrigonometricManipulations(R, F) : Exports == Implementation where
 ++ Real and Imaginary parts of complex functions
 ++ Author: Manuel Bronstein
 ++ Date Created: 11 June 1993
-++ Date Last Updated: 14 June 1993
 ++ Description:
 ++   \spadtype{ComplexTrigonometricManipulations} provides function that
 ++   compute the real and imaginary parts of complex functions.
@@ -1241,9 +1235,3 @@ ComplexTrigonometricManipulations(R, F) : Exports == Implementation where
 --LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 --NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 --SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
--- SPAD files for the integration world should be compiled in the
--- following order:
---
---   intaux  rderf  intrf  curve  curvepkg  divisor  pfo
---   intalg  intaf  EFSTRUC  rdeef  intef  irexpand  integrat

@@ -18,8 +18,8 @@ subdir = src/doc/
 # unless the program xvfb-run was detected during the run of
 # ./configure.
 # The reason for this delayed execution is that generation of the .xpm
-# files without the xvfb-run programm will popping up image windows in
-# X and makes working during compilation impossible.
+# files without the xvfb-run program will pop up image windows in
+# X and make working during compilation impossible.
 # The intro.htex and util.ht files are not relevant for image generation.
 GPHTS = coverex explot2d explot3d graphics SEGBIND ug01 ug07 ug08 ug10 ug11
 MAYBE_VIEWPORTS=@MAYBE_VIEWPORTS@
@@ -267,7 +267,7 @@ gloss.ht: gloss.text ${GLOSSARY_SCRIPTS}
 	( echo ')boot browserAutoloadOnceTrigger()'; \
 	  echo ')boot oldCompilerAutoloadOnceTrigger()'; \
 	  echo ')boot buildGloss()') \
-	| ${INTERPSYS}
+	| FRICAS_INITFILE='' ${INTERPSYS}
 
 $(HD_CHAPTERS_HT_FILES): ug%.ht: ${htexsrcdir}/ug%.htex tmp/ug%.menu
 #	${HTEX2HT} SRC MENUDIR
@@ -322,14 +322,17 @@ ${UG_EXTRA_INPUT_FILES}: %: ${inputsrcdir}/%
 
 ${HD_NPHT_FILES}: %.pht: %.ht ${UG_EXTRA_INPUT_FILES} ${SMAN} $(fricas_target_bindir)/hypertex$(EXEEXT) stamp-ht-db
 	echo $<
-	unset DAASE; HTPATH=. ${SMAN} -noihere -paste $<
+	unset DAASE; HTPATH=. FRICAS_INITFILE='' ${SMAN} -noihere -paste $<
 
 ${HD_GPHT_FILES}: %.pht: %.ht ${UG_EXTRA_INPUT_FILES} ${SMAN} $(fricas_target_bindir)/hypertex$(EXEEXT) stamp-ht-db
 	echo $<
-	unset DAASE; HTPATH=.; export HTPATH; ${XVFB} ${SMAN} -noihere -paste $<
+	unset DAASE; HTPATH=.; export HTPATH; \
+	  FRICAS_INITFILE='' ${XVFB} ${SMAN} -noihere -paste $<
 
 mobius.VIEW: ${inputsrcdir}/mobius.input
-	(unset DAASE; AXIOM=${AXIOM}; export AXIOM; ${XVFB} ${AXIOM}/bin/fricas -noht -noclef -eval ')read $<')
+	(unset DAASE; AXIOM=${AXIOM}; export AXIOM; \
+	    FRICAS_INITFILE='' ${XVFB} \
+	    ${AXIOM}/bin/fricas -noht -noclef -eval ')read $<')
 
 # This target will only be taken if
 # MAYBE_VIEWPORTS=viewports
@@ -427,3 +430,13 @@ dist:
 	        helptargetdir=$(disttargetdir)/share/spadhelp \
 	        algebratargetdir=$(disttargetdir)/algebra \
 	    copy-to-dist
+
+mostlyclean-local:
+	-rm -f ${HD_PHT_FILES} ${HD_HT_FILES} *.input *.help *.text
+	-rm -rf tmp
+	-rm -f examples.* stamp* util-ht ht.db
+
+clean-local: mostlyclean-local
+
+distclean-local: clean-local
+	-rm -rf *.VIEW

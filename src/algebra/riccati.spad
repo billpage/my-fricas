@@ -1,7 +1,6 @@
 )abbrev package ODEPRRIC PrimitiveRatRicDE
 ++ Author: Manuel Bronstein
 ++ Date Created: 22 October 1991
-++ Date Last Updated: 2 February 1993
 ++ Description: In-field solution of Riccati equations, primitive case.
 PrimitiveRatRicDE(F, UP, L, LQ) : Exports == Implementation where
   F  : Join(Field, CharacteristicZero, RetractableTo Fraction Integer)
@@ -136,7 +135,6 @@ PrimitiveRatRicDE(F, UP, L, LQ) : Exports == Implementation where
       sort!((z1, z2) +-> z1.deg > z2.deg, ans)
 
     getPol(rec, c, l, ind) ==
---      one?(rec.deg) => getPol1(ind, c, l)
       (rec.deg = 1) => getPol1(ind, c, l)
       +/[monomial(tau0(c, coefficient(l, i::N)), i::N)$UP2 for i in ind]
 
@@ -256,7 +254,6 @@ PrimitiveRatRicDE(F, UP, L, LQ) : Exports == Implementation where
 )abbrev package ODERTRIC RationalRicDE
 ++ Author: Manuel Bronstein
 ++ Date Created: 22 October 1991
-++ Date Last Updated: 11 April 1994
 ++ Description: In-field solution of Riccati equations, rational case.
 RationalRicDE(F, UP) : Exports == Implementation where
   F  : Join(Field, CharacteristicZero, RetractableTo Integer,

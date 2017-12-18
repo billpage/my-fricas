@@ -2,7 +2,6 @@
 ++ Two dimensional array categories and domains
 ++ Author:
 ++ Date Created: 27 October 1989
-++ Date Last Updated: 27 June 1990
 ++ Keywords: array, data structure
 ++ Examples:
 ++ References:
@@ -17,8 +16,8 @@ TwoDimensionalArrayCategory(R, Row, Col) : Category == Definition where
   ++ the first element of a 'Row' is the same as the index of the
   ++ first column in an array and vice versa.
   R   : Type
-  Row : FiniteLinearAggregate R
-  Col : FiniteLinearAggregate R
+  Row : IndexedAggregate(Integer, R)
+  Col : IndexedAggregate(Integer, R)
 
   PI ==> PositiveInteger
   NNI ==> NonNegativeInteger
@@ -29,6 +28,8 @@ TwoDimensionalArrayCategory(R, Row, Col) : Category == Definition where
 
   Definition == Join(HomogeneousAggregate(R), _
       shallowlyMutable, finiteAggregate) with
+
+    if R has Comparable then Comparable
 
 --% Array creation
 
@@ -84,14 +85,14 @@ TwoDimensionalArrayCategory(R, Row, Col) : Category == Definition where
        ++ \spad{[x(i, j)]} where the index i ranges from \spad{i1} to \spad{i2}
        ++ and the index j ranges from \spad{j1} to \spad{j2}.
     elt : (%, Integer, LI) -> %
-       ++ \spad{elt(x, row, colList} returns an 1-by-n array consisting
+       ++ \spad{elt(x, row, colList)} returns an 1-by-n array consisting
        ++ of elements of x, where \spad{n = # colList}.
        ++ If \spad{colList = [j<1>, j<2>, ..., j<n>]}, then the \spad{(k, l)}th
        ++ entry of \spad{elt(x, row, colList)} is \spad{x(row, j<l>)}.
     elt : (%, LI, Integer) -> %
-       ++ \spad{elt(x, rowList, col} returns an m-by-1 array consisting
+       ++ \spad{elt(x, rowList, col)} returns an m-by-1 array consisting
        ++ of elements of x, where \spad{m = # rowList}.
-       ++ If \spad{rowList = [i<1>, i<2>, ..., i<n>]}, then the \spad{(k, l)}th
+       ++ If \spad{rowList = [i<1>, i<2>, ..., i<m>]}, then the \spad{(k, l)}th
        ++ entry of \spad{elt(x, rowList, col)} is \spad{x(i<k>, col)}.
     elt : (%, LI, LI) -> %
        ++ \spad{elt(x, rowList, colList)} returns an m-by-n array consisting
@@ -326,6 +327,37 @@ TwoDimensionalArrayCategory(R, Row, Col) : Category == Definition where
     less?(m, n) == nrows(m) * ncols(m) < n
     more?(m, n) == nrows(m) * ncols(m) > n
 
+    if R has Comparable then
+
+      smaller?(m1, m2) ==
+          mri1 := minRowIndex(m1)
+          mri2 := minRowIndex(m2)
+          mri1 < mri2 => true
+          mri2 < mri1 => false
+          minr := mri1
+          mri1 := maxRowIndex(m1)
+          mri2 := maxRowIndex(m2)
+          mri1 < mri2 => true
+          mri2 < mri1 => false
+          maxr := mri1
+          mci1 := minColIndex(m1)
+          mci2 := minColIndex(m2)
+          mci1 < mci2 => true
+          mci2 < mci1 => false
+          minc := mci1
+          mci1 := maxColIndex(m1)
+          mci2 := maxColIndex(m2)
+          mci1 < mci2 => true
+          mci2 < mci1 => false
+          maxc := mci1
+          for i in minr..maxr repeat
+              for j in minc..maxc repeat
+                  el1 := m1(i, j)
+                  el2 := m2(i, j)
+                  smaller?(el1, el2) => return true
+                  if not(el1 = el2) then return false
+          false
+
 --% Size inquiries
 
     # m == nrows(m) * ncols(m)
@@ -345,7 +377,7 @@ TwoDimensionalArrayCategory(R, Row, Col) : Category == Definition where
       num
 
     parts m ==
-      entryList : List R := nil()
+      entryList : List R := []
       for i in maxRowIndex(m)..minRowIndex(m) by -1 repeat
         for j in maxColIndex(m)..minColIndex(m) by -1 repeat
           entryList := concat(qelt(m, i, j), entryList)
@@ -892,7 +924,7 @@ TwoDimensionalArrayCategory(R, Row, Col) : Category == Definition where
           qsetelt!(m, i, j, r)
       m
 
-    map(f, m) ==
+    map(f : R -> R, m : %) : % ==
       ans := new(nrows m, ncols m, NIL$Lisp)
       for i in minRowIndex(m)..maxRowIndex(m) repeat
         for j in minColIndex(m)..maxColIndex(m) repeat
@@ -957,7 +989,7 @@ TwoDimensionalArrayCategory(R, Row, Col) : Category == Definition where
 
       count(r : R, m : %) == count(x +-> x = r, m)
 
-    if Row has shallowlyMutable then
+    if Row has shallowlyMutable and Row has LinearAggregate(R) then
 
       row(m, i) ==
         i < minRowIndex(m) or i > maxRowIndex(m) =>
@@ -968,7 +1000,7 @@ TwoDimensionalArrayCategory(R, Row, Col) : Category == Definition where
             qsetelt!(v, k, qelt(m, i, j))
         v
 
-    if Col has shallowlyMutable then
+    if Col has shallowlyMutable and Col has LinearAggregate(R) then
 
       column(m, j) ==
         j < minColIndex(m) or j > maxColIndex(m) =>

@@ -1,7 +1,6 @@
 )abbrev package LF LiouvillianFunction
 ++ Author: Manuel Bronstein
 ++ Date Created: 1987
-++ Date Last Updated: 10 August 1994
 ++ Keywords: liouvillian, function, primitive, exponential.
 ++ Examples:  )r LF INPUT
 ++ Description:
@@ -44,7 +43,7 @@ LiouvillianFunction(R, F) : Exports == Implementation where
     erf     : F  -> F
       ++ erf(f) denotes the error function
     erfi    : F  -> F
-      ++ erf(f) denotes \spad{-%i*erf(%i*z)}
+      ++ erfi(f) denotes \spad{-%i*erf(%i*z)}
     dilog   : F  -> F
       ++ dilog(f) denotes the dilogarithm
     fresnelS : F  -> F
@@ -114,7 +113,6 @@ LiouvillianFunction(R, F) : Exports == Implementation where
     ichi x         == kernel(opchi, x)
     ierf x         == (zero? x => 0; kernel(operf, x))
     ierfi x         == (zero? x => 0; kernel(operfi, x))
---    ili2 x         == (one? x => INV; kernel(opli2, x))
     ili2 x         == ((x = 1) => 0; kernel(opli2, x))
     ifis(x : F) : F == (zero? x => 0; kernel(opfis, x))
     ific(x : F) : F == (zero? x => 0; kernel(opfic, x))
@@ -170,7 +168,8 @@ LiouvillianFunction(R, F) : Exports == Implementation where
 
     integral(f : F, s : SegmentBinding F) ==
       x := kernel(variable s)$K
-      opdint [eval(f, x, dummy), dummy, x::F, lo segment s, hi segment s]
+      opdint [eval(f, x, dummy), dummy, x::F, low(segment(s)),
+               high(segment(s))]
 
     ili x ==
       x = 1 => INV

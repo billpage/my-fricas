@@ -1,5 +1,5 @@
 sinclude(config/fricas.m4)
-AC_INIT([FriCAS], [2014-12-18],
+AC_INIT([FriCAS], [2017-08-05],
         [fricas-devel@googlegroups.com])
 
 AC_CONFIG_AUX_DIR(config)
@@ -55,7 +55,7 @@ AC_SUBST(fricas_builddir)
 fricas_build_bindir=$fricas_builddir/bin
 AC_SUBST(fricas_build_bindir)
 
-## Prefix for the staging target inistallation directory
+## Prefix for the staging target installation directory
 fricas_targetdir=$fricas_pwd/target/$target
 AC_SUBST(fricas_targetdir)
 if test $build != $target; then
@@ -143,10 +143,7 @@ AC_ARG_WITH([pre-generated],
     [AS_HELP_STRING([--with-pre-generated],
                     [Specify an absolute path to pre-generated fricas code.])],
     # Action if --with-pre-generated is given.
-    [AS_IF([echo "$withval"|grep ^/ >/dev/null],
-           [],
-           [AC_MSG_ERROR([--with-pre-generated must be given an absolute path.])])
-     AS_IF([test -d "$withval"],
+    [AS_IF([test -d "$withval"],
            [PREGENERATED=$withval],
            [AC_MSG_ERROR([--with-pre-generated directory does not exist.])])],
     # Action if --with-pre-generated is not given.
@@ -167,7 +164,7 @@ AC_ARG_WITH([lisp],
             [AS_HELP_STRING([--with-lisp=L], [use L as Lisp platform])],
             [fricas_lisp=$withval])
 ## Default to SBCL if no lisp given
-if test -z $fricas_lisp ; then
+if test -z "$fricas_lisp" ; then
     AC_PATH_PROG([FRICAS_LISP], [sbcl])
     if test -z $FRICAS_LISP ; then
         AC_MSG_ERROR([sbcl not found and no Lisp specified.
@@ -260,7 +257,7 @@ else
              AC_MSG_ERROR([sbcl $fricas_lisp_version is too old])
         fi
         case $fricas_lisp_version in
-           1.0.29)
+           1.0.29|1.3.1|1.3.2|1.3.3|1.3.4)
              AC_MSG_ERROR([sbcl $fricas_lisp_version has a bug which does not allow building FriCAS.
 Please use different sbcl version])
                   ;;
@@ -294,44 +291,90 @@ AC_SUBST(SOLIB_FLAGS)
 ## In case our underlying lisp is SBCL or Closure CL, we provide a
 ## wrapper to enable GMP bignums in lisp
 GMP_WRAP_SO_TARGET=""
+GMP_CPPFLAGS=""
+GMP_LDFLAGS=""
+GMP_LIBDIR=""
+## --with-gmp[=PATH]
+AC_ARG_WITH([gmp],
+    [AS_HELP_STRING([--with-gmp=PATH],
+               [specify prefix directory for the installed GMP package.
+                Equivalent to --with-gmp-include=PATH/include
+                plus --with-gmp-lib=PATH/lib])],
+            [GMP_WRAP_SO_TARGET=gmp_wrap_so
+             if test x$withval = x; then
+                GMP_CPPFLAGS=""
+                GMP_LDFLAGS=""
+                GMP_LIBDIR=""
+             else
+                GMP_CPPFLAGS=-I$withval/include
+                GMP_LDFLAGS=-L$withval/lib
+                GMP_LIBDIR=$withval/lib/
+             fi])
+AC_ARG_WITH([gmp-include],
+            [AS_HELP_STRING([--with-gmp-include=PATH],
+                    [specify directory for installed GMP include files])],
+            [GMP_WRAP_SO_TARGET=gmp_wrap_so
+             GMP_CPPFLAGS="-I$withval"])
+AC_ARG_WITH([gmp-lib],
+            [AS_HELP_STRING([--with-gmp-lib=PATH],
+                    [specify directory for the installed GMP library])],
+            [GMP_WRAP_SO_TARGET=gmp_wrap_so
+             GMP_LDFLAGS="-L$withval"
+             GMP_LIBDIR="$withval/"])
 AC_ARG_ENABLE([gmp],
-            [AS_HELP_STRING([--enable-gmp], [use gmp for sbcl bignums])],
+            [AS_HELP_STRING([--enable-gmp],
+               [use gmp for bignums with SBCL or Clozure CL])],
             [case $enableval in
-               yes)
-                 if test $fricas_lisp_flavor = sbcl ; then
-                    GMP_WRAP_SO_TARGET=gmp_wrap_so
-                 elif test $fricas_lisp_flavor = openmcl ; then
-                    case $(uname -m) in
-                      arm*|i386|i486|i586|i686|x86_64)
-                       GMP_WRAP_SO_TARGET=gmp_wrap_so
-                         ;;
-                      *)
-                       AC_MSG_ERROR([--enable-gmp is valid only when using Closure CL on AMD/Intel or ARM processors])
-                    esac
-                 else
-                    AC_MSG_ERROR([--enable-gmp is valid only when using sbcl or Closure CL])
-
-                 fi ;;
-               no) ;;
+               yes) GMP_WRAP_SO_TARGET=gmp_wrap_so ;;
+               no) GMP_WRAP_SO_TARGET="" ;;
                *) AC_MSG_ERROR([--enable-gmp only allows yes or no as an argument]) ;;
              esac])
+## Check if GMP is really compatible with the Lisp flavour
+if test -n "$GMP_WRAP_SO_TARGET" ; then
+   if test $fricas_lisp_flavor = sbcl ; then
+      true
+   elif test $fricas_lisp_flavor = openmcl ; then
+      case $(uname -m) in
+        arm*|i386|i486|i586|i686|x86_64)
+         GMP_WRAP_SO_TARGET=gmp_wrap_so
+           ;;
+        *)
+         AC_MSG_ERROR([GMP is valid only when using Clozure CL on AMD/Intel
+                       or ARM processors])
+      esac
+   else
+      AC_MSG_ERROR([GMP is valid only when using sbcl or Clozure CL])
+   fi
+fi
 AC_SUBST(GMP_WRAP_SO_TARGET)
+AC_SUBST(GMP_CPPFLAGS)
+AC_SUBST(GMP_LDFLAGS)
+AC_SUBST(GMP_LIBDIR)
+GMP_EXT=so
 ## If it is possible to enable the gmp wrapper, we have to check
 ## whether gmp is actually installed.
 AS_IF([test -n "$GMP_WRAP_SO_TARGET"],[
-  # temporarily save LDFLAGS
+  # temporarily save CPPFLAGS and LDFLAGS
+  fricas_save_CPPFLAGS=$CPPFLAGS
   fricas_save_LDFLAGS=$LDFLAGS
   # ask for shared library in AC_CHECK_LIB
-  LDFLAGS="$LDFLAGS -fPIC $SOLIB_FLAGS"
-  AC_CHECK_LIB(gmp, __gmpz_init, [], [AC_MSG_ERROR(
+  LDFLAGS="$LDFLAGS $GMP_LDFLAGS -fPIC $SOLIB_FLAGS"
+  AC_CHECK_LIB(gmp, __gmpz_init, [true], [AC_MSG_ERROR(
     [GNU MP not found, see http://swox.com/gmp])])
+  CPPFLAGS="$CPPFLAGS $GMP_CPPFLAGS"
   AC_CHECK_HEADERS([gmp.h], [], [AC_MSG_ERROR(
     [gmp.h not found, see http://swox.com/gmp])])
-  # reset LDFLAGS
+  # reset CPPFLAGS and LDFLAGS
+  CPPFLAGS=$fricas_save_CPPFLAGS
   LDFLAGS=$fricas_save_LDFLAGS
   GMP_LIB=-lgmp
+  case $target in
+          *darwin*) GMP_EXT=dylib ;;
+          *) GMP_EXT=so ;;
+  esac
 ])
 AC_SUBST(GMP_LIB)
+AC_SUBST(GMP_EXT)
 ## The following is a horrible to arrange for GCL to successfully
 ## rebuild symbol tables with "rsym" on Windows platform.  It should
 ## go away as soon as GCL upstream is fixed.
@@ -502,7 +545,7 @@ int code = EPIPE;
 
 
 if test x$fricas_host_has_socket != xyes; then \
-    AC_MSG_ERROR([FriCAS needs suport for sockets.])
+    AC_MSG_ERROR([FriCAS needs support for sockets.])
 fi
 
 ## solaris-based systems tend to hide the socket library.
@@ -605,7 +648,7 @@ fi
 fricas_src_all="all-axiomsys $fricas_src_all"
 AC_PATH_XTRA
 ## Output directives for the C compiler
-AC_SUBST(X_CLFAGS)
+AC_SUBST(X_CFLAGS)
 ## Output directives for the linker
 AC_SUBST(X_LIBS)
 ## Output any extra libraries required by X11
@@ -761,7 +804,7 @@ AC_SUBST(ALDOR_datadir)
 ###################################################################
 # The installation is currently not done by recursively calling
 # install in the src subdirectories, so we have to hardcode the
-# intallation of the aldor interface in Makefile.in and let a
+# installation of the aldor interface in Makefile.in and let a
 # variable decide whether or not the interface stuff should be
 # installed.
 AC_SUBST(BUILD_ALDOR_INTERFACE)
@@ -794,7 +837,7 @@ FRICAS_MAKEFILE([contrib/emacs/Makefile])
 
 AC_OUTPUT
 
-## Generate rules to extrad SPAD type definitions from pamphlets.
+## Generate rules to extract SPAD type definitions from pamphlets.
 echo "extracting list of SPAD type definitions"
 (cd $srcdir/src/algebra;
    . ../scripts/find-algebra-files) > src/algebra/tmp-extract-spad.mk

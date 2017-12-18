@@ -171,6 +171,11 @@ knownInfo pred ==
   HPUT($infoHash, pred, ress)
   ress
 
+get_catlist(vmode, e) ==
+    -- FIXME: setting $compForModeIfTrue should be not needed id:668
+    $compForModeIfTrue : local := true
+    compMakeCategoryObject(vmode, e)
+
 knownInfo1 pred ==
   pred is ["OR",:l] => or/[knownInfo u for u in l]
   pred is ["AND",:l] => and/[knownInfo u for u in l]
@@ -181,12 +186,15 @@ knownInfo1 pred ==
     cat is ["ATTRIBUTE",:a] => BREAK()
     cat is ["SIGNATURE",:a] => knownInfo ["SIGNATURE",name,:a]
     name is ['Union,:.] => false
+    -- FIXME: there is confusion between '$ in outer domain id:669
+    -- (the one which needs info) and freshly compiled
+    -- domain...
     v:= compForMode(name,$EmptyMode,$e)
     null v => stackSemanticError(["can't find category of ",name],nil)
     vmode := CADR v
     cat = vmode => true
     vmode is ["Join",:l] and member(cat,l) => true
-    [vv,.,.]:= compMakeCategoryObject(vmode,$e)
+    [vv, ., .] := get_catlist(vmode, $e)
     catlist := vv.4
     --catlist := SUBST(name,'$,vv.4)
     null vv => stackSemanticError(["can't make category of ",name],nil)

@@ -1,18 +1,20 @@
 )abbrev package BEZOUT BezoutMatrix
 ++ Author: Clifton J. Williamson
 ++ Date Created: 2 August 1988
-++ Date Last Updated: 3 November 1993
 ++ Basic Operations: bezoutMatrix, bezoutResultant, bezoutDiscriminant
 ++ Related Domains
 ++ Also See:
-++ AMS Classifiactions:
+++ AMS Classifications:
 ++ Keywords: Bezout matrix, resultant, discriminant
 ++ Examples:
 ++ Reference: Knuth, The Art of Computer Programming, 2nd edition,
-++            Vol. 2, p. 619, problem 12.
+++            Vol. 2, p. 619, section 4.6.1, problem 12
+++            Manuel Bronstein, Symbolic Integration 1: Transcendental
+++            Functions, 1st edition, p. 18, section 1.4
 ++ Description:
 ++   \spadtype{BezoutMatrix} contains functions for computing resultants and
-++   discriminants using Bezout matrices.
+++   discriminants using Bezout matrices, and functions related with
+++   Sylvester matrix and subresultant.
 -- Currently unused.
 
 BezoutMatrix(R, UP, M, Row, Col) : Exports == Implementation where
@@ -22,17 +24,32 @@ BezoutMatrix(R, UP, M, Row, Col) : Exports == Implementation where
   Col  : FiniteLinearAggregate R
   M    : MatrixCategory(R, Row, Col)
   I  ==> Integer
+  NNI ==> NonNegativeInteger
+  LI ==> List Integer
+  SI ==> Segment Integer
   lc ==> leadingCoefficient
 
   Exports ==> with
     sylvesterMatrix : (UP, UP) -> M
       ++ sylvesterMatrix(p, q) returns the Sylvester matrix for the two
-      ++ polynomials p and q.
+      ++ nonzero polynomials p and q.
+
+    subSylvesterMatrix : (M, NNI) -> M
+        ++ subSylvesterMatrix(S, j) returns the jth sub-Sylvester matrix
+        ++ jS.
+
+    subSylvesterMatrix : (M, NNI, NNI) -> M
+        ++ subSylvesterMatrix(S, j, i) returns sub-Sylvester matrix jSi.
+
     bezoutMatrix : (UP, UP) -> M
       ++ bezoutMatrix(p, q) returns the Bezout matrix for the two
       ++ polynomials p and q.
 
     if R has CommutativeRing then
+      subresultants : (UP, UP) -> IndexedVector(UP, 0)
+          ++ subresultants(p, q) returns a vector of subresultants of p and q,
+          ++ in ascending order, starting with index 0.
+
       bezoutResultant : (UP, UP) -> R
        ++ bezoutResultant(p, q) computes the resultant of the two
        ++ polynomials p and q by computing the determinant of a Bezout matrix.
@@ -44,10 +61,10 @@ BezoutMatrix(R, UP, M, Row, Col) : Exports == Implementation where
   Implementation ==> add
 
     sylvesterMatrix(p, q) ==
+      if p = 0 or q = 0 then error "sylvesterMatrix: argument is zero"
       n1 := degree p; n2 := degree q; n := n1 + n2
       sylmat : M := new(n, n, 0)
       minR := minRowIndex sylmat; minC := minColIndex sylmat
-      maxR := maxRowIndex sylmat; maxC := maxColIndex sylmat
       p0 := p
       -- fill in coefficients of 'p'
       while not zero? p0 repeat
@@ -62,6 +79,38 @@ BezoutMatrix(R, UP, M, Row, Col) : Exports == Implementation where
         for i in 0..n1-1 repeat
           qsetelt!(sylmat, minR + n2 + i, minC + n2 - deg + i, coef)
       sylmat
+
+    -- The following subSylvesterMatrix functions are based on: Manuel
+    -- Bronstein, Symbolic Integration 1: Transcendental Functions,
+    -- 1st edition, p. 19, definition 1.4.2
+    subSylvesterMatrix(sylmat, j) ==
+        j = 0 => sylmat
+        diagonal? sylmat =>
+            error "one of the polynomials that form this SylvesterMatrix has degree 0"
+        minR := minRowIndex sylmat; minC := minColIndex sylmat
+        maxR := maxRowIndex sylmat; maxC := maxColIndex sylmat
+        len := ncols sylmat
+        firstcol := column(sylmat, minC)
+        colIndex := minIndex firstcol
+        -- the distance between the two non zero elements in first column
+        -- is the degree of second polynomial, m
+        m := position((x : R) : Boolean +->x ~= 0, delete(firstcol, colIndex))
+                 + 1 - colIndex
+        n := len - m
+        j >= min(n, m) => error "index is too big for this SylvesterMatrix"
+        rowRange : List(SI) := [minR - 1 + (1..(m - j)),
+                                (minR + m)..(maxR - j)]
+        colRange : SI := minC..maxC
+        sylmat(rowRange, colRange)
+
+    subSylvesterMatrix(sylmat, j, i) ==
+        i > j => error "subSylvesterMatrix: i can't be larger than j"
+        sylmat := subSylvesterMatrix(sylmat, j)
+        minR := minRowIndex sylmat; minC := minColIndex sylmat
+        maxR := maxRowIndex sylmat; maxC := maxColIndex sylmat
+        rowRange : SI := minR..maxR
+        colRange : List(SI) := [minC..(maxC - 2*j - 1), convert(maxC - i - j)]
+        sylmat(rowRange, colRange)
 
     bezoutMatrix(p, q) ==
     -- This function computes the Bezout matrix for 'p' and 'q'.
@@ -130,6 +179,21 @@ BezoutMatrix(R, UP, M, Row, Col) : Exports == Implementation where
 
       import from Integer
 
+      subresultant : (M, NNI) -> UP
+      -- subresultant(m, j) returns the j-th subresultant S_j with respect to
+      -- the Sylvester matrix m.
+      subresultant(m, j) ==
+          j = 0 => determinant(m)::UP
+          x := monomial(1, 1)$UP
+          _+/[x^k * determinant subSylvesterMatrix(m, j, k) for k in 0..j]
+
+      subresultants(p, q) ==
+          mindeg : NNI := min(degree p, degree q)
+          m := sylvesterMatrix(p, q)
+          mindeg = 0 => construct [subresultant(m, 0)]
+          j := (mindeg - 1)::NNI
+          construct [subresultant(m, i) for i in 0..j]
+
       bezoutResultant(f, g) == determinant bezoutMatrix(f, g)
 
       if R has IntegralDomain then
@@ -149,6 +213,15 @@ BezoutMatrix(R, UP, M, Row, Col) : Exports == Implementation where
                 bezoutResultant(f, differentiate f)
               -bezoutResultant(f, differentiate f)
             error "bezoutDiscriminant: leading coefficient must be 1"
+
+)abbrev package BEZOUT2 BezoutMatrixWrapper
+++ Description:
+++   This is a wrapper package for BezoutMatrix, to avoid manually
+++   filling up type arguments.
+BezoutMatrixWrapper(R : Ring, UP : UnivariatePolynomialCategory R) ==
+       BezoutMatrix(R, UP, Matrix R, Vector R, Vector R)
+
+
 
 --Copyright (c) 1991-2002, The Numerical ALgorithms Group Ltd.
 --All rights reserved.

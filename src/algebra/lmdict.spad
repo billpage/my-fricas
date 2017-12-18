@@ -1,7 +1,5 @@
 )abbrev domain LMDICT ListMultiDictionary
 ++ Author: MBM Nov/87, MB Oct/89
-++ Date Created:
-++ Date Last Updated: 13 June 1994 Frederic Lehobey
 ++ Basic Operations:
 ++ Related Constructors:
 ++ Also See:
@@ -35,7 +33,7 @@ ListMultiDictionary(S : SetCategory) : Join(MultiDictionary(S), _
    sub : (S, S, S) -> S
 
    coerce(s : %) : OutputForm ==
-     prefix("dictionary"::OutputForm, [x::OutputForm for x in parts s])
+       prefix(message("dictionary"), [x::OutputForm for x in parts s])
 
    #s                 == # parts s
    copy s             == dictionary copy parts s

@@ -1,12 +1,11 @@
 #!/bin/sh
 
-# Start everything for Axiom.
+# Start everything for FriCAS.
 #
-# axiom
+# fricas
 #      [-ht   |-noht]       whether to use HyperDoc
 #      [-gr   |-nogr]       whether to use Graphics
 #      [-clef |-noclef]     whether to use Clef
-#      [-nag |-nonag]       whether to use NAG
 #      [-iw   |-noiw]       start in interpreter window
 #      [-ihere|-noihere]    start an interpreter buffer in the original window
 #      [-nox]               don't use X Windows
@@ -14,22 +13,18 @@
 #      [-ws wsname]         use named workspace
 #      [-list]              list workspaces only
 #      [-grprog fname]      use named program for Graphics
-#      [-nagprog fname]     use named program for Nag
 #      [-htprog fname]      use named program for HyperDoc
 #      [-clefprog fname]    use named program for Clef
 #      [-sessionprog fname] use named program for session
 #      [-clientprog fname]  use named program for spadclient
 #      [-h]                 show usage
 #      [-eval code]         evaluate specified code at start
-#      [-texmacs]           setup Fricas for communication in TeXmacs protocol
+#      [-texmacs]           setup FriCAS for communication in TeXmacs protocol
 #      [-emacs]             setup for emacs frontend
 #
 
 PATH=$AXIOM/bin:${PATH}:/usr/bin/X11
 export PATH
-
-MALLOCTYPE=3.1
-export MALLOCTYPE
 
 # NAGMAN needs to know the hostname
 HOST=`hostname`
@@ -54,7 +49,6 @@ echo "     [-nosman]            use plain command line interface (disables other
 echo "     [-ht   |-noht]       whether to use HyperDoc"
 echo "     [-gr   |-nogr]       whether to use Graphics"
 echo "     [-clef |-noclef]     whether to use Clef"
-echo "     [-nag |-nonag]       whether to use NAG"
 echo "     [-iw   |-noiw]       start in interpreter window"
 echo "     [-ihere|-noihere]    start an interpreter buffer in the original window."
 echo "     [-nox]               don't use X Windows"
@@ -62,14 +56,13 @@ echo "     [-go  |-nogo]        whether to start system"
 echo "     [-ws wsname]         use named workspace"
 echo "     [-list]              list workspaces only"
 #echo "     [-grprog fname]      use named program for Graphics"
-#echo "     [-nagprog fname]      use named program for Nag"
 #echo "     [-htprog fname]      use named program for HyperDoc"
 echo "     [-clefprog fname]    use named program for Clef"
 #echo "     [-sessionprog fname] use named program for session"
 #echo "     [-clientprog fname]  use named program for spadclient"
 echo "     [-h]                 show usage"
 echo "     [-eval code]         evaluate specified code at start"
-echo "     [-texmacs]           setup Fricas for communication in TeXmacs protocol"
+echo "     [-texmacs]           setup FriCAS for communication in TeXmacs protocol"
 echo "     [-emacs]             setup for emacs frontend"
 }
 
@@ -153,12 +146,12 @@ while [ "$*" != "" ] ; do
                 wsname="$1"
                 ;;
 
-        -nagprog|-grprog|-htprog|-clefprog|-sessionprog|-clientprog|-paste|-rm|-rv)
+        -grprog|-htprog|-clefprog|-sessionprog|-clientprog|-paste|-rm|-rv)
                 if [ "$2" = "" ] ; then needsubopt "$1" ; fi
                 otheropts="$otheropts  $1 $2"
                 shift
                 ;;
-        -clef|-noclef|-gr|-nogr|-ht|-noht|-iw|-noiw|-ihere|-noihere|-nox|-nag|-nonag)
+        -clef|-noclef|-gr|-nogr|-ht|-noht|-iw|-noiw|-ihere|-noihere|-nox)
                 otheropts="$otheropts $1"
                 ;;
 

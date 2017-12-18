@@ -1,12 +1,10 @@
 )abbrev package LINDEP LinearDependence
 ++ Test for linear dependence
 ++ Author: Manuel Bronstein
-++ Date Created: ???
-++ Date Last Updated: 14 May 1991
 ++ Description: Test for linear dependence.
 LinearDependence(S, R) : Exports == Implementation where
   S : IntegralDomain
-  R : LinearlyExplicitRingOver S
+  R : LinearlyExplicitOver S
 
   Q ==> Fraction S
   PartialS ==> Union(Vector S, "failed")
@@ -69,13 +67,11 @@ LinearDependence(S, R) : Exports == Implementation where
 
     linearlyDependent? v ==
       zero?(n := #v) => true
---      one? n => zero?(v(minIndex v))
       (n = 1) => zero?(v(minIndex v))
       positive? nullity reducedSystem transpose v
 
     linearDependence v ==
       zero?(n := #v) => empty()
---      one? n =>
       (n = 1) =>
         zero?(v(minIndex v)) => new(1, 1)
         "failed"
@@ -137,11 +133,9 @@ LinearDependence(S, R) : Exports == Implementation where
 )abbrev package ZLINDEP IntegerLinearDependence
 ++ Test for linear dependence over the integers
 ++ Author: Manuel Bronstein
-++ Date Created: ???
-++ Date Last Updated: 14 May 1991
 ++ Description: Test for linear dependence over the integers.
 IntegerLinearDependence(R) : Exports == Implementation where
-  R : LinearlyExplicitRingOver Integer
+  R : LinearlyExplicitOver Integer
 
   Z ==> Integer
   Q ==> Fraction Z

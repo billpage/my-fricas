@@ -1,14 +1,13 @@
 )abbrev package INTPM PatternMatchIntegration
 ++ Author: Manuel Bronstein
 ++ Date Created: 5 May 1992
-++ Date Last Updated: 27 September 1995
 ++ Description:
 ++ \spadtype{PatternMatchIntegration} provides functions that use
 ++ the pattern matcher to find some indefinite and definite integrals
 ++ involving special functions and found in the literature.
 PatternMatchIntegration(R, F) : Exports == Implementation where
   R : Join(Comparable, RetractableTo Integer, GcdDomain,
-           LinearlyExplicitRingOver Integer)
+           LinearlyExplicitOver Integer)
   F : Join(AlgebraicallyClosedField, TranscendentalFunctionCategory,
            FunctionSpace R)
 
@@ -132,11 +131,9 @@ PatternMatchIntegration(R, F) : Exports == Implementation where
            goodlilog? : (K, P) -> Boolean
            gooddilog? : (K, P, P) -> Boolean
 
---           goodlilog?(k, p) == is?(k, 'log) and one? minimumDegree(p, k)
            goodlilog?(k, p) == is?(k, 'log) and (minimumDegree(p, k) = 1)
 
            gooddilog?(k, p, q) ==
---             is?(k, 'log) and one? degree(p, k) and zero? degree(q, k)
              is?(k, 'log) and (degree(p, k) = 1) and zero? degree(q, k)
 
 -- matches the integral to a result of the form d * erf(u) or d * ei(u)
@@ -223,7 +220,6 @@ PatternMatchIntegration(R, F) : Exports == Implementation where
 -- returns a simplified sqrt(y)
            insqrt y ==
              rec := froot(y, 2)$PolynomialRoots(IndexedExponents K, K, R, P, F)
---             one?(rec.exponent) => rec.coef * rec.radicand
              ((rec.exponent) = 1) => rec.coef * rec.radicand
              rec.exponent ~= 2 => error "insqrt: should not happen"
              rec.coef * sqrt(rec.radicand)
@@ -293,11 +289,11 @@ PatternMatchIntegration(R, F) : Exports == Implementation where
              empty()
 
            pmintegrate(f, x, a, b) ==
---             zero? a and one? whatInfinity b =>
-             zero? a and ((whatInfinity b) = 1) =>
-               formula1(f, x, constant(x::F),
-                  suchThat(c, (x1 : F) : Boolean+->freeOf?(x1, x)))
-             "failed"
+               whatInfinity(a) = 0 and zero?(retract(a)@F)
+                                   and ((whatInfinity b) = 1) =>
+                   formula1(f, x, constant(x::F),
+                            suchThat(c, (x1 : F) : Boolean+->freeOf?(x1, x)))
+               "failed"
 
 --Copyright (c) 1991-2002, The Numerical ALgorithms Group Ltd.
 --All rights reserved.
@@ -329,9 +325,3 @@ PatternMatchIntegration(R, F) : Exports == Implementation where
 --LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 --NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 --SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
--- SPAD files for the integration world should be compiled in the
--- following order:
---
---   intaux  rderf  intrf  curve  curvepkg  divisor  pfo
---   intalg  intaf  efstruc  rdeef  INTPM  intef  irexpand  integrat

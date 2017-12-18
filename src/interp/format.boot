@@ -56,7 +56,7 @@ displayOpModemaps(op,modemaps) ==
   for modemap in modemaps repeat sayModemap modemap
 
 displayTranModemap (mm is [[x,:sig],[pred,:y],:z]) ==
-  -- The next 8 lines are a HACK to deal with the "partial" definition
+  -- The next 8 lines are a HACK to deal with the "partial" definition id:727
   -- JHD/RSS
   if pred is ['partial,:pred'] then
     [b,:c]:=sig
@@ -216,11 +216,10 @@ formatOperationAlistEntry (entry:= [op,:modemaps]) ==
   ans
 
 formatOperation([[op,sig],.,[fn,.,n]],domain) ==
-  opSigString := formatOpSignature(op,sig)
-  INTEGERP n and function Undef = IFCAR(domain.n) =>
-    if INTEGERP $commentedOps then $commentedOps := $commentedOps + 1
-    concat(" --",opSigString)
-  opSigString
+    formatOpSignature(op,sig)
+
+formatOperationWithPred([[op,sig],pred,.]) ==
+    concat(formatOpSignature(op, sig), formatIf pred)
 
 formatOpSignature(op,sig) ==
   concat('%b,formatOpSymbol(op,sig),'%d,": ",formatSignature sig)
@@ -287,7 +286,7 @@ formatSignatureArgs0(sml) ==
   null rest sml => prefix2String0 first sml
   argList:= prefix2String0 first sml
   for m in rest sml repeat
-    argList:= concat(argList,concat(",",prefix2String0 m))
+    argList:= concat(argList,concat(", ",prefix2String0 m))
   concat("_(",concat(argList,"_)"))
 
 --% Conversions to string form
@@ -489,7 +488,9 @@ coerceOrParen(x) ==
 
 appOrParen(x) ==
    SYMBOLP(x) => formWrapId x
-   INTEGERP(x) => WRITE_-TO_-STRING x
+   INTEGERP(x) =>
+       x >=0 => WRITE_-TO_-STRING x
+       concat('"(",WRITE_-TO_-STRING x,'")")
    -- Kludge to avoid extra parentheses printing a SparseUnivariatePolynomial
    x = '"?" => formWrapId x
    ATOM(x) => concat('"(", form2String1(x), '")")
@@ -700,7 +701,7 @@ application2String(op,argl, linkInfo) ==
     null argl => '".."
     (null rest argl) or (null first rest argl) =>
       concat(first argl, '"..")
-    concat(first argl, concat('"..", first rest argl))
+    concat('"(", first argl, concat('"..", first rest argl), '")")
   concat(app2StringWrap(formWrapId op, linkInfo) ,
                         concat("_(",concat(tuple2String argl,"_)")))
 
@@ -763,7 +764,7 @@ pred2English x ==
   x is ['OR,:l] =>
     tail:= "append"/[concat(bright '"or",pred2English x) for x in rest l]
     concat(pred2English first l,tail)
-  x is ['NOT,l] =>
+  x is ['not, l] =>
     concat('"not ",pred2English l)
   x is [op,a,b] and op in '(has ofCategory) =>
     concat(pred2English a, '%b, '"has",'%d, form_to_abbrev b)
@@ -780,6 +781,7 @@ pred2English x ==
       (_> . " > ") (_>_= . " >= ") (_=  . " = ") (_^_= . " _^_= ")))) =>
         concat(pred2English a,translation,pred2English b)
   x is ['ATTRIBUTE, form] => BREAK()
+  x is '$ => '"%%"
   form2String x
 
 mathObject2String x ==

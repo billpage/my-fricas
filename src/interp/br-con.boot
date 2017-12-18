@@ -869,8 +869,6 @@ dbShowCons1(htPage,cAlist,key) ==
       item := first x
       $exposedOnlyIfTrue => isExposedConstructor opOf item
       item
---$searchFirstTime and (conlist is [.]) => conPage first conlist
---$searchFirstTime := false
   conlist is [.] => conPage
     htPage and htpProperty(htPage,'domname) => first conlist
     opOf first conlist
@@ -977,7 +975,7 @@ dbShowConsDoc1(htPage,conform,indexOrNil) ==
   htSaySaturn '"\begin{description}"
   displayDomainOp(htPage,'"constructor",conform,conname,sig,true,doc,indexOrNil,'dbSelectCon,null exposeFlag,nil)
   htSaySaturn '"\end{description}"
-  --NOTE that we pass conform is as "origin"
+  --NOTE that we pass conform is as "origin" id:654
 
 getConstructorDocumentation conname ==
   LASSOC('constructor,GETDATABASE(conname,'DOCUMENTATION))

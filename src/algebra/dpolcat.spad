@@ -1,7 +1,6 @@
 )abbrev category DVARCAT DifferentialVariableCategory
 ++ Author:  William Sit
 ++ Date Created: 19 July 1990
-++ Date Last Updated: 13 September 1991
 ++ Basic Operations:
 ++ Related Constructors: DifferentialPolynomialCategory
 ++ See Also: OrderedDifferentialVariable,
@@ -113,7 +112,6 @@ DifferentialVariableCategory(S : OrderedSet) : Category ==
 )abbrev domain ODVAR OrderlyDifferentialVariable
 ++ Author:  William Sit
 ++ Date Created: 19 July 1990
-++ Date Last Updated: 13 September 1991
 ++ Basic Operations: differentiate, order, variable, <
 ++ Related Domains: OrderedVariableList,
 ++                  SequentialDifferentialVariable.
@@ -144,7 +142,6 @@ OrderlyDifferentialVariable(S : OrderedSet) : DifferentialVariableCategory(S)
 )abbrev domain SDVAR SequentialDifferentialVariable
 ++ Author:  William Sit
 ++ Date Created: 19 July 1990
-++ Date Last Updated: 13 September 1991
 ++ Basic Operations: differentiate, order, variable, <
 ++ Related Domains: OrderedVariableList,
 ++                  OrderlyDifferentialVariable.
@@ -178,7 +175,6 @@ SequentialDifferentialVariable(S : OrderedSet) : DifferentialVariableCategory(S)
 )abbrev category DPOLCAT DifferentialPolynomialCategory
 ++ Author:  William Sit
 ++ Date Created: 19 July 1990
-++ Date Last Updated: 13 September 1991
 ++ Basic Operations: PolynomialCategory
 ++ Related Constructors: DifferentialVariableCategory
 ++ See Also:
@@ -332,7 +328,7 @@ DifferentialPolynomialCategory(R : Ring, S : OrderedSet,
       d
 
     weights p ==
-      ws : List NonNegativeInteger := nil
+      ws : List NonNegativeInteger := []
       empty? (mp := monomials p) => ws
       for lp in mp repeat
         lv := variables lp
@@ -346,7 +342,7 @@ DifferentialPolynomialCategory(R : Ring, S : OrderedSet,
       "max"/ws
 
     weights (p, s) ==
-      ws : List NonNegativeInteger := nil
+      ws : List NonNegativeInteger := []
       empty?(mp := monomials p) => ws
       for lp in mp repeat
         lv := [v for v in variables lp | (variable v) = s ]
@@ -387,7 +383,7 @@ DifferentialPolynomialCategory(R : Ring, S : OrderedSet,
         ordp := order p
         vl  := concat [[makeVariable(s, j)$V for j in  0..ordp]
                                 for s in sl]$List(List V)
-        rrl := nil$List(R)
+        rrl := []$List(R)
         for r in rl repeat
           t := r
           rrl := concat(rrl,
@@ -398,7 +394,7 @@ DifferentialPolynomialCategory(R : Ring, S : OrderedSet,
         ordp := order p
         vl  := concat [[makeVariable(s, j)$V for j in  0..ordp]
                                 for s in sl]$List(List V)
-        rrl := nil$List(%)
+        rrl := []$List(%)
         for r in rl repeat
           t := r
           rrl := concat(rrl,
@@ -411,7 +407,6 @@ DifferentialPolynomialCategory(R : Ring, S : OrderedSet,
 )abbrev domain DSMP DifferentialSparseMultivariatePolynomial
 ++ Author:  William Sit
 ++ Date Created: 19 July 1990
-++ Date Last Updated: 13 September 1991
 ++ Basic Operations: DifferentialPolynomialCategory
 ++ Related Constructors:
 ++ See Also:
@@ -455,7 +450,6 @@ DifferentialSparseMultivariatePolynomial(R, S, V):
 )abbrev domain ODPOL OrderlyDifferentialPolynomial
 ++ Author:  William Sit
 ++ Date Created: 24 September, 1991
-++ Date Last Updated: 7 February, 1992
 ++ Basic Operations: DifferentialPolynomialCategory
 ++ Related Constructors: DifferentialSparseMultivariatePolynomial
 ++ See Also:
@@ -487,7 +481,6 @@ OrderlyDifferentialPolynomial(R):
 )abbrev domain SDPOL SequentialDifferentialPolynomial
 ++ Author:  William Sit
 ++ Date Created: 24 September, 1991
-++ Date Last Updated: 7 February, 1992
 ++ Basic Operations: DifferentialPolynomialCategory
 ++ Related Constructors: DifferentialSparseMultivariatePolynomial
 ++ See Also:

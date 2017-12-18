@@ -1,7 +1,5 @@
 )abbrev category PTCAT PointCategory
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Operations: point, elt, setelt, copy, dimension, minIndex, maxIndex,
 ++ convert
 ++ Related Constructors:
@@ -96,9 +94,9 @@ SubSpaceComponentProperty() : Exports == Implementation where
       solid(annuderOne, solid? p)
       annuderOne
     coerce p ==
-      hconcat(["Component is "::O,
-              (closed? p => ""::O; "not "::O),"closed, "::O, _
-              (solid? p => ""::O; "not "::O),"solid"::O ])
+      hconcat([message("Component is "),
+              message(closed? p => ""; "not "), message("closed, "), _
+              message(solid? p => ""; "not "), message("solid")])
 
 )abbrev domain SUBSPACE SubSpace
 ++ Description:
@@ -150,7 +148,6 @@ SubSpace(n : PI, R : Ring) : Exports == Implementation where
   PROP ==> SubSpaceComponentProperty()
   S ==> String
   O ==> OutputForm
-  empty ==> nil  -- macro to ease conversion to new aggcat.spad
 
   Exports ==> SetCategory with
     leaf?          : % -> B
@@ -308,8 +305,8 @@ SubSpace(n : PI, R : Ring) : Exports == Implementation where
     internal? space == not (root? space and leaf? space)
 
     new() ==
-      [point(empty())$POINT, 0, new()$PROP, empty(), empty(), 0, _
-                                     empty(), empty(), 0, 0, empty()]
+      [point([])$POINT, 0, new()$PROP, [], [], 0, _
+                                     [], [], 0, 0, []]$Rep
     subspace() == new()
 
     birth momma ==
@@ -341,7 +338,7 @@ SubSpace(n : PI, R : Ring) : Exports == Implementation where
       node.index      := space.index
       node.property   := copy(space.property)
       node.levelField := space.levelField
-      node.parentField := nil()
+      node.parentField := []
       if root? space then
         node.pointDataField := copy(space.pointDataField)
         node.lastPoint := tail(node.pointDataField)
@@ -380,7 +377,7 @@ SubSpace(n : PI, R : Ring) : Exports == Implementation where
 
     separate space ==
        ------------------ need to worry about reindexing & parentField
-      spaceList := empty()
+      spaceList := []
       for s in space.childrenField repeat
         spc := shallowCopy space
         spc.childrenField := [deepCopy s]
@@ -550,10 +547,10 @@ SubSpace(n : PI, R : Ring) : Exports == Implementation where
       and/[c1 = c2 for c1 in s1.childrenField for c2 in s2.childrenField]
        and (s1.property = s2.property) and (s1.levelField = s2.levelField)
     coerce(space : %) : O ==
-      hconcat([n::O,"-Space with depth of "::O,                     _
-              (n - space.levelField)::O, " and "::O, _
-              (s := (#space.childrenField))::O,  _
-              (s = 1 => " component"::O; " components"::O)])
+      hconcat([n::O, message("-Space with depth of "),
+              (n - space.levelField)::O, message(" and "),
+              (s := (#space.childrenField))::O,
+              message(s = 1 => " component"; " components")])
 
 )abbrev package PTPACK PointPackage
 ++ Description:

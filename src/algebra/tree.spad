@@ -1,7 +1,6 @@
 )abbrev domain TREE Tree
 ++ Author: W. H. Burge
 ++ Date Created: 17 Feb 1992
-++ Date Last Updated:
 ++ Basic Operations:
 ++ Related Domains:
 ++ Also See:
@@ -9,8 +8,8 @@
 ++ Keywords:
 ++ Examples:
 ++ References:
-++ Description: \spadtype{Tree(S)} is a basic domains of tree structures.
-++ Each tree is either empty or else is a {\it node} consisting of a value and
+++ Description: \spadtype{Tree(S)} is a basic domain of tree structures.
+++ Each tree is either empty or has a {\it node} consisting of a value and
 ++ a list of (sub)trees.
 Tree(S : SetCategory) : T==C where
  T== Join(RecursiveAggregate(S), finiteAggregate, shallowlyMutable) with
@@ -20,7 +19,7 @@ Tree(S : SetCategory) : T==C where
      tree : List S -> %
        ++ tree(ls) creates a tree from a list of elements of s.
      tree : S -> %
-       ++ tree(nd) creates a tree with value nd, and no children
+       ++ tree(nd) creates a tree with value nd, and no children.
      cyclic? : % -> Boolean
        ++ cyclic?(t) tests if t is a cyclic tree.
      cyclicCopy : % -> %
@@ -28,7 +27,7 @@ Tree(S : SetCategory) : T==C where
      cyclicEntries :    % -> List %
        ++ cyclicEntries(t) returns a list of top-level cycles in tree t.
      cyclicEqual? : (%, %) -> Boolean
-       ++ cyclicEqual?(t1, t2) tests of two cyclic trees have
+       ++ cyclicEqual?(t1, t2) tests if two cyclic trees have
        ++ the same structure.
      cyclicParents : % -> List %
        ++ cyclicParents(t) returns a list of cycles that are parents of t.
@@ -39,10 +38,6 @@ Tree(S : SetCategory) : T==C where
 
     import from Record(value: S, args: List %)
 
-    t : %
-    br : %
-    s : S
-    ls : List S
     empty? t == t case empty
     empty()  == ["empty"]
 
@@ -55,7 +50,7 @@ Tree(S : SetCategory) : T==C where
     setvalue!(t, s) ==
       t case empty => error "cannot set value of an empty tree"
       (t.node.value := s;s)
-    count(n, t) ==
+    count(n : S, t : %) ==
       t case empty => 0
       i := +/[count(n, c) for c in children t]
       value t = n => i + 1
@@ -72,9 +67,10 @@ Tree(S : SetCategory) : T==C where
       t case empty => t
       setvalue!(t, fn value t)
       for c in children t repeat map!(fn, c)
-    tree(s, lt) == [[s, lt]]
-    tree(s) == [[s, []]]
-    tree(ls) ==
+      t
+    tree(s : S, lt : List %) == [[s, lt]]
+    tree(s : S) == [[s, []]]
+    tree(ls : List S) ==
       empty? ls => empty()
       tree(first ls, [tree s for s in rest ls])
     value t ==
@@ -131,6 +127,12 @@ Tree(S : SetCategory) : T==C where
       u := [parts c for c in children t]
       u = empty() => [value t]
       cons(value t,"append"/u)
+    hashUpdate!(s : HashState, t : %) : HashState ==
+      t case empty => s
+      s := hashUpdate!(s, value t)
+      for subt in children t repeat
+          s := hashUpdate!(s, subt)
+      s
 
     ---Functions that guard against cycles: =, #, copy-------------
 
@@ -178,24 +180,23 @@ Tree(S : SetCategory) : T==C where
     insert : (%, List %) -> List %
 
     -----> coerce to OutputForm
-    if S has SetCategory then
-      multipleOverbar : (OutputForm, Integer, List %) -> OutputForm
-      coerce1 : (%, List %, List %) -> OutputForm
+    multipleOverbar : (OutputForm, Integer, List %) -> OutputForm
+    coerce1 : (%, List %, List %) -> OutputForm
 
-      coerce(t : %) : OutputForm == coerce1(t, empty()$(List %), cyclicParents t)
+    coerce(t : %) : OutputForm == coerce1(t, empty()$(List %), cyclicParents t)
 
-      coerce1(t, parents, pl) ==
+    coerce1(t, parents, pl) ==
         t case empty => empty()@List(S)::OutputForm
         eqMember?(t, parents) =>
-          multipleOverbar((".")::OutputForm,eqMemberIndex(t, pl,0),pl)
+            multipleOverbar((message(".")), eqMemberIndex(t, pl,0),pl)
         empty? children t => value t::OutputForm
         nodeForm := (value t)::OutputForm
         if (k := eqMemberIndex(t, pl, 0)) > 0 then
-           nodeForm := multipleOverbar(nodeForm, k, pl)
+            nodeForm := multipleOverbar(nodeForm, k, pl)
         prefix(nodeForm,
-          [coerce1(br, cons(t, parents), pl) for br in children t])
+            [coerce1(br, cons(t, parents), pl) for br in children t])
 
-      multipleOverbar(x, k, pl) ==
+    multipleOverbar(x, k, pl) ==
         k < 1 => x
         #pl = 1 => overbar x
         s : String := "abcdefghijklmnopqrstuvwxyz"
@@ -222,11 +223,11 @@ Tree(S : SetCategory) : T==C where
     cyclicCopy(t) == cyclicCopy2(t, cyclicEntries t)
 
     cyclicCopy2(t, cycles) ==
-      eqMember?(t, cycles) => return copyCycle2(t, cycles)
+      eqMember?(t, cycles) => copyCycle2(t, cycles)
       tree(value t, [cyclicCopy2(c, cycles) for c in children t])
 
     copyCycle2(cycle, cycleList) ==
-      newCycle := tree(value cycle, nil)
+      newCycle := tree(value cycle, [])
       setchildren!(newCycle,
         [copyCycle4(c, cycle, newCycle, cycleList) for c in children cycle])
       newCycle
@@ -257,7 +258,7 @@ Tree(S : SetCategory) : T==C where
     cyclicEqual?(t1, t2) ==
       cp1 := cyclicParents t1
       cp2 := cyclicParents t2
-      #cp1 ~= #cp2 or null cp1 => t1 = t2
+      #cp1 ~= #cp2 or empty?(cp1) => t1 = t2
       cyclicEqual4?(t1, t2, cp1, cp2)
 
     cyclicEqual4?(t1, t2, cp1, cp2) ==
@@ -299,13 +300,13 @@ Tree(S : SetCategory) : T==C where
       false
 
     eqMemberIndex(x, l, k) ==
-      null l => k
+      empty?(l) => k
       k := k + 1
       eq?(x, first l) => k
       eqMemberIndex(x, rest l, k)
 
     eqUnion(u, v) ==
-      null u => v
+      empty?(u) => v
       x := first u
       newV :=
         eqMember?(x, v) => v
@@ -315,7 +316,6 @@ Tree(S : SetCategory) : T==C where
 )abbrev category BTCAT BinaryTreeCategory
 ++ Author: W. H. Burge
 ++ Date Created: 17 Feb 1992
-++ Date Last Updated:
 ++ Basic Operations:
 ++ Related Domains:
 ++ Also See:
@@ -324,19 +324,22 @@ Tree(S : SetCategory) : T==C where
 ++ Examples:
 ++ References:
 ++ Description: \spadtype{BinaryTreeCategory(S)} is the category of
-++ binary trees: a tree which is either empty or else is a \spadfun{node} consisting
-++ of a value and a \spadfun{left} and \spadfun{right}, both binary trees.
-BinaryTreeCategory(S : SetCategory) : Category ==_
+++ binary trees: a tree which is either empty or has a \spadfun{node} consisting
+++ of a value and a \spadfun{left} and \spadfun{right} which are both binary trees.
+BinaryTreeCategory(S : SetCategory) : Category ==
      Join(BinaryRecursiveAggregate(S), shallowlyMutable, finiteAggregate) with
    node : (%, S, %) -> %
-     ++ node(left, v, right) creates a binary tree with value \spad{v}, a binary
-     ++ tree \spad{left}, and a binary tree \spad{right}.
+     ++ node(l, v, r) creates a binary tree with value \spad{v},
+     ++ left subtree \spad{l}, and right subtree \spad{r}.
  add
      cycleTreeMax ==> 5
 
      copy t ==
        empty? t => empty()
        node(copy left t, value t, copy right t)
+     map(f ,t) ==
+       empty? t => empty()
+       node(map(f, left t), f value t, map(f, right t))
      map!(f, t) ==
          empty? t => t
          t.value := f(t.value)
@@ -351,12 +354,27 @@ BinaryTreeCategory(S : SetCategory) : Category ==_
          k = cycleTreeMax and cyclic? t => error "cyclic binary tree"
          k := treeCount(left t, k)
          treeCount(right t, k)
+     distance1(t1 : %, t2 : %) : Integer ==
+       t1 = t2 => 0
+       empty? t2 => -1
+       u := [n for t in children t2 | (n := distance1(t1, t)) >= 0]
+       #u > 0 => 1 + "min"/u
+       -1
+     distance(t1, t2) ==
+       n := distance1(t1, t2)
+       n >= 0 => n
+       distance1(t2, t1)
+     hashUpdate!(s : HashState, t : %) : HashState ==
+       empty? t => s
+       s := hashUpdate!(s, value t)
+       s := hashUpdate!(s, left t)
+       hashUpdate!(s, right t)
 
 )abbrev domain BTREE BinaryTree
 ++ Description: \spadtype{BinaryTree(S)} is the domain of all
 ++ binary trees. A binary tree over \spad{S} is either empty or has
 ++ a \spadfun{value} which is an S and a \spadfun{right}
-++ and \spadfun{left} which are both binary trees.
+++ and \spadfun{left} which are both BinaryTree(S).
 BinaryTree(S : SetCategory) : Exports == Implementation where
   Exports == BinaryTreeCategory(S) with
      binaryTree : S -> %
@@ -364,7 +382,7 @@ BinaryTree(S : SetCategory) : Exports == Implementation where
        ++ with value v, and left and right empty.
      binaryTree : (%, S, %) -> %
        ++ binaryTree(l, v, r) creates a binary tree with
-       ++ value v with left subtree l and right subtree r.
+       ++ value v and left subtree l and right subtree r.
   Implementation == add
      Rep := List Tree S
      import from List Tree S
@@ -399,26 +417,28 @@ BinaryTree(S : SetCategory) : Exports == Implementation where
 
 )abbrev domain BSTREE BinarySearchTree
 ++ Description: BinarySearchTree(S) is the domain of
-++ a binary trees where elements are ordered across the tree.
+++ binary trees where elements are ordered across the tree.
 ++ A binary search tree is either empty or has
 ++ a value which is an S, and a
-++ right and left which are both BinaryTree(S)
-++ Elements are ordered across the tree.
+++ left and a right which are both BinarySearchTree(S).
 BinarySearchTree(S : OrderedSet) : Exports == Implementation where
   Exports == BinaryTreeCategory(S) with
     binarySearchTree : List S -> %
-        ++ binarySearchTree(l) \undocumented
+      ++ binarySearchTree(l) constructs a binary search tree
+      ++ with elements from list l.
     insert! : (S, %) -> %
-      ++ insert!(x, b) inserts element x as leaves into binary search tree b.
+      ++ insert!(x, b) inserts element x as a leave into binary search tree b.
     insertRoot! : (S, %) -> %
-      ++ insertRoot!(x, b) inserts element x as a root of binary search tree b.
-    split :      (S, %) -> Record(less : %, greater : %)
-      ++ split(x, b) splits binary tree b into two trees, one with elements greater
-      ++ than x, the other with elements less than x.
+      ++ insertRoot!(x, b) inserts element x as the root of
+      ++ binary search tree b.
+    split : (S, %) -> Record(less : %, greater : %)
+      ++ split(x, b) splits binary search tree b into two trees,
+      ++ one with elements less than x, the other with elements
+      ++ greater than or equal to x.
   Implementation == BinaryTree(S) add
     Rep := BinaryTree(S)
     binarySearchTree(u : List S) ==
-      null u => empty()
+      empty?(u) => empty()
       tree := binaryTree(first u)
       for x in rest u repeat insert!(x, tree)
       tree
@@ -443,20 +463,20 @@ BinarySearchTree(S : OrderedSet) : Exports == Implementation where
 )abbrev domain BTOURN BinaryTournament
 ++ Description: \spadtype{BinaryTournament(S)} is the domain of
 ++ binary trees where elements are ordered down the tree.
-++ A binary search tree is either empty or is a node containing a
-++ \spadfun{value} of type \spad{S}, and a \spadfun{right}
-++ and a \spadfun{left} which are both \spadtype{BinaryTree(S)}
+++ A binary tournament is either empty or is a node containing a
+++ \spadfun{value} of type \spad{S}, and a \spadfun{left}
+++ and a \spadfun{right} which are both \spadtype{BinaryTree(S)}
 BinaryTournament(S : OrderedSet) : Exports == Implementation where
   Exports == BinaryTreeCategory(S) with
     binaryTournament : List S -> %
       ++ binaryTournament(ls) creates a binary tournament with the
-      ++ elements of ls as values at the nodes.
+      ++ elements of ls as values of the nodes.
     insert! : (S, %) -> %
-      ++ insert!(x, b) inserts element x as leaves into binary tournament b.
+      ++ insert!(x, b) inserts element x as a leave into binary tournament b.
   Implementation == BinaryTree(S) add
     Rep := BinaryTree(S)
     binaryTournament(u : List S) ==
-      null u => empty()
+      empty?(u) => empty()
       tree := binaryTree(first u)
       for x in rest u repeat insert!(x, tree)
       tree
@@ -475,7 +495,7 @@ BinaryTournament(S : OrderedSet) : Exports == Implementation where
 ++ for some \spad{k > 0}, is symmetric, that is, the left and right
 ++ subtree of each interior node have identical shape.
 ++ In general, the left and right subtree of a given node can differ
-++ by at most leaf node.
+++ by at most one leaf node.
 BalancedBinaryTree(S : SetCategory) : Exports == Implementation where
   Exports == BinaryTreeCategory(S) with
 --  BUG: applies wrong fnct for balancedBinaryTree(0, [1, 2, 3, 4])
@@ -497,7 +517,7 @@ BalancedBinaryTree(S : SetCategory) : Exports == Implementation where
       ++ left and right nodes.
     mapUp! : (%, %, (S, S, S, S) -> S) -> %
       ++ mapUp!(t,t1,f) traverses t in an "endorder" (left then right then node)
-      ++ fashion  returning t with the value at each successive interior
+      ++ fashion returning t with the value at each successive interior
       ++ node of t replaced by
       ++ f(l, r, l1, r1) where l and r are the values at the immediate
       ++ left and right nodes. Values l1 and r1 are values at the
@@ -580,8 +600,8 @@ BalancedBinaryTree(S : SetCategory) : Exports == Implementation where
       x
 
 )abbrev domain PENDTREE PendantTree
-++ A PendantTree(S)is either a leaf? and is an S or has
-++ a left and a right both PendantTree(S)'s
+++ A PendantTree(S) is either a leaf? and is an S or has
+++ a left and a right are both PendantTree(S).
 PendantTree(S : SetCategory) : T == C where
  T == BinaryRecursiveAggregate(S) with
      ptree : S->%

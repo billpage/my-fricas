@@ -2,7 +2,6 @@
 ++ Integration of elementary functions
 ++ Author: Manuel Bronstein
 ++ Date Created: 1 February 1988
-++ Date Last Updated: 24 October 1995
 ++ Description:
 ++ This package provides functions for integration, limited integration,
 ++ extended integration and the risch differential equation for
@@ -11,7 +10,8 @@
 ++ Examples: )r INTEF INPUT
 ElementaryIntegration(R, F) : Exports == Implementation where
   R : Join(GcdDomain, Comparable, CharacteristicZero,
-           RetractableTo Integer, LinearlyExplicitRingOver Integer)
+           PolynomialFactorizationExplicit,
+           RetractableTo Integer, LinearlyExplicitOver Integer)
   F : Join(AlgebraicallyClosedField, TranscendentalFunctionCategory,
            FunctionSpace R)
 
@@ -38,13 +38,6 @@ ElementaryIntegration(R, F) : Exports == Implementation where
     lfextendedint : (F, SE, F) -> U2
        ++ lfextendedint(f, x, g) returns functions \spad{[h, c]} such that
        ++ \spad{dh/dx = f - cg}, if (h, c) exist, "failed" otherwise.
-    lflogint : (F, SE, List F) -> U3
-       ++ lflimitedint(f, x, [g1, ..., gn]) returns functions \spad{[h, [[ci, gi]]]}
-       ++ such that the gi's are among \spad{[g1, ..., gn]}, and
-       ++ \spad{d(h+sum(ci log(gi)))/dx = f}, if possible, "failed" otherwise.
-    lfinfieldint : (F, SE) -> Union(F, "failed")
-       ++ lfinfieldint(f, x) returns a function g such that \spad{dg/dx = f}
-       ++ if g exists, "failed" otherwise.
     lfintegrate  : (F, SE) -> IR
        ++ lfintegrate(f, x) = g such that \spad{dg/dx = f}.
 
@@ -89,7 +82,7 @@ ElementaryIntegration(R, F) : Exports == Implementation where
               (x2 : F) : F +-> differentiate(x2, x), 0$UP) +
                 differentiate(x1, (x2 : F) : F +-> 0,
                   monomial(eta'/eta, 1))
-        -- XXX FIXME need proper extended integration function
+        -- XXX FIXME need proper extended integration function id:611
         extint : F -> U2 := f +-> lfextendedint(f, x, eta'/eta)
         r1 := lambintegrate((monomial(1, 1)$UP + 1$UP)*univariate(f, k),
                       eta'/eta, (x1 : F) : F +-> differentiate(x1, x),
@@ -233,23 +226,6 @@ ElementaryIntegration(R, F) : Exports == Implementation where
       [res1.ratpart, (res1.coeffs)(1)]
 
 
-    lflogint(f, x, lu) ==
-        lg := [differentiate(u, x)/u for u in lu]
-        res1 := extendedint(f, x, lg).particular
-        res1 case "failed" => "failed"
-        s1 := res1::Param_Rec_F
-        llg : LLG := []
-        for c in entries(s1.coeffs) for u in lu repeat
-            if c ~= 0 then
-                llg := cons([c, u], llg)
-        [s1.ratpart, llg]
-
-
-    lfinfieldint(f, x) ==
-      (u := lfextendedint(f, x, 0)) case "failed" => "failed"
-      u.ratpart
-
-
     DREC ==> Record(answer : RF, logpart : RF, ir : IRRF)
 
     denint_dummy(f : RF) : DREC == [0, f, 0]
@@ -332,9 +308,3 @@ ElementaryIntegration(R, F) : Exports == Implementation where
 --LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 --NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 --SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
--- SPAD files for the integration world should be compiled in the
--- following order:
---
---   intaux  rderf  intrf  curve  curvepkg  divisor  pfo
---   intalg  intaf  efstruc  rdeef  intpm INTEF  irexpand  integrat

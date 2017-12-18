@@ -2,7 +2,6 @@
 ++ Internal representation for monoids
 ++ Author: Manuel Bronstein
 ++ Date Created: November 1989
-++ Date Last Updated: 6 June 1991
 ++ Description:
 ++ This internal package represents monoid (abelian or not, with or
 ++ without inverses) as lists and provides some common operations
@@ -248,9 +247,7 @@ FreeMonoid(S : SetCategory) : FMcategory == FMdefinition where
         s : S ^ n : NonNegativeInteger == makeTerm(s, n)
 
         f : % * g : % ==
---            one? f => g
             (f = 1) => g
---            one? g => f
             (g = 1) => f
             lg := listOfMonoms g
             ls := last(lf := listOfMonoms f)
@@ -260,7 +257,6 @@ FreeMonoid(S : SetCategory) : FMcategory == FMdefinition where
             makeMulti concat(lf, lg)
 
         overlap(la, ar) ==
---            one? la or one? ar => [la, 1, ar]
             (la = 1) or (ar = 1) => [la, 1, ar]
             lla := la0 := listOfMonoms la
             lar := listOfMonoms ar
@@ -288,7 +284,6 @@ FreeMonoid(S : SetCategory) : FMcategory == FMdefinition where
             [makeMulti la0, 1, makeMulti lar]
 
         divide(lar, a) ==
---            one? a => [lar, 1]
             (a = 1) => [lar, 1]
             Na   : Integer := #(la := listOfMonoms a)
             Nlar : Integer := #(llar := listOfMonoms lar)
@@ -332,7 +327,7 @@ FreeMonoid(S : SetCategory) : FMcategory == FMdefinition where
 
         lquo(w : %, l : S) ==
             x : List REC := listOfMonoms(w)$Rep
-            null x        => "failed"
+            empty?(x) => "failed"
             fx : REC := first x
             fx.gen ~= l  => "failed"
             fx.exp = 1   => makeMulti rest(x)
@@ -361,12 +356,12 @@ FreeMonoid(S : SetCategory) : FMcategory == FMdefinition where
 
         first w ==
             x : List REC := listOfMonoms w
-            null x => error "empty word !!!"
+            empty?(x) => error "empty word !!!"
             x.first.gen
 
         rest w ==
             x : List REC := listOfMonoms w
-            null x => error "empty word !!!"
+            empty?(x) => error "empty word !!!"
             fx : REC := first x
             fx.exp = 1 => makeMulti rest x
             makeMulti [[fx.gen, (fx.exp - 1)::NNI ]$REC, : rest x]
@@ -430,8 +425,6 @@ FreeMonoid(S : SetCategory) : FMcategory == FMdefinition where
 )abbrev domain FGROUP FreeGroup
 ++ Free group on any set of generators
 ++ Author: Stephen M. Watt
-++ Date Created: ???
-++ Date Last Updated: 6 June 1991
 ++ Description:
 ++ The free group on a set S is the group of finite products of
 ++ the form \spad{reduce(*, [si ^ ni])} where the si's are in S, and the ni's
@@ -483,8 +476,9 @@ FreeGroup(S : SetCategory) : Join(Group, RetractableTo S) with
             empty? r => makeMulti q
             empty? q => makeMulti reverse! r
             r.first.gen = q.first.gen =>
-              setlast!(h := reverse! r,
-                                [q.first.gen, q.first.exp + r.first.exp])
+              -- read 'r.first.exp' before the destructive 'reverse! r'
+              newexp := q.first.exp + r.first.exp
+              setlast!(h := reverse! r, [q.first.gen, newexp])
               makeMulti concat!(h, rest q)
             makeMulti concat!(reverse! r, q)
 
@@ -511,7 +505,6 @@ FreeGroup(S : SetCategory) : Join(Group, RetractableTo S) with
 ++ Category for free abelian monoid on any set of generators
 ++ Author: Manuel Bronstein
 ++ Date Created: November 1989
-++ Date Last Updated: 6 June 1991
 ++ Description:
 ++ A free abelian monoid on a set S is the monoid of finite sums of
 ++ the form \spad{reduce(+, [ni * si])} where the si's are in S, and the ni's
@@ -551,7 +544,6 @@ FreeAbelianMonoidCategory(S : SetCategory, E : CancellationAbelianMonoid) : Cate
 ++ Internal free abelian monoid on any set of generators
 ++ Author: Manuel Bronstein
 ++ Date Created: November 1989
-++ Date Last Updated: 6 June 1991
 ++ Description:
 ++ Internal implementation of a free abelian monoid.
 InnerFreeAbelianMonoid(S : SetCategory, E : CancellationAbelianMonoid, un : E):
@@ -586,7 +578,6 @@ InnerFreeAbelianMonoid(S : SetCategory, E : CancellationAbelianMonoid, un : E):
 ++ Free abelian monoid on any set of generators
 ++ Author: Manuel Bronstein
 ++ Date Created: November 1989
-++ Date Last Updated: 6 June 1991
 ++ Description:
 ++ The free abelian monoid on a set S is the monoid of finite sums of
 ++ the form \spad{reduce(+, [ni * si])} where the si's are in S, and the ni's
@@ -599,7 +590,6 @@ FreeAbelianMonoid(S : SetCategory):
 ++ Free abelian group on any set of generators
 ++ Author: Manuel Bronstein
 ++ Date Created: November 1989
-++ Date Last Updated: 6 June 1991
 ++ Description:
 ++ The free abelian group on a set S is the monoid of finite sums of
 ++ the form \spad{reduce(+, [ni * si])} where the si's are in S, and the ni's

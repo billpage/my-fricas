@@ -46,7 +46,6 @@ DegreeReductionPackage(R1, R2) : Cat == Capsule where
 )abbrev package SOLVERAD RadicalSolvePackage
 ++ Author: P.Gianni
 ++ Date Created: Summer 1990
-++ Date Last Updated: October 1991
 ++ Basic Functions:
 ++ Related Constructors: SystemSolvePackage, FloatingRealPackage,
 ++ FloatingComplexPackage
@@ -59,7 +58,8 @@ DegreeReductionPackage(R1, R2) : Cat == Capsule where
 ++ expressed in terms of radicals for systems of equations
 ++ of rational functions with coefficients in an integral domain R.
 RadicalSolvePackage(R) : Cat == Capsule where
-    R   :  Join(EuclideanDomain, Comparable, CharacteristicZero)
+    R   :  Join(PolynomialFactorizationExplicit, Comparable,
+                CharacteristicZero)
     PI ==> PositiveInteger
     NNI==> NonNegativeInteger
     Z  ==> Integer
@@ -105,7 +105,7 @@ RadicalSolvePackage(R) : Cat == Capsule where
         radicalSolve :       L RF       -> L L EQ RE
           ++ radicalSolve(lrf) finds the solutions expressed in terms of
           ++ radicals of the system of equations lrf = 0, where lrf is a
-          ++ system of univariate rational functions.
+          ++ list of rational functions.
         radicalSolve :   (L EQ RF, L SY) -> L L EQ RE
           ++ radicalSolve(leq, lvar) finds the solutions expressed in terms of
           ++ radicals of the system of equations of rational functions leq
@@ -113,7 +113,7 @@ RadicalSolvePackage(R) : Cat == Capsule where
         radicalSolve :     L EQ RF      -> L L EQ RE
           ++ radicalSolve(leq) finds the solutions expressed in terms of
           ++ radicals of the system of equations of rational functions leq
-          ++ with respect to the unique symbol x appearing in leq.
+          ++ with respect to all symbols appearing in leq.
         radicalRoots :      (RF, SY)     -> L RE
           ++ radicalRoots(rf, x) finds the roots expressed in terms of radicals
           ++ of the rational function rf with respect to the symbol x.
@@ -224,7 +224,6 @@ RadicalSolvePackage(R) : Cat == Capsule where
 
         radicalRoots(lp : L RF, lv : L SY) ==
           parRes := triangularSystems(lp, lv)$SystemSolvePackage(R)
-          parRes= list [] => []
            -- select the components in "generic" form
           rlv := reverse lv
           rpRes := [reverse res for res in parRes]

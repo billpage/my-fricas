@@ -1,19 +1,6 @@
 )abbrev domain TEX TexFormat
 ++ Author: Robert S. Sutor
 ++ Date Created: 1987 through 1992
-++ Change History:
-++   05/15/91 RSS Changed matrix formatting to use array environment.
-++   06/27/91 RSS Fixed segments
-++   08/12/91 RSS Removed some grouping for things, added newWithNum and
-++                ungroup, improved line splitting
-++   08/15/91 RSS Added mbox support for strings
-++   10/15/91 RSS Handle \%\% at beginning of string
-++   01/22/92 RSS Use \[ and \] instead of $$ and $$. Use
-++                %AXIOM STEP NUMBER: instead of \leqno
-++   02/27/92 RSS Escape dollar signs appearing in the input.
-++   03/09/92 RSS Handle explicit blank appearing in the input.
-++   11/28/93 JHD Added code for the VCONCAT and TAG operations.
-++   06/27/95 RSS Change back to $$ and \leqno for Saturn
 ++ Basic Operations: coerce, convert, display, epilogue,
 ++   tex, new, prologue, setEpilogue!, setTex!, setPrologue!
 ++ Related Constructors: TexFormat1
@@ -213,7 +200,7 @@ TexFormat() : public == private where
 
     coerce(f : %) : E ==
       s, t : S
-      l : L S := nil
+      l : L S := []
       for s in f.prolog repeat l := concat(s, l)
       for s in f.TeX repeat
         for t in splitLong(s, (_$LINELENGTH$Lisp pretend Integer) - 4) repeat
@@ -275,7 +262,7 @@ TexFormat() : public == private where
       -- We first build the list of lines backwards and then we
       -- reverse it.
 
-      l : List S := nil
+      l : List S := []
       s : S := ""
       ls : I := 0
       ss : S
@@ -367,19 +354,19 @@ TexFormat() : public == private where
         op = 'PRIME =>
             formatSpecial('SUPERSUB, [first args, " "::E, second(args)], prec)
         op = 'OVERBAR =>
-            null args => ""
+            empty?(args) => ""
             group concat ["\overline ", formatExpr(first args, minPrec)]
         op = 'ROOT =>
-            null args => ""
+            empty?(args) => ""
             tmp : S := group formatExpr(first args, minPrec)
-            null rest args => group concat ["\sqrt ",tmp]
+            empty?(rest(args)) => group concat ["\sqrt ",tmp]
             group concat
                 ["\root ", group formatExpr(first rest args, minPrec),
                    " \of ", tmp]
         op = 'SEGMENT =>
             tmp : S := concat [formatExpr(first args, minPrec), ".."]
             group
-                null rest args =>  tmp
+                empty?(rest(args)) =>  tmp
                 concat [tmp, formatExpr(first rest args, minPrec)]
         op = 'SUB =>
             group concat [formatExpr(first args, minPrec), " \sb ",
@@ -389,26 +376,26 @@ TexFormat() : public == private where
             form : List S := [formatExpr(first args, minPrec)]
             -- subscripts
             args := rest args
-            null args => concat(form)$S
+            empty?(args) => concat(form)$S
             tmp : S := formatExpr(first args, minPrec)
             if (tmp ~= "") and (tmp ~= "{}") and (tmp ~= " ") then
                 form := append(form,[" \sb ",group tmp])$(List S)
             -- superscripts
             args := rest args
-            null args => group concat(form)$S
+            empty?(args) => group concat(form)$S
             tmp : S := formatExpr(first args, minPrec)
             if (tmp ~= "") and (tmp ~= "{}") and (tmp ~= " ") then
                 form := append(form,[" \sp ",group tmp])$(List S)
             -- presuperscripts
             args := rest args
-            null args => group concat(form)$S
+            empty?(args) => group concat(form)$S
             tmp : S := formatExpr(first args, minPrec)
             if (tmp ~= "") and (tmp ~= "{}") and (tmp ~= " ") then
                 form := append([" \sp ",group tmp],form)$(List S)
                 prescript := true
             -- presubscripts
             args := rest args
-            null args =>
+            empty?(args) =>
                 group concat
                     prescript => cons("{}",form)
                     form
@@ -421,7 +408,7 @@ TexFormat() : public == private where
                 form
         op = 'SC =>
             -- need to handle indentation someday
-            null args => ""
+            empty?(args) => ""
             tmp := formatNaryNoGroup('STRSEP, " \\ ", 800, args, minPrec)
             -- error "SC unhandled"
             group concat ["\begin{array}{l} ",tmp," \end{array} "]
@@ -449,7 +436,7 @@ TexFormat() : public == private where
         args := rest args
         if hold ~= "" then
             s := concat [s, " \sb", group concat ["\displaystyle ", hold]]
-        if not null rest args then
+        if not(empty?(rest(args))) then
             hold := formatExpr(first args, minPrec)
             if hold ~= "" then
                 s := concat [s, " \sp",
@@ -504,7 +491,7 @@ TexFormat() : public == private where
             op = "~="::Sy => " \ne "
             op = "<="::Sy => " \leq "
             op = ">="::Sy => " \geq "
-            -- FIXME how to do this properly ???
+            -- FIXME how to do this properly ??? id:723
             op = 'LET   => " := "
             string(op)
         s :=
@@ -519,7 +506,7 @@ TexFormat() : public == private where
         group formatNaryNoGroup(op, sep, opprec, args, prec)
 
     formatNaryNoGroup(op : Sy, sep : S, opprec : I, args : L E, prec : I) : S ==
-        null args => ""
+        empty?(args) => ""
         p : I := position(op, naryOps)
         p < 1 => error "unknown nary op"
         ops : S :=
@@ -531,7 +518,7 @@ TexFormat() : public == private where
             op = 'ROW   => " & "
             op = 'TENSOR => " \otimes "
             string(op)
-        l : L S := nil
+        l : L S := []
         opPrec :=
             op = 'STRSEP => opprec
             naryPrecs.p
@@ -625,7 +612,6 @@ TexFormat() : public == private where
 )abbrev package TEX1 TexFormat1
 ++ Author: Robert S. Sutor
 ++ Date Created: 1987 through 1990
-++ Change History:
 ++ Basic Operations: coerce
 ++ Related Constructors: TexFormat
 ++ Also See: ScriptFormulaFormat, ScriptFormulaFormat1

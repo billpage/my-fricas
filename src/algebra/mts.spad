@@ -2,7 +2,6 @@
 ++ This domain provides multivariate Taylor series
 ++ Authors: William Burge, Stephen Watt, Clifton Williamson
 ++ Date Created: 15 August 1988
-++ Date Last Updated: 18 May 1991
 ++ Basic Operations:
 ++ Related Domains:
 ++ Also See: UnivariateTaylorSeries
@@ -137,11 +136,19 @@ SparseMultivariateTaylorSeries(Coef, Var, SMP) : _
     monomial(r : %, v : Var, n : NNI) ==
       r * monom(monomial(1, v, n)$SMP, n)$STT
 
+    monomial(r : %, lv : List(Var), ln : List(NNI)) ==
+        n := reduce(_+, ln, 0)
+        r * monom(monomial(1, lv, ln)$SMP, n)$STT
+
+    monomial(r : Coef, d : IndexedExponents Var) ==
+        mp := monomial(r, d)$SMP
+        monom(mp, totalDegree(mp))$STT
+
 --% evaluation
 
     substvar : (SMP, L Var, L %) -> %
     substvar(p, vl, q) ==
-      null vl => monom(p, 0)$STT
+      empty?(vl) => monom(p, 0)$STT
       (uv := mainVariable p) case "failed" => monom(p,0)$STT
       v := uv :: Var
       v = first vl =>
@@ -263,6 +270,8 @@ SparseMultivariateTaylorSeries(Coef, Var, SMP) : _
       integrate(s, v, r) ==
         concat(r::SMP, map((z1 : SMP) : SMP +-> intsmp(v, z1), s pretend StS))
 
+      integrate(s, v) == integrate(s, v, 0)
+
     -- If there is more than one term of the same order, group them.
     tout(p : SMP) : OUT ==
       pe := p :: OUT
@@ -301,7 +310,6 @@ SparseMultivariateTaylorSeries(Coef, Var, SMP) : _
 )abbrev domain TS TaylorSeries
 ++ Authors: Burge, Watt, Williamson
 ++ Date Created: 15 August 1988
-++ Date Last Updated: 18 May 1991
 ++ Basic Operations:
 ++ Related Domains: SparseMultivariateTaylorSeries
 ++ Also See: UnivariateTaylorSeries

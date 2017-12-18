@@ -297,14 +297,13 @@ clearCmdAll() ==
   ------undo special variables------
   $frameRecord := nil
   $previousBindings := nil
-  $variableNumberAlist := nil
   untraceMapSubNames $trace_names
   $InteractiveFrame := LIST LIST NIL
   resetInCoreHist()
   if $useInternalHistoryTable
     then $internalHistoryTable := NIL
     else deleteFile histFileName()
-  $IOindex := 1
+  if not null $IOindex then $IOindex := 1
   updateCurrentInterpreterFrame()
   $currentLine := '")clear all"    --restored 3/94; needed for undo (RDJ)
   clearMacroTable()
@@ -1040,7 +1039,16 @@ helpSpad2Cmd args ==
   -- try to use new stuff first
   if newHelpSpad2Cmd(args) then return nil
 
-  sayKeyedMsg("S2IZ0025",[args])
+  sayBrightly "Available help topics for system commands are:"
+  sayBrightly ""
+  sayBrightly " boot   cd     clear    close     compile   display"
+  sayBrightly " edit   fin    frame    help      history   library"
+  sayBrightly " lisp   load   ltrace   pquit     quit      read"
+  sayBrightly " set    show   spool    synonym   system    trace"
+  sayBrightly " undo   what"
+  sayBrightly ""
+  sayBrightly "Issue _")help help_" for more information about the help command."
+
   nil
 
 newHelpSpad2Cmd args ==
@@ -1049,7 +1057,7 @@ newHelpSpad2Cmd args ==
     sayKeyedMsg("S2IZ0026",NIL)
     true
   sarg := PNAME first args
-  if sarg = '"?" then args := ['help]
+  if sarg = '"?" then args := ['nullargs]
   else if sarg = '"%" then args := ['history]
        else if sarg = '"%%" then args := ['history]
   arg := selectOptionLC(first args,$SYSCOMMANDS,nil)
@@ -1916,7 +1924,7 @@ dewritify ob ==
                 type = 'BPI =>
                     oname := ob.2
                     f :=
-                        -- FIXME: GENSYMMER is nowhere defined
+                        -- FIXME: GENSYMMER is nowhere defined id:729
                         INTEGERP oname => EVAL GENSYMMER oname
                         SYMBOL_-FUNCTION oname
                     not COMPILED_-FUNCTION_-P f =>
@@ -2171,7 +2179,6 @@ reportOperations(oldArg,u) ==
   $eval:local := true           --generate code-- don't just type analyze
   $genValue:local := true       --evaluate all generated code
   null u => nil
-  $doNotAddEmptyModeIfTrue: local:= true
   u = $quadSymbol =>
      sayBrightly ['"   mode denotes", :bright '"any", "type"]
   u = "%" =>
@@ -2232,7 +2239,7 @@ reportOpsFromLisplib1(unitForm,u)  ==
 reportOpsFromUnitDirectly unitForm ==
   isRecordOrUnion := unitForm is [a,:.] and a in '(Record Union)
   unit:= evalDomain unitForm
-  top := first unitForm
+  [top, :argl] := unitForm
   kind:= GETDATABASE(top,'CONSTRUCTORKIND)
 
   sayBrightly concat('%b,formatOpType unitForm,
@@ -2254,10 +2261,6 @@ reportOpsFromUnitDirectly unitForm ==
   for [opt] in $options repeat
     opt := selectOptionLC(opt,$showOptions,'optionError)
     opt = 'operations =>
-      $commentedOps: local := 0
-      --new form is (<op> <signature> <slotNumber> <condition> <kind>)
-      centerAndHighlight('"Operations",$LINELENGTH,specialChar 'hbar)
-      sayBrightly '""
       if isRecordOrUnion
         then
           constructorFunction:= GETL(top,"makeFunctionList") or
@@ -2268,12 +2271,34 @@ reportOpsFromUnitDirectly unitForm ==
             [a,b,c] in funlist]
         else
           sigList:= REMDUP MSORT getOplistForConstructorForm unitForm
-      say2PerLine [formatOperation(x,unit) for x in sigList]
+
+      $commentedOps: local := 0
+      ops := nil
+
+      if kind = 'category then
+        sigList := EQSUBSTLIST(argl,$FormalMapVariableList, sigList)
+        ops := [formatOperationWithPred(x) for x in sigList]
+      else
+        $predicateList: local := GETDATABASE(top, 'PREDICATES)
+        -- x.1 is the type predicate of operation x
+        sigList := [x for x in sigList | evalDomainOpPred(unit, x.1)]
+        -- first(first(x)) is the name of operation x
+        numOfNames := # REMDUP [first(first(x)) for x in sigList]
+        sayBrightly ['" ", numOfNames, '" Names for ", #sigList,
+                     '" Operations in this Domain."]
+
+        --new form is (<op> <signature> <slotNumber> <condition> <kind>)
+        ops := [formatOperation(x, unit) for x in sigList]
+
+      centerAndHighlight('"Operations", $LINELENGTH, specialChar 'hbar)
+      sayBrightly '""
+      say2PerLine ops
+
       if $commentedOps ~= 0 then
         sayBrightly
           ['"Functions that are not yet implemented are preceded by",
             :bright '"--"]
-      sayBrightly '""
+        sayBrightly '""
   NIL
 
 reportOpsFromLisplib(op,u) ==
@@ -2283,12 +2308,14 @@ reportOpsFromLisplib(op,u) ==
     NIL
   typ:= GETDATABASE(op,'CONSTRUCTORKIND)
   nArgs:= #argml
+  nArgs = 0 and typ = 'domain =>
+      reportOpsFromUnitDirectly0 isType mkAtree evaluateType [op]
   argList := IFCDR GETDATABASE(op, 'CONSTRUCTORFORM)
   functorForm:= [op,:argList]
   argml:= EQSUBSTLIST(argList,$FormalMapVariableList,argml)
   functorFormWithDecl:= [op,:[[":",a,m] for a in argList for m in argml]]
   sayBrightly concat(bright form2StringWithWhere functorFormWithDecl,
-                     '" is a",bright typ,'"constructor")
+                     '"is a",bright typ,'"constructor")
   sayBrightly ['" Abbreviation for",:bright op,'"is",:bright fn]
   verb :=
     isExposedConstructor op => '"is"
@@ -2314,8 +2341,9 @@ displayOperationsFromLisplib form ==
   [name,:argl] := form
   kind := GETDATABASE(name,'CONSTRUCTORKIND)
   centerAndHighlight('"Operations",$LINELENGTH,specialChar 'hbar)
+  sayBrightly '""
   opList:= GETDATABASE(name,'OPERATIONALIST)
-  null opList => reportOpsFromUnitDirectly form
+  null opList => nil
   opl:=REMDUP MSORT EQSUBSTLIST(argl,$FormalMapVariableList,opList)
   ops:= nil
   for x in opl repeat

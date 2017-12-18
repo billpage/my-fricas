@@ -241,10 +241,10 @@ LyndonWord(VarSet : OrderedSet) : Public == Private where
 
        factor1 (gauche, x, droite) ==
          g : List % := gauche; d : List % := droite
-         while not null g repeat             ++ (l in g or l = x) et u in d
+         while not(empty?(g)) repeat          ++ (l in g or l = x) et u in d
            lexico(  g.first, x ) =>         ++  => right(l) >= u
               x  := g.first *$Rep x          -- crochetage
-              null(d) => g := rest g
+              empty?(d) => g := rest g
               g := cons( x, rest g)          -- mouvement a droite
               x  := first d
               d := rest d
@@ -268,7 +268,7 @@ LyndonWord(VarSet : OrderedSet) : Public == Private where
        coerce(x : %) : FreeMagma VarSet == x::Rep
 
        LyndonWordsList1 (vl, n) ==    -- a ameliorer !!!!!!!!!!!
-            null vl => error "empty list"
+            empty?(vl) => error "empty list"
             base : ARRAY1 List % := new(n::I::NNI, [])
 
            -- mots de longueur 1
@@ -299,8 +299,6 @@ LyndonWord(VarSet : OrderedSet) : Public == Private where
 )abbrev category LIECAT LieAlgebra
 ++ Author: Michel Petitot (petitot@lifl.fr).
 ++ Date Created: 91
-++ Date Last Updated: 7 Juillet 92
-++ Fix History: compilation v 2.1 le 13 dec 98
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -327,8 +325,6 @@ LieAlgebra(R : CommutativeRing) : Category ==  Module(R) with
 )abbrev category FLALG FreeLieAlgebra
 ++ Author: Michel Petitot (petitot@lifl.fr)
 ++ Date Created: 91
-++ Date Last Updated: 7 Juillet 92
-++ Fix History: compilation v 2.1 le 13 dec 98
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -385,8 +381,6 @@ FreeLieAlgebra(VarSet : OrderedSet, R : CommutativeRing) : Category == CatDef wh
 )abbrev package XEXPPKG XExponentialPackage
 ++ Author: Michel Petitot (petitot@lifl.fr).
 ++ Date Created: 91
-++ Date Last Updated: 7 Juillet 92
-++ Fix History: compilation v 2.1 le 13 dec 98
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -423,7 +417,7 @@ XExponentialPackage(R, VarSet, XPOLY) : Public == Private where
         log (p, n) ==
            p1 : XPOLY := p - 1
            not quasiRegular? p1 =>
-             error "constant term <> 1, impossible log"
+             error "constant term ~= 1, impossible log"
            s : XPOLY := 0       -- resultat
            k : I := n :: I
            for i in 1 .. n repeat
@@ -435,7 +429,7 @@ XExponentialPackage(R, VarSet, XPOLY) : Public == Private where
 
         exp (p, n) ==
            not quasiRegular? p =>
-             error "constant term <> 0, exp impossible"
+             error "constant term ~= 0, exp impossible"
            p = 0 => 1
            s : XPOLY := 1$XPOLY       -- resultat
            k : I := n :: I
@@ -573,11 +567,11 @@ LiePolynomial(VarSet : OrderedSet, R : CommutativeRing) : Public == Private wher
           - lyndon (v, u)
 
         lyndon(u, v) ==            -- u et v sont des mots de Lyndon tq u < v
-          retractable? u => monom(makeLyndon(u, v), 1)
+          retractable? u => monomial(1, makeLyndon(u, v))
           u1 : LWORD := left u
           u2 : LWORD := right u
           lexico(u2, v) => cr1(u1, lyndon(u2, v)) + cr2(lyndon(u1, v), u2)
-          monom(makeLyndon(u, v), 1)
+          monomial(1, makeLyndon(u, v))
 
         cr1 (l, p) ==
             +/[t.c * crw(l, t.k) for t in p]
@@ -599,7 +593,7 @@ LiePolynomial(VarSet : OrderedSet, R : CommutativeRing) : Public == Private wher
 
       -- definitions
 
-        coerce(v : VarSet) == monom(v::LWORD, 1)
+        coerce(v : VarSet) == monomial(1, v::LWORD)
 
         construct(x : %, y : %) : % ==
             +/[t.c * cr1(t.k, y) for t in x]
@@ -614,7 +608,7 @@ LiePolynomial(VarSet : OrderedSet, R : CommutativeRing) : Public == Private wher
         coerce(p : %) : XRPOLY ==
             +/ [t.c * RPoly(t.k) for t in p]
 
-        LiePoly(l) == monom(l, 1)
+        LiePoly(l) == monomial(1, l)
 
         varList p ==
           le : List VarSet := "setUnion"/[varList(t.k)$LWORD for t in p]
@@ -628,14 +622,14 @@ LiePolynomial(VarSet : OrderedSet, R : CommutativeRing) : Public == Private wher
           p
 
         degree p ==
-          null p => 0
+          empty?(p) => 0
           length( p.first.k)$LWORD
 
       --  listOfTerms p == p pretend List TERM
 
 --        coerce(x) : EX ==
---           null x => (0$R) :: EX
---           le : List EX := nil
+--           empty?(x) => (0$R) :: EX
+--           le : List EX := []
 --           for rec in x repeat
 --             rec.c = 1$R => le := cons(rec.k :: EX, le)
 --             le := cons(mkBinary("*"::EX,  rec.c :: EX, rec.k :: EX), le)
@@ -708,12 +702,12 @@ PoincareBirkhoffWittLyndonBasis(VarSet : OrderedSet) : Public == Private where
      recursif : (%, %) -> Boolean
 
     -- Define
-     1 == nil
+     1 == []
 
      x = y == x =$Rep y
 
      varList x ==
-        null x => nil
+        empty?(x) => []
         le : List VarSet := "setUnion"/ [varList$LWORD l for l in x]
 
      first x == first(x)$Rep
@@ -724,16 +718,16 @@ PoincareBirkhoffWittLyndonBasis(VarSet : OrderedSet) : Public == Private where
      listOfTerms(x : %) : LWORDS == x pretend LWORDS
 
      coerce(x : %) : WORD ==
-       null x => 1
+       empty?(x) => 1
        x.first :: WORD *$WORD coerce(x.rest)
 
      coerce(x : %) : EX ==
-       null x => outputForm(1$Integer)$EX
+       empty?(x) => outputForm(1$Integer)$EX
        reduce(_*, [l :: EX for l in x])$List(EX)
 
      retractable? x ==
-       null x => false
-       null x.rest
+       empty?(x) => false
+       empty?(x.rest)
 
      retract x ==
         #x ~= 1 => error "cannot convert to Lyndon word"
@@ -748,8 +742,8 @@ PoincareBirkhoffWittLyndonBasis(VarSet : OrderedSet) : Public == Private where
         n::NNI
 
      recursif(x, y) ==
-       null y => false
-       null x => true
+       empty?(y) => false
+       empty?(x) => true
        x.first = y.first => recursif(rest(x), rest(y))
        lexico(x.first, y.first)
 
@@ -853,8 +847,8 @@ XPBWPolynomial(VarSet : OrderedSet, R : CommutativeRing) : XDPcat == XDPdef wher
            +/ [t.c * prod(t.k, b) for t in p| length(t.k) :: I <= limit]
 
        prod(g, d) ==
-         d = 1 => monom(g, 1)
-         g = 1 => monom(d, 1)
+         d = 1 => monomial(1, g)
+         g = 1 => monomial(1, d)
          process(reverse listOfTerms g, first d, rest listOfTerms d)
 
        Dexpand b ==
@@ -872,13 +866,14 @@ XPBWPolynomial(VarSet : OrderedSet, R : CommutativeRing) : XDPcat == XDPdef wher
          mirror1(rest b) * lp :: %
 
        process(gauche, x, droite) ==    -- algo du "collect process"
-         null gauche => monom( cons(x, droite) pretend BASIS, 1$R)
+         empty?(gauche) => monomial(1$R, cons(x, droite) pretend BASIS)
          r1, r2 : %
          not lexico(first gauche, x) =>     -- cas facile !!!
-           monom(append(reverse gauche, cons(x, droite)) pretend BASIS, 1$R)
+           monomial(1$R,
+                    append(reverse gauche, cons(x, droite)) pretend BASIS)
 
          p : LPOLY := [first gauche, x]      -- on crochete !!!
-         null droite =>
+         empty?(droite) =>
            r1 :=  +/ [t.c * process(rest gauche, t.k, droite) for t in _
                       listOfTerms p]
            r2 :=  process( rest gauche, x, list first gauche)
@@ -893,17 +888,17 @@ XPBWPolynomial(VarSet : OrderedSet, R : CommutativeRing) : XDPcat == XDPdef wher
          r1 + r2
 
     -- definitions
-       1 == monom(1$BASIS, 1$R)
+       1 == monomial(1$R, 1$BASIS)
 
        coerce(r : R) : % == [[1$BASIS, r]$TERM ]
 
        coerce(p : %) : EX ==
-         null p => (0$R) :: EX
-         le : List EX := nil
+         empty?(p) => (0$R) :: EX
+         le : List EX := []
          for rec in p repeat le := cons(outForm rec, le)
          reduce(_+, le)$List(EX)
 
-       coerce(v : VarSet) : % == monom(v::BASIS, 1$R)
+       coerce(v : VarSet) : % == monomial(1$R, v::BASIS)
        coerce(p : LPOLY) : % ==
           [[t.k :: BASIS, t.c ]$TERM for t in listOfTerms p]
 
@@ -914,9 +909,9 @@ XPBWPolynomial(VarSet : OrderedSet, R : CommutativeRing) : XDPcat == XDPdef wher
          p = 0 => 0$XRPOLY
          +/ [t.c * Rexpand t.k for t in p]
 
-       constant? p == (null p) or (leadingSupport(p) =$BASIS 1)
+       constant? p == empty?(p) or (leadingSupport(p) =$BASIS 1)
        constant p ==
-         null p => 0$R
+         empty?(p) => 0$R
          p.last.k = 1$BASIS => p.last.c
          0$R
 
@@ -967,7 +962,7 @@ XPBWPolynomial(VarSet : OrderedSet, R : CommutativeRing) : XDPcat == XDPdef wher
              p = 1 => 0
              p1 : % := 1 - p
              not quasiRegular? p1 =>
-               error "constant term <> 1, impossible log "
+               error "constant term ~= 1, impossible log"
              s : % := - 1 ; r : % := 0                 -- resultat
              for i in 1..n repeat
                k1 : RN := 1/i
@@ -991,8 +986,6 @@ XPBWPolynomial(VarSet : OrderedSet, R : CommutativeRing) : XDPcat == XDPdef wher
 )abbrev domain LEXP LieExponentials
 ++ Author: Michel Petitot (petitot@lifl.fr).
 ++ Date Created: 91
-++ Date Last Updated: 7 Juillet 92
-++ Fix History: compilation v 2.1 le 13 dec 98
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1067,8 +1060,8 @@ LieExponentials(VarSet, R, Order) : XDPcat == XDPdef where
 
        ident(l1, l2) ==
          import(TERM1)
-         null l1 => [equation(0$R, t.c)$EQ for t in l2]
-         null l2 => [equation(t.c, 0$R)$EQ for t in l1]
+         empty?(l1) => [equation(0$R, t.c)$EQ for t in l2]
+         empty?(l2) => [equation(t.c, 0$R)$EQ for t in l1]
          u1 : LWORD := l1.first.k; c1 : R := l1.first.c
          u2 : LWORD := l2.first.k; c2 : R := l2.first.c
          u1 = u2 =>

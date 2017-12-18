@@ -2,7 +2,6 @@
 ++ Rationalization of several types of genus 0 integrands;
 ++ Author: Manuel Bronstein
 ++ Date Created: 11 October 1988
-++ Date Last Updated: 24 June 1994
 ++ Description:
 ++ This internal package rationalises integrands on curves of the form:
 ++   \spad{y\^2 = a x\^2 + b x + c}
@@ -12,7 +11,7 @@
 ++ extended integration and the risch differential equation;
 GenusZeroIntegration(R, F, L) : Exports == Implementation where
   R : Join(GcdDomain, RetractableTo Integer, Comparable, CharacteristicZero,
-          LinearlyExplicitRingOver Integer)
+          LinearlyExplicitOver Integer)
   F : Join(FunctionSpace R, AlgebraicallyClosedField,
           TranscendentalFunctionCategory)
   L : SetCategory
@@ -302,14 +301,13 @@ GenusZeroIntegration(R, F, L) : Exports == Implementation where
 ++ Integration of pure algebraic functions;
 ++ Author: Manuel Bronstein
 ++ Date Created: 27 May 1988
-++ Date Last Updated: 24 June 1994
 ++ Description:
 ++ This package provides functions for integration, limited integration,
 ++ extended integration and the risch differential equation for
 ++ pure algebraic integrands;
 PureAlgebraicIntegration(R, F, L) : Exports == Implementation where
   R : Join(GcdDomain, RetractableTo Integer, Comparable, CharacteristicZero,
-          LinearlyExplicitRingOver Integer)
+          LinearlyExplicitOver Integer)
   F : Join(FunctionSpace R, AlgebraicallyClosedField,
           TranscendentalFunctionCategory)
   L : SetCategory
@@ -493,8 +491,9 @@ PureAlgebraicIntegration(R, F, L) : Exports == Implementation where
       r := radPoly(modulus)::Record(radicand : RF, deg : N)
       (uu := changeVarIfCan(ff, r.radicand, r.deg)) case CHV =>
         chv := uu::CHV
-        newalg := nthRoot((chv.left)(dumk::F), chv.deg)
-        kz := retract(numer newalg)@K
+        op_root := operator(y)
+        newalg := kernel(op_root, [(chv.left)(dumk::F), chv.deg::F])
+        kz := retract(newalg)@K
         newf := multivariate(chv.int, ku := dumk, newalg)
         vu := (chv.right)(x::F)
         vz := (chv.den)(x::F) * (y::F) * denom(newalg)::F
@@ -517,7 +516,6 @@ PureAlgebraicIntegration(R, F, L) : Exports == Implementation where
 -- u^n = y^n = g(x) = a x + b
 -- returns the integral as an integral of a rational function in u
     rationalInt(f, n, g) ==
---      not one? degree g => error "rationalInt: radicand must be linear"
       not ((degree g) = 1) => error "rationalInt: radicand must be linear"
       a := leadingCoefficient g
       integrate(n * monomial(inv a, (n-1)::N)$UP
@@ -587,7 +585,6 @@ PureAlgebraicIntegration(R, F, L) : Exports == Implementation where
                        symbolIfCan(dumk)::SY)) case "failed" => "failed"
             c1 := multivariate(rec.coef, x)
             eval(u::F, dumk, c1 * k::F)
---      one?(rec.coef) =>
       ((rec.coef) = 1) =>
         curve  := RadicalFunctionField(F, UP, UPUP, q::RF, rec.exponent)
         rc := algDsolve(D()$LDALG + reduce(univariate(nfp, x, k, p))::LDALG,
@@ -683,7 +680,6 @@ PureAlgebraicIntegration(R, F, L) : Exports == Implementation where
 ++ Mixed algebraic integration;
 ++ Author: Manuel Bronstein
 ++ Date Created: 12 October 1988
-++ Date Last Updated: 4 June 1988
 ++ Description:
 ++ This package provides functions for the integration of
 ++ algebraic integrands over transcendental functions;
@@ -855,9 +851,3 @@ AlgebraicIntegration(R, F) : Exports == Implementation where
 --LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 --NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 --SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
--- SPAD files for the integration world should be compiled in the
--- following order:
---
---   intaux  rderf  intrf  curve  curvepkg  divisor  pfo
---   intalg  INTAF  efstruc  rdeef  intef  irexpand  integrat

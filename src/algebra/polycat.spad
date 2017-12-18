@@ -1,7 +1,5 @@
 )abbrev category AMR AbelianMonoidRing
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -55,7 +53,7 @@ AbelianMonoidRing(R : Join(SemiRng, AbelianMonoid), E : OrderedAbelianMonoid
         IntegralDomain
     if R has Algebra Fraction Integer then Algebra Fraction Integer
   add
-    monomial? x == zero? reductum x
+    monomial? x == not(zero?(x)) and zero?(reductum(x))
 
     map(fn : R -> R, x : %) ==
           -- this default definition assumes that reductum is cheap
@@ -69,8 +67,6 @@ AbelianMonoidRing(R : Join(SemiRng, AbelianMonoid), E : OrderedAbelianMonoid
 
 )abbrev category FAMR FiniteAbelianMonoidRing
 ++ Author:
-++ Date Created:
-++ Date Last Updated: 14.08.2000 Exported pomopo! and binomThmExpt [MMM]
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -102,12 +98,15 @@ FiniteAbelianMonoidRing(R : Join(SemiRng, AbelianMonoid),
       ++ mapExponents(fn, u) maps function fn onto the exponents
       ++ of the non-zero monomials of polynomial u.
     pomopo! : (%, R, E, %) -> %
-         ++ \spad{pomopo!(p1, r, e, p2)} returns \spad{p1 + monomial(e, r) * p2}
+         ++ \spad{pomopo!(p1, r, e, p2)} returns \spad{p1 + monomial(r, e) * p2}
          ++ and may use \spad{p1} as workspace. The constant \spad{r} is
          ++ assumed to be nonzero.
+    if R has Ring then
+       fmecg : (%, E, R, %) -> %
+         ++ \spad{fmecg(p1, e, r, p2)} returns \spad{p1 - monomial(r, e) * p2}.
     if % has CommutativeRing then
        binomThmExpt : (%, %, NonNegativeInteger) -> %
-         ++ \spad{binomThmExpt(p, q, n)} returns \spad{(x+y)^n}
+         ++ \spad{binomThmExpt(p, q, n)} returns \spad{(p+q)^n}
          ++ by means of the binomial theorem trick.
     if R has EntireRing then
        "exquo": (%,R) -> Union(%,"failed")
@@ -122,6 +121,8 @@ FiniteAbelianMonoidRing(R : Join(SemiRng, AbelianMonoid),
          ++ divided by the content of p.
   add
     pomopo!(p1, r, e, p2) == p1 + r * mapExponents(x1+->x1+e, p2)
+    if R has Ring then
+       fmecg(p1, e, r, p2) == p1 - r * mapExponents(x1+->x1+e, p2)
 
     if % has CommutativeRing then
        binomThmExpt(x, y, nn) ==
@@ -167,7 +168,6 @@ FiniteAbelianMonoidRing(R : Join(SemiRng, AbelianMonoid),
           zero? x => 0
           r := leadingCoefficient x
           x := reductum x
---          while not zero? x and not one? r repeat
           while not zero? x and not (r = 1) repeat
             r := gcd(r, leadingCoefficient x)
             x := reductum x
@@ -181,8 +181,6 @@ FiniteAbelianMonoidRing(R : Join(SemiRng, AbelianMonoid),
 
 )abbrev category GPOLCAT MaybeSkewPolynomialCategory
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions: Ring, monomial, coefficient, differentiate, eval
 ++ Related Constructors: Polynomial, DistributedMultivariatePolynomial
 ++ Also See: UnivariatePolynomialCategory
@@ -199,7 +197,7 @@ MaybeSkewPolynomialCategory(R : Join(SemiRng, AbelianMonoid),
                             VarSet : OrderedSet) : Category ==
   FiniteAbelianMonoidRing(R, E) with
     if R has Ring then
-        FullyLinearlyExplicitRingOver R
+        FullyLinearlyExplicitOver R
     -- operations
     degree : (%, VarSet) -> NonNegativeInteger
       ++ degree(p, v) gives the degree of polynomial p with respect
@@ -289,8 +287,6 @@ MaybeSkewPolynomialCategory(R : Join(SemiRng, AbelianMonoid),
 
 )abbrev category POLYCAT PolynomialCategory
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions: Ring, monomial, coefficient, differentiate, eval
 ++ Related Constructors: Polynomial, DistributedMultivariatePolynomial
 ++ Also See: UnivariatePolynomialCategory
@@ -712,8 +708,6 @@ PolynomialCategory(R : Join(SemiRng, AbelianMonoid),
 
 )abbrev package POLYLIFT PolynomialCategoryLifting
 ++ Author: Manuel Bronstein
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -731,17 +725,17 @@ PolynomialCategoryLifting(E, Vars, R, P, S) : Exports == Implementation where
   Vars : OrderedSet
   R   : Join(SemiRng, AbelianMonoid)
   P   : PolynomialCategory(R, E, Vars)
-  S   : SetCategory with
+  S   : with
            "+" : (%, %) -> %
            "*" : (%, %) -> %
-           "^": (%, NonNegativeInteger) -> %
+           "^" : (%, NonNegativeInteger) -> %
 
   Exports ==> with
     map : (Vars -> S, R -> S, P) -> S
       ++ map(varmap, coefmap, p) takes a
       ++ varmap, a mapping from the variables of polynomial p into S,
       ++ coefmap, a mapping from coefficients of p into S, and p, and
-      ++ produces a member of S using the corresponding arithmetic.
+      ++ produces a member of S using the corresponding arithmetic
       ++ in S.
 
   Implementation ==> add
@@ -758,8 +752,6 @@ PolynomialCategoryLifting(E, Vars, R, P, S) : Exports == Implementation where
 
 )abbrev category UPOLYC UnivariatePolynomialCategory
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions: Ring, monomial, coefficient, reductum, differentiate,
 ++ elt, map, resultant, discriminant
 ++ Related Constructors:
@@ -778,7 +770,7 @@ UnivariatePolynomialCategory(R : Join(SemiRng, AbelianMonoid)) : Category ==
     if R has Ring then
         DifferentialRing
         DifferentialExtension R
-    vectorise        : (%, NonNegativeInteger) -> Vector R
+    vectorise : (%, NonNegativeInteger) -> Vector R
       ++ vectorise(p, n) returns \spad{[a0, ..., a(n-1)]} where
       ++ \spad{p = a0 + a1*x + ... + a(n-1)*x^(n-1)} + higher order terms.
       ++ The degree of polynomial p can be different from \spad{n-1}.
@@ -845,11 +837,11 @@ UnivariatePolynomialCategory(R : Join(SemiRng, AbelianMonoid)) : Category ==
         composite : (Fraction %, %) -> Union(Fraction %, "failed")
            ++ composite(f, q) returns h if f = h(q), and "failed" is no such h exists.
         pseudoQuotient : (%, %) -> %
-           ++ pseudoQuotient(p, q) returns r, the quotient when
+           ++ pseudoQuotient(p, q) returns s, the quotient when
            ++ \spad{p' := p*lc(q)^(deg p - deg q + 1)}
            ++ is pseudo right-divided by q, i.e. \spad{p' = s q + r}.
         pseudoDivide : (%, %) -> Record(coef : R, quotient : %, remainder : %)
-           ++ pseudoDivide(p, q) returns \spad{[c, q, r]}, when
+           ++ pseudoDivide(p, q) returns \spad{[c, s, r]}, when
            ++ \spad{p' := p*lc(q)^(deg p - deg q + 1) = c * p}
            ++ is pseudo right-divided by q, i.e. \spad{p' = s q + r}.
     if R has GcdDomain then
@@ -860,7 +852,7 @@ UnivariatePolynomialCategory(R : Join(SemiRng, AbelianMonoid)) : Category ==
         EuclideanDomain
         additiveValuation
           ++ euclideanSize(a*b) = euclideanSize(a) + euclideanSize(b)
-        elt      : (Fraction %, R) -> R
+        elt : (Fraction %, R) -> R
             ++ elt(a, r) evaluates the fraction of univariate polynomials \spad{a}
             ++ with the distinguished variable replaced by the constant r.
     if R has Algebra Fraction Integer then
@@ -899,7 +891,7 @@ UnivariatePolynomialCategory(R : Join(SemiRng, AbelianMonoid)) : Category ==
       mainVariable(lhs first le) case "failed" => p
       p(rhs first le)
     mainVariable(p : %) ==
-      zero? degree p =>  "failed"
+      zero? degree p => "failed"
       create()$SingletonAsOrderedSet
     minimumDegree(p : %, v : SingletonAsOrderedSet) == minimumDegree p
     minimumDegree(p : %, lv : List SingletonAsOrderedSet) ==
@@ -1030,19 +1022,56 @@ UnivariatePolynomialCategory(R : Join(SemiRng, AbelianMonoid)) : Category ==
                 x := reductum x
             d
         differentiate(x : %, v : SingletonAsOrderedSet) : % == differentiate x
+        pseudoRemainder(p, q) ==
+           zero? q => error "PseudoDivision by Zero"
+           zero? p => 0
+           c2 := leadingCoefficient q
+           e2 := degree q
+           q := reductum q
+           n := max((degree p)-e2+1, 0)::NonNegativeInteger
+           while not zero? p repeat
+               if (u := subtractIfCan(degree p, e2)) case "failed" then break
+               p := fmecg(c2 * reductum p, u, leadingCoefficient p, q)
+               n := (n - 1)::NonNegativeInteger
+           n = 0 => p
+           c2 ^ n * p
+
     if R has IntegralDomain then
       elt(g : Fraction %, f : Fraction %) == ((numer g) f) / ((denom g) f)
 
       pseudoQuotient(p, q) ==
-        (n := degree(p)::Integer - degree q + 1) < 1 => 0
-        ((leadingCoefficient(q)^(n::NonNegativeInteger) * p
-          - pseudoRemainder(p, q)) exquo q)::%
+        zero? q => error "PseudoDivision by Zero"
+        zero? p => 0
+        (degP, degQ) := (degree p, degree q)
+        degP < degQ => 0
+        lcQ := leadingCoefficient q
+        q := reductum q
+        i := (degP - degQ + 1)::NonNegativeInteger
+        quot := 0$%
+        while (delta : Integer := degree(p) - degQ) >= 0 repeat
+          i := (i - 1)::NonNegativeInteger
+          mon := monomial(leadingCoefficient p, delta::NonNegativeInteger)
+          quot := quot + lcQ^i * mon
+          p := lcQ * reductum(p) - mon * q
+        quot
 
       pseudoDivide(p, q) ==
-        (n := degree(p)::Integer - degree q + 1) < 1 => [1, 0, p]
-        prem := pseudoRemainder(p, q)
-        lc   := leadingCoefficient(q)^(n::NonNegativeInteger)
-        [lc, ((lc*p - prem) exquo q)::%, prem]
+        zero? q => error "PseudoDivision by Zero"
+        zero? p => [1, 0, p]
+        (degP, degQ) := (degree p, degree q)
+        degP < degQ => [1, 0, p]
+        lcQ := leadingCoefficient q
+        q := reductum q
+        i := (degP - degQ + 1)::NonNegativeInteger
+        co := lcQ^i
+        quot := 0$%
+        while (delta : Integer := degree(p) - degQ) >= 0 repeat
+          i := (i - 1)::NonNegativeInteger
+          mon := monomial(leadingCoefficient p, delta::NonNegativeInteger)
+          quot := quot + lcQ^i * mon
+          p := lcQ * reductum(p) - mon * q
+        p := lcQ^i * p
+        [co, quot, p]
 
       composite(f : Fraction %, q : %) ==
         (n := composite(numer f, q)) case "failed" => "failed"
@@ -1128,8 +1157,6 @@ UnivariatePolynomialCategory(R : Join(SemiRng, AbelianMonoid)) : Category ==
 
 )abbrev package UPOLYC2 UnivariatePolynomialCategoryFunctions2
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1181,8 +1208,6 @@ UnivariatePolynomialCategoryFunctions2(R, PR, S, PS) : Exports == Impl where
 
 )abbrev package COMMUPC CommuteUnivariatePolynomialCategory
 ++ Author: Manuel Bronstein
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:

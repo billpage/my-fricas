@@ -33,7 +33,7 @@
 )package "BOOT"
 
 
-SPACE       := STR_ELT('"    ", 0)
+SPACE_CHAR       := STR_ELT('"    ", 0)
 -- Hardcode ASCII code to avoid editors messing up control code
 PAGE_CTL    := 12
 ESCAPE      := STR_ELT('"__  ", 0)
@@ -77,7 +77,7 @@ scanKeyWords := [ _
            ['"iterate", "ITERATE"],_
            ['"local", "local"], _
            ['"macro", "MACRO" ],_
-           ['"mod", "MOD" ],_
+           ['"mod", "mod"], _
            ['"not", "not"], _
            ['"or", "or"], _
            ['"pretend", "pretend"], _
@@ -93,46 +93,45 @@ scanKeyWords := [ _
            ['"while", "while"],_
            ['"with", "with"], _
            ['"yield", "yield"], _
-           ['"|","BAR"],_
-           ['".","DOT" ],_
-           ['"::","COERCE" ],_
-           ['":","COLON" ],_
+           ['"|",  "|"], _
+           ['".",  "."], _
+           ['"::", "::"], _
+           ['":",  ":"], _
            ['":-","COLONDASH" ],_
-           ['"@","AT" ],_
+           ['"@",  "@"], _
            ['"@@","ATAT" ],_
-           ['",","COMMA" ],_
-           ['";","SEMICOLON" ],_
-           ['"**","POWER" ],_
-           ['"*","TIMES" ],_
-           ['"•", "CDOT" ],_
-           ['"+","PLUS" ],_
-           ['"-","MINUS" ],_
-           ['"<","LT" ],_
-           ['">","GT" ],_
-           ['"<=","LE" ],_
-           ['">=","GE" ],_
-           ['"=", "EQUAL"],_
-           ['"~=","NOTEQUAL" ],_
-           ['"~","~" ],_
-           ['"^","CARAT" ],_
+           ['",", ","],_
+           ['";",  ";"],_
+           ['"**", "**"], _
+           ['"*",  "*"],_
+           ['"+",  "+"], _
+           ['"-",  "-"], _
+           ['"<",  "<"], _
+           ['">",  ">"], _
+           ['"<=", "<="], _
+           ['">=", ">="], _
+           ['"=",  "="], _
+           ['"~=", "~="], _
+           ['"~", "~"], _
+           ['"^",  "^" ], _
            ['"..","SEG" ],_
            ['"#","#" ],_
            ['"#1", "#1" ],_
            ['"&","AMPERSAND" ],_
            ['"$","$" ],_
-           ['"/","SLASH" ],_
-           ['"\","BACKSLASH" ],_
+           ['"/",  "/"], _
+           ['"\",  "\"], _
            ['"//","SLASHSLASH" ],_
            ['"\\","BACKSLASHBACKSLASH" ],_
-           ['"/\","SLASHBACKSLASH" ],_
-           ['"\/","BACKSLASHSLASH" ],_
-           ['"=>","EXIT" ],_
-           ['":=","BECOMES" ],_
-           ['"==","DEF" ],_
-           ['"==>","MDEF" ],_
+           ['"/\", "/\"], _
+           ['"\/", "\/"], _
+           ['"=>", "=>"], _
+           ['":=", ":="], _
+           ['"==", "=="], _
+           ['"==>", "==>"],_
            ['"->","ARROW" ],_
            ['"<-","LARROW" ],_
-           ['"+->","GIVES" ],_
+           ['"+->", "+->"], _
            ['"(","(" ],_
            ['")",")" ],_
            ['"(|","(|" ],_
@@ -149,8 +148,8 @@ scanKeyWords := [ _
            ['"{|","{|" ],_
            ['"|}","|}" ],_
            ['"{|__|}","{||}" ],_
-           ['"<<","OANGLE" ],_
-           ['">>","CANGLE" ],_
+           ['"<<", "<<"], _
+           ['">>", ">>"], _
            ['"'", "'" ],_
            ['"`", "BACKQUOTE" ]_
                           ]
@@ -203,42 +202,42 @@ scanDict:=scanDictCons()
 scanPun:=scanPunCons()
 
 for i in   [ _
-   ["EQUAL"    ,"="], _
-   ["TIMES"    ,"*"], _
+   ["=",   "="], _
+   ["*",   "*"], _
    ["CDOT"     ,"•"], _
    ["has",      "has"], _
    ["case",     "case"], _
    ["exquo",    "exquo"], _
    ["rem",      "rem"], _
-   ["MOD"      ,"mod"], _
+   ["mod", "mod"], _
    ["quo",      "quo"], _
-   ["SLASH"    ,"/"], _
-   ["BACKSLASH","\"], _
+   ["/",   "/"], _
+   ["\",   "\"], _
    ["SLASHSLASH"    ,"//"], _
    ["BACKSLASHBACKSLASH","\\"], _
-   ["SLASHBACKSLASH"    ,"/\"], _
-   ["BACKSLASHSLASH","\/"], _
-   ["POWER"    ,"**"], _
-   ["CARAT"    ,"^"], _
-   ["PLUS"     ,"+"], _
-   ["MINUS"    ,"-"], _
-   ["LT"       ,"<"], _
-   ["GT"       ,">"], _
-   ["OANGLE"       ,"<<"], _
-   ["CANGLE"       ,">>"], _
-   ["LE"       ,"<="], _
-   ["GE"       ,">="], _
-   ["NOTEQUAL" ,"~="], _
+   ["/\",  "/\"], _
+   ["\/",  "\/"], _
+   ["**",  "**"], _
+   ["^",   "^"], _
+   ["+",   "+"], _
+   ["-",   "-"], _
+   ["<",   "<"], _
+   [">",   ">"], _
+   ["<<",  "<<"], _
+   [">>",  ">>"], _
+   ["<=",  "<="], _
+   [">=",  ">="], _
+   ["~=",  "~="], _
    ["by",       "by"], _
    ["ARROW"       ,"->"], _
    ["LARROW"       ,"<-"], _
-   ["BAR"       ,"|"], _
+   ["|",   "|"], _
    ["SEG"       ,".."] _
     ] repeat MAKEPROP(first i, 'INFGENERIC, CADR i)
 
 -- Scanner
 
-is_white?(c) == c = SPACE or c = PAGE_CTL
+is_white?(c) == c = SPACE_CHAR or c = PAGE_CTL
 
 skip_whitespace(ln, n) ==
     l := #ln
@@ -257,14 +256,14 @@ DEFPARAMETER($was_nonblank, false)
 
 DEFVAR($comment_indent, 0)
 DEFVAR($current_comment_block, nil)
+DEFVAR($comment_line)
 DEFVAR($last_nonempty_linepos, nil)
 DEFVAR($spad_scanner, false)
 
 finish_comment() ==
     NULL($current_comment_block) => nil
     pos :=
-        $comment_indent = 0 =>
-            first(rest(rest($linepos))) - 1
+        $comment_indent = 0 => $comment_line
         first(rest(rest($last_nonempty_linepos)))
     PUSH([pos, :NREVERSE($current_comment_block)], $COMBLOCKLIST)
     $current_comment_block := nil
@@ -440,6 +439,7 @@ scanComment()==
       if $spad_scanner then
           if not(n = $comment_indent) then
               finish_comment()
+          $comment_line := first(rest(rest($linepos)))
           $comment_indent := n
           PUSH(CONCAT(make_full_CVEC(n, '" "), c_str), $current_comment_block)
       res := lfcomment(n, $linepos, c_str)
@@ -458,7 +458,7 @@ scanPunct()==
                scanKeyTr sss
 
 scanKeyTr w==
-       if EQ(keyword w,"DOT")
+       if EQ(keyword w, ".")
        then if $floatok
             then scanPossFloat(w)
             else lfkey w

@@ -218,7 +218,7 @@ FloatSpecialFunctions() : Exports == Implementation where
         l0 := bits()
         l1 := max(30, l0 + 10)
         bits(l1)
-        -- FIXME : compensate for error in Gamma(x + y)
+        -- FIXME : compensate for error in Gamma(x + y) id:636
         res := Gamma(x)*Gamma(y)/Gamma(x + y)
         bits(l0)
         res
@@ -1047,7 +1047,7 @@ DoubleFloatEllipticIntegrals : Exports == Implementation where
         ++ ellipticRF(x, y, z) computes integral from 0 to infinity of
         ++ \spad{(1/2)*(t+x)^(-1/2)*(t+y)^(-1/2)*(t+Z)^(-1/2)dt}.
       ellipticRJ : (RF, RF, RF, RF) -> RF
-        ++ ellipticRF(x, y, z, p) computes integral from 0 to infinity of
+        ++ ellipticRJ(x, y, z, p) computes integral from 0 to infinity of
         ++ \spad{(3/2)*(t+x)^(-1/2)*(t+y)^(-1/2)*(t+Z)^(-1/2)*(t+p)^(-1)dt}.
       ellipticF : (RF, RF) -> RF
         ++ ellipticF(z, m) is the incomplete elliptic integral of the
@@ -1277,7 +1277,7 @@ DoubleFloatEllipticIntegrals : Exports == Implementation where
       Funs where
           DF ==> CF
           qsqrt ==> sqrt
-
+)boot $tryRecompileArguments := true
 
 )abbrev package DFSFUN2 DoubleFloatSpecialFunctions2
 DoubleFloatSpecialFunctions2() : with
@@ -1354,6 +1354,8 @@ FloatEllipticFunctions() : with
       ++ jacobiDn(z, m) is the Jacobi dn function
     jacobiDn : (Complex Float, Complex Float) -> Complex Float
       ++ jacobiDn(z, m) is the Jacobi dn function
+    jacobiZeta : (Float, Float) -> Float
+      ++ jacobiZeta(z, m) is the Jacobi zeta function
     weierstrassP : (Float, Float, Float) -> Float
       ++ weierstrassP(g2, g3, x) is the Weierstrass P function
     weierstrassP : (Complex Float, Complex Float, Complex Float) ->
@@ -1394,9 +1396,11 @@ FloatEllipticFunctions() : with
       ++ ellipticE(z, m) is the incomplete elliptic integral of the second
       ++ kind.
     ellipticF : (Float, Float) -> Float
-      ++ ellipticF(z, m) is the incomplete elliptic integral of first kind.
+      ++ ellipticF(z, m) is the incomplete elliptic integral of the
+      ++ first kind.
     ellipticF : (Complex Float, Complex Float) -> Complex Float
-      ++ ellipticF(z, m) is the incomplete elliptic integral of first kind.
+      ++ ellipticF(z, m) is the incomplete elliptic integral of the
+      ++ first kind.
     -- Functions below should be local but overloaded
     rabs : Float -> Float
       ++ Undocumented.
@@ -1781,6 +1785,42 @@ FloatEllipticFunctions() : with
         bits(obits)
         res
 
+    zeta2(z : Float, k0 : Float, ll : List Float) : Float ==
+        res : Float := 0
+        pii := pi()$Float
+        nn := retract(round(z/pii)$Float)@Integer
+        z1 := z - nn*pii
+        snz := sin(z1)
+        for k in ll repeat
+            k1 := 1 + k
+            k1inv := 1/k1
+            p := (1 - k)*k1inv
+            snz2 := snz*snz
+            k_snz2 := k*snz2
+            snf_inv := 1/(1 + k_snz2)
+            r := sqrt((1 - snz2)*(1 - k*k_snz2))
+            r := (1 - p)*snz*r*snf_inv
+            res := 2*k1inv*res + r
+            snz := k1*snz*snf_inv
+        res
+
+    jacobiZeta(z : Float, m : Float) : Float ==
+        m = 0 => 0
+        m = 1 => tanh(z)
+        obits := bits()
+        try
+            prec := obits + 20
+            bits(prec)
+            m > 1 =>
+                error "jacobiZeta: m > 1"
+            eps := two_to_minus_n(prec quo 2)
+            ll := landen(m, eps)
+            kk := kprod(ll)
+            z1 := z/kk
+            res := zeta2(z1, sqrt(1 - m), ll)
+        finally
+            bits(obits)
+
     -- This routine expects argument which is reduced to the
     -- fundamental region,
     -- returns [theta2(0, tau)^2, theta3(0, tau)^2]
@@ -1912,6 +1952,19 @@ FloatEllipticFunctions() : with
         bits(obits)
         res
 
+    half_z(z : CF, m : CF) : CF ==
+        z0 := z
+        z2 := z*z
+        z2 := (1 - sqrt(1 - z2))/(1 + sqrt(1 - m*z2))
+        cnz := sqrt(1 - z2)
+        dnz := sqrt(1 - m*z2)
+        snf := cnz*dnz/(1 - m*z2*z2)
+        z := sqrt(z2)
+        zz := z*snf
+        if real(conjugate(z0)*zz) < 0 then
+                z := -z
+        z
+
     ellipticF_aux(z : CF, m : CF) : CF ==
         m = 1 => atanh(z)
         obits := bits()
@@ -1932,18 +1985,8 @@ FloatEllipticFunctions() : with
         sf : Float := 1
         nz := norm(z)
         if 1$Float < nz then
-            z0 := z
-            z2 := z*z
-            z2 := (1 - sqrt(1 - z2))/(1 + sqrt(1 - m*z2))
-            nz := norm(z2)
+            z := half_z(z, m)
             sf := 2::Float
-            cnz := sqrt(1 - z2)
-            dnz := sqrt(1 - m*z2)
-            snf := cnz*dnz/(1 - m*z2*z2)
-            z := sqrt(z2)
-            zz := z*snf
-            if real(conjugate(z0)*zz) < 0 then
-                z := -z
         for k in ll repeat
             delta := (1 + k)^2 - 4*k*z^2
             z := 2*z/(1 + k + sqrt(delta))
@@ -2058,19 +2101,10 @@ FloatEllipticFunctions() : with
         nz := norm(z)
         res0 : CF := 0
         if 1$Float < nz then
-            z2 := z*z
-            z2 := (1 - sqrt(1 - z2))/(1 + sqrt(1 - m*z2))
-            res0 := z2*z
-            nz := norm(z2)
             sf := 2::Float
             z0 := z
-            z := sqrt(z2)
-            cnz := sqrt(1 - z2)
-            dnz := sqrt(1 - m*z2)
-            snf := cnz*dnz/(1 - m*z2*z2)
-            zz := z*snf
-            if real(conjugate(z0)*zz) < 0 then
-                z := -z
+            z := half_z(z, m)
+            res0 := z0*z^2
         for k in llr repeat
             delta := (1 + k)^2 - 4*k*z^2
             z := 2*z/(1 + k + sqrt(delta))

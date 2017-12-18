@@ -94,11 +94,6 @@ makeCompactDirect1(op,items) ==
     curAddress
  where fn y ==
   [sig,:r] := y
-  r = ['Subsumed] =>
-    n := #sig - 1
-    $byteAddress := $byteAddress + n + 4
-    [n,0,:makeCompactSigCode(sig),0]  --always followed by subsuming signature
-    --identified by a 0 in slot position
   if r is [n,:s] then
     slot :=
       n is [p, :.] => p  --the rest is linenumber of function definition
@@ -117,21 +112,7 @@ makeCompactDirect1(op,items) ==
   res := [n,predCode,:makeCompactSigCode(sig),slot]
   res
 
-orderBySubsumption items ==
-  acc := subacc := nil
-  for x in items repeat
-    not MEMQ($op,'(Zero One)) and x is [.,.,.,'Subsumed] => subacc := [x,:subacc]
-    acc := [x,:acc]
-  y := z := nil
-  for [a,b,:.] in subacc | b repeat
-  --NOTE: b = nil means that the signature a will appear in acc, that this
-  --  entry is be ignored (e.g. init: -> $ in ULS)
-    while (u := assoc(b,subacc)) repeat b := CADR u
-    u := assoc(b,acc) or systemError nil
-    if null CADR u then u := [first u, 1] --mark as missing operation
-    y := [[a,'Subsumed],u,:y] --makes subsuming signature follow one subsumed
-    z := insert(b,z)  --mark a signature as already present
-  [:y,:[w for (w := [c,:.]) in acc | not member(c,z)]] --add those not subsuming
+orderBySubsumption items == reverse(items)
 
 makeCompactSigCode(sig) == [fn for x in sig] where
   fn ==
@@ -329,7 +310,7 @@ NRTmakeCategoryAlist() ==
     ['CONS, MKQ LIST2VEC slot0,
       ['CONS, MKQ LIST2VEC catformvec,
         ['makeByteWordVec2,maxElement,MKQ $byteVec]]]]
-  --NOTE: this is new form: old form satisfies VECP CDDR form
+  --NOTE: this is new form: old form satisfies VECP CDDR form id:670
 
 encodeCatform(x, inds, formals) ==
     k := NRTassocIndex x => k
@@ -592,7 +573,7 @@ dcSize(:options) ==
     sayBrightly ['"size of domain vectors = ",1 + maxindex,'" slots"]
   vtotal := itotal + nodeSize(fun)       --fun   slot is ($ . function)
   vtotal := vtotal + nodeSize(2 * latch) --latch slot is (newGoGet $ . code)
-  --NOTE: lazy slots require no cost     --lazy  slot is lazyDomainForm
+  --NOTE: lazy slots require no cost     --lazy  slot is lazyDomainForm id:671
   if null quiet then sayBrightly ['"domain size = ",vtotal,'" BYTES"]
   etotal := nodeSize(fun + 2 * latch) + vectorSize(1 + maxindex)
   if null quiet then sayBrightly ['"cost per instantiation = ",etotal,'" BYTES"]
@@ -678,8 +659,6 @@ dcOps conname ==
       suffix :=
         atom pred => nil
         concat('" if ",pred2English pred)
-      key = 'Subsumed =>
-        sayBrightly [:formatOpSignature(op,sig),'" subsumed by ",:formatOpSignature(op,slot),:suffix]
       sayBrightly [:formatOpSignature(op,sig),:suffix]
 
 --=======================================================================
@@ -747,7 +726,13 @@ extendsCategoryBasic(dom,u,v) ==
   uVec := (compMakeCategoryObject(u, $EmptyEnvironment)).expr
   isCategoryForm(v,nil) => catExtendsCat?(u,v,uVec)
   v is ['SIGNATURE,op,sig] =>
-    or/[uVec.i is [[=op,=sig],:.] for i in 6..MAXINDEX uVec]
+      res := false
+      for csig in uVec.1 repeat
+          not(csig is [[=op, sig], pred, :.]) => "iterate"
+          pred = true =>
+              res := true
+              return true
+      res
   u is ['CATEGORY,.,:l] =>
     v is ['IF,:.] => member(v,l)
     nil

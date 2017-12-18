@@ -1,7 +1,6 @@
 )abbrev domain CHAR Character
 ++ Author: Stephen M. Watt
 ++ Date Created: July 1986
-++ Date Last Updated: June 20, 1991
 ++ Basic Operations: char
 ++ Related Domains:
 ++ Also See:
@@ -77,7 +76,7 @@ Character : OrderedFinite() with
         char(n : Integer)        == n::%
         ord c                  == convert(c)$Rep
         -- random()               == char(random(size())$Integer)
-        -- FIXME: limit to ASCII for now
+        -- FIXME: limit to ASCII for now id:718
         random()               == char(random(128)$Integer)
         space                  == STR_ELT("   ", 0$Lisp)$Lisp
         quote                  == STR_ELT("_" ", 0$Lisp)$Lisp
@@ -113,7 +112,6 @@ Character : OrderedFinite() with
 )abbrev domain CCLASS CharacterClass
 ++ Author: Stephen M. Watt
 ++ Date Created: July 1986
-++ Date Last Updated: June 20, 1991
 ++ Basic Operations: charClass
 ++ Related Domains: Character, Bits
 ++ Also See:
@@ -179,7 +177,7 @@ CharacterClass : Join(SetCategory, ConvertibleTo String,
         union(a, b)      == Or(a, b)
         intersect (a, b) == And(a, b)
         difference(a, b) == And(a, Not b)
-        -- FIXME: this is bogus for codes >= N
+        -- FIXME: this is bogus for codes >= N id:719
         complement a    == Not a
 
         convert(cl) : String ==
@@ -206,7 +204,6 @@ CharacterClass : Join(SetCategory, ConvertibleTo String,
         -- Stuff to make a legal SetAggregate view
         # a             == (n := 0; for i in 0..N-1 | a.i repeat n := n+1; n)
         empty() : %       == charClass []
-        brace() : %       == charClass []
 
         insert!(c, a)  ==
             (i := ord c) < N => (a(i) := true; a)
@@ -285,10 +282,10 @@ IndexedString(mn : Integer) : Export == Implementation where
     latex s                == concat("\mbox{``", concat(s pretend String, "''}"))
 
     replace(s, sg, t) ==
-        l := lo(sg) - mn
+        l := low(sg) - mn
         m := #s
         n := #t
-        h : I := if hasHi sg then hi(sg) - mn else maxIndex s - mn
+        h : I := if hasHi sg then high(sg) - mn else maxIndex s - mn
         l < 0 or h >= m or h < l-1 => error "index out of range"
         r := new((m-(h-l+1)+n)::N, space$C)
         for k in 0.. for i in 0..l-1 repeat Qsetelt(r, k, Qelt(s, i))
@@ -355,18 +352,11 @@ IndexedString(mn : Integer) : Export == Implementation where
         if i <= n then l := concat(s(i..n), l)
         reverse! l
 
-    leftTrim(s, c) ==
-        n := maxIndex s
-        for i in mn .. n while s.i = c repeat 0
-        s(i..n)
     leftTrim(s, cc) ==
         n := maxIndex s
         for i in mn .. n while member?(s.i, cc) repeat 0
         s(i..n)
 
-    rightTrim(s, c) ==
-        for j in maxIndex s .. mn by -1 while s.j = c repeat 0
-        s(minIndex(s)..j)
     rightTrim(s, cc) ==
         for j in maxIndex s .. mn by -1 while member?(s.j, cc) repeat 0
         s(minIndex(s)..j)
@@ -394,8 +384,8 @@ IndexedString(mn : Integer) : Export == Implementation where
         Qelt(s, i - mn)
 
     elt(s : %, sg : U) ==
-        l := lo(sg) - mn
-        h := if hasHi sg then hi(sg) - mn else maxIndex s - mn
+        l := low(sg) - mn
+        h := if hasHi sg then high(sg) - mn else maxIndex s - mn
         l < 0 or h >= #s => error "index out of bounds"
         SUBSTRING(s, l, max(0, h-l+1))$Lisp
 
@@ -465,7 +455,7 @@ String() : StringCategory with
 
 StringCategory() : Category == Join(StringAggregate(), SetCategory, OpenMath) with
   string : Integer -> %
-    ++ string(i) returns the decimal representation of i in a string
+    ++ string(i) returns the decimal representation of i as a string.
 
 --Copyright (c) 1991-2002, The Numerical ALgorithms Group Ltd.
 --All rights reserved.

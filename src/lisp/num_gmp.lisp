@@ -352,7 +352,7 @@
 
 (defun gmp-bignum-isqrt (x)
   (let* ((xl (digits_to_words (ccl::%bignum-length x)))
-         (rl (ceiling xl 2))
+         (rl (ceiling (+ 1 xl) 2))
          (xlb (words_to_bytes xl))
          (rlb (words_to_bytes rl))
          (rl2 (words_to_digits rl))
@@ -406,7 +406,7 @@
          (rlb 0)
          (res (ccl::%alloc-misc rl2 (bignum_subtag))))
         (declare (type fixnum xl yl rl rl2 xlb ylb rlb itmp))
-        ;;; XXX Does not work
+        ;;; XXX Does not work id:675
         ;;; (declare (dynamic-extent res))
       (if (< xl yl)
           (progn
@@ -452,7 +452,7 @@
          (rlb (+ xlb ylb))
          (res nil))
         (declare (type fixnum xl yl rl xlb ylb rlb))
-        ;;; XXX Does not work
+        ;;; XXX Does not work id:676
         ;;; (declare (dynamic-extent res))
       (ccl::%stack-block ((tx xlb)
                           (ty ylb)
@@ -538,7 +538,7 @@
 #+:sbcl
 (defun gmp-bignum-isqrt (x)
   (let* ((len-x (sb-bignum::%bignum-length x))
-         (len-res (ceiling len-x 2))
+         (len-res (ceiling (+ 1 len-x) 2))
          (res (sb-bignum::%allocate-bignum len-res)))
         (declare (type fixnum len-x len-res))
         (sb-sys:with-pinned-objects (x res)
@@ -601,7 +601,7 @@
 (defun unistall-gmp-multiplication()
    (let ((package *PACKAGE*))
     (ccl:SET-DEVELOPMENT-ENVIRONMENT T)
-   (setf (symbol-function 'ccl::multiply-bignums)
+    (setf (symbol-function 'ccl::multiply-bignums)
           (symbol-function 'orig-multiply-bignums))
     (setf (symbol-function 'ccl::bignum-truncate)
           (symbol-function 'orig-bignum-truncate))
@@ -806,11 +806,11 @@
           (symbol-function 'orig-bignum-truncate))
     (setf (symbol-function 'sb-bignum::bignum-gcd)
           (symbol-function 'orig-bignum-gcd))
-    (sb-ext:lock-package "SB-BIGNUM"))
+    (sb-ext:lock-package "SB-BIGNUM")
     (sb-ext:unlock-package "COMMON-LISP")
     (setf (symbol-function 'common-lisp:isqrt)
           (symbol-function 'orig-isqrt))
-    (sb-ext:lock-package "COMMON-LISP")
+    (sb-ext:lock-package "COMMON-LISP"))
 
 )
 
@@ -819,7 +819,8 @@
         (if (ignore-errors (|quiet_load_alien| "libgmp.so") t)
             (if (ignore-errors
                     (|quiet_load_alien| wrapper-lib) t)
-                 (install-gmp-multiplication)
-                 (setf *gmp-multiplication-initialized* t)))))
+                (progn
+                    (install-gmp-multiplication)
+                    (setf *gmp-multiplication-initialized* t))))))
 
 )

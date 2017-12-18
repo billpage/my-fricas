@@ -12,14 +12,6 @@ zeroOf(d^2+d+1,d)
 rootOf(e^5-2,e)
 zeroOf(f^5-2,f)
 
--- Input for page PolynomialGCDPage
-)clear all
-
-p := 3*x^8 + 2*x^7 + 6*x^2 + 7*x + 2
-q := 2*x^13 + 9*x^7 + 2*x^6 + 10*x + 5
-gcd(p,q)
-resultant(p,q,x)
-
 -- Input for page PolynomialSubstitutionPage
 )clear all
 
@@ -38,8 +30,8 @@ factor(x^3 - 3*x + 2)
 factor(x^2/4 + x*y + y^2)
 p := x^3 + x*y + 2*x^2*y^2 + 2*y^3 + 3*x^2*z + 6*x*y^2*z
 factors := factor p
-nthFactor(factors,1)
-nthFactor(factors,2)
+factorList(factors).1.fctr
+factorList(factors).2.fctr
 
 -- Input for page PolynomialBasicPage
 )clear all

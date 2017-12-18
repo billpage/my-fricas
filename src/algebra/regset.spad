@@ -1,7 +1,6 @@
 )abbrev category RSETCAT RegularTriangularSetCategory
 ++ Author: Marc Moreno Maza
 ++ Date Created: 09/03/1998
-++ Date Last Updated: 12/15/1998
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See: essai Graphisme
@@ -52,7 +51,7 @@
 ++  [2] M. KALKBRENER "Algorithmic properties of polynomial rings"
 ++      Journal of Symbol. Comp. 1998
 ++  [3] P. AUBRY, D. LAZARD and M. MORENO MAZA "On the Theories
-++      of Triangular Sets" Journal of Symbol. Comp. (to appear)
+++      of Triangular Sets" Journal of Symbol. Comp. 28:105-124, 1999.
 ++  [4] M. MORENO MAZA "A new algorithm for computing triangular
 ++      decomposition of algebraic varieties" NAG Tech. Rep. 4/98.
 ++ Version: 2
@@ -343,7 +342,6 @@ RegularTriangularSetCategory(R : GcdDomain, E : OrderedAbelianMonoidSup, _
 ++ Author: Marc Moreno Maza
 ++   marc@nag.co.uk
 ++ Date Created: 08/30/1998
-++ Date Last Updated: 12/16/1998
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See: `tosedom.spad'
@@ -719,7 +717,6 @@ QuasiComponentPackage(R, E, V, P, TS) : Exports == Implementation where
 )abbrev package RSETGCD RegularTriangularSetGcdPackage
 ++ Author: Marc Moreno Maza (marc@nag.co.uk)
 ++ Date Created: 08/30/1998
-++ Date Last Updated: 12/15/1998
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -739,7 +736,7 @@ QuasiComponentPackage(R, E, V, P, TS) : Exports == Implementation where
 ++      decomposition of algebraic varieties" NAG Tech. Rep. 4/98.
 ++ Version: 4.
 -- There is large overlap with SquareFreeRegularTriangularSetGcdPackage
--- TODO: check if the current package is redundant
+-- TODO: check if the current package is redundant id:716
 
 RegularTriangularSetGcdPackage(R, E, V, P, TS) : Exports == Implementation where
 
@@ -937,7 +934,6 @@ RegularTriangularSetGcdPackage(R, E, V, P, TS) : Exports == Implementation where
      -- ASSUME p is not constant and mvar(p) > mvar(ts)
      -- ASSUME init(p) is invertible w.r.t. ts
      -- ASSUME p is mainly primitive
---       one? mdeg(p) => [[p, ts]$PWT]
        mdeg(p) = 1 => [[p, ts]$PWT]
        v := mvar(p)$P
        q : P := mainPrimitivePart D(p, v)
@@ -1075,7 +1071,6 @@ RegularTriangularSetGcdPackage(R, E, V, P, TS) : Exports == Implementation where
 )abbrev package RSDCMPK RegularSetDecompositionPackage
 ++ Author: Marc Moreno Maza
 ++ Date Created: 09/16/1998
-++ Date Last Updated: 12/16/1998
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1106,7 +1101,7 @@ RegularTriangularSetGcdPackage(R, E, V, P, TS) : Exports == Implementation where
 ++ Version: 5. Same as 4 but Does NOT use any unproved criteria.
 
 -- Very similar to SquareFreeRegularSetDecompositionPackage
--- TODO: Check if this package is redundant
+-- TODO: Check if this package is redundant id:717
 
 RegularSetDecompositionPackage(R, E, V, P, TS) : Exports == Implementation where
 
@@ -1362,7 +1357,6 @@ in order to produce decompositions by means of Lazard triangular sets.
 )abbrev domain REGSET RegularTriangularSet
 ++ Author: Marc Moreno Maza
 ++ Date Created: 08/25/1998
-++ Date Last Updated: 16/12/1998
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1673,7 +1667,6 @@ RegularTriangularSet(R, E, V, P) : Exports == Implementation where
        lts : List(%) := []
        (numberOfVariables(lp, lts)$regsetdecomppack :: Z - #lp :: Z) < 2
 
---     lin?(p: P): Boolean == ground?(init(p)) and one?(mdeg(p))
      lin?(p : P) : Boolean == ground?(init(p)) and (mdeg(p) = 1)
 
      pre_process(lp : LP, clos? : B, info? : B) : Record(val : LP, towers : Split) ==

@@ -1,7 +1,6 @@
 )abbrev package INTSLPE IntegerSolveLinearPolynomialEquation
 ++ Author: Davenport
 ++ Date Created: 1991
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -45,16 +44,15 @@ IntegerSolveLinearPolynomialEquation() : C ==T
 
 )abbrev domain INT Integer
 ++ Author:
-++ Date Created:
-++ Change History:
 ++ Basic Operations:
 ++ Related Constructors:
 ++ Keywords: integer
 ++ Description: \spadtype{Integer} provides the domain of arbitrary precision
 ++ integers.
 
-Integer : Join(IntegerNumberSystem, ConvertibleTo String, OpenMath, _
-    PolynomialFactorizationExplicit, Canonical, canonicalsClosed) with
+Integer : Join(IntegerNumberSystem, LinearlyExplicitOver Integer,
+               PolynomialFactorizationExplicit, ConvertibleTo String,
+               OpenMath, Canonical, canonicalsClosed) with
     random   : % -> %
       ++ random(n) returns a random integer from 0 to \spad{n-1}.
  == add
@@ -80,7 +78,6 @@ Integer : Join(IntegerNumberSystem, ConvertibleTo String, OpenMath, _
           OMputEndObject(dev)
 
       zero? x == ZEROP(x)$Lisp
---      one? x == ONEP(x)$Lisp
       one? x == x = 1
       0 == 0$Lisp
       1 == 1$Lisp
@@ -108,7 +105,7 @@ Integer : Join(IntegerNumberSystem, ConvertibleTo String, OpenMath, _
 
       latex(x : %) : String ==
         s : String := string(x pretend Integer)$String
-        (-1 < (x pretend Integer)) and ((x  pretend Integer) < 10) => s
+        (0 <= (x pretend Integer)) and ((x pretend Integer) < 10) => s
         concat("{", concat(s, "}")$String)$String
 
       positiveRemainder(a, b) ==
@@ -125,8 +122,6 @@ Integer : Join(IntegerNumberSystem, ConvertibleTo String, OpenMath, _
         [m pretend Matrix(Integer), vec pretend Vector(Integer)]
 
       abs(x) == ABS(x)$Lisp
--- FIXME: strange random distribution used (#227).
-      random() == random()$Lisp
       random(x) == RANDOM(x)$Lisp
       x = y == EQL(x, y)$Lisp
       x < y == (x<y)$Lisp
@@ -150,7 +145,6 @@ Integer : Join(IntegerNumberSystem, ConvertibleTo String, OpenMath, _
          z : SExpression := INTEXQUO(x, y)$Lisp
          integer?(z) => z pretend %
          "failed"
---      recip(x) == if one? x or x=-1 then x else "failed"
       recip(x) == if (x = 1) or x=-1 then x else "failed"
       gcd(x, y) == GCD(x, y)$Lisp
       UCA ==> Record(unit : %, canonical : %, associate : %)
@@ -193,15 +187,13 @@ Integer : Join(IntegerNumberSystem, ConvertibleTo String, OpenMath, _
 
 )abbrev domain NNI NonNegativeInteger
 ++ Author:
-++ Date Created:
-++ Change History:
 ++ Basic Operations:
 ++ Related Constructors:
 ++ Keywords: integer
 ++ Description: \spadtype{NonNegativeInteger} provides functions for non
 ++   negative integers.
 NonNegativeInteger : Join(OrderedAbelianMonoidSup, SemiRing,
-                         CommutativeStar) with
+                          CommutativeStar, ConvertibleTo InputForm) with
             _quo : (%, %) -> %
               ++ a quo b returns the quotient of \spad{a} and b, forgetting
               ++ the remainder.
@@ -239,14 +231,13 @@ NonNegativeInteger : Join(OrderedAbelianMonoidSup, SemiRing,
 
 )abbrev domain PI PositiveInteger
 ++ Author:
-++ Date Created:
-++ Change History:
 ++ Basic Operations:
 ++ Related Constructors:
 ++ Keywords: positive integer
 ++ Description: \spadtype{PositiveInteger} provides functions for
 ++   positive integers.
-PositiveInteger : Join(OrderedAbelianSemiGroup, Monoid, CommutativeStar) with
+PositiveInteger : Join(OrderedAbelianSemiGroup, Monoid, CommutativeStar,
+                       ConvertibleTo InputForm) with
             gcd : (%, %) -> %
               ++ gcd(a, b) computes the greatest common divisor of two
               ++ positive integers \spad{a} and b.
@@ -261,8 +252,6 @@ PositiveInteger : Join(OrderedAbelianSemiGroup, Monoid, CommutativeStar) with
 
 )abbrev domain ROMAN RomanNumeral
 ++ Author:
-++ Date Created:
-++ Change History:
 ++ Basic Operations:
 ++   convert, roman
 ++ Related Constructors:

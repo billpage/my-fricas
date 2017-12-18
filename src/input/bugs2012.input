@@ -13,9 +13,6 @@ xftestTrue("ld:=primaryDecomp ideal l ; true")
 testcase "hypergeometricF at 0"
 testEquals("eval(hypergeometricF([], [c], z), z=0)", "1")
 
-testcase "random"
-testTrue("random()$SingleInteger; true")
-
 testcase "normalize constant logs"
 l1 := log(4 + 2*sqrt(3))
 l2 := log(10 + 6*sqrt(3))
@@ -107,10 +104,9 @@ testEquals("a1 - a2", "0")
 
 testcase "equality of rootOf"
 
-iAN := InnerAlgebraicNumber
 rr3 := rootOf((x^3 - 3*x  + 5)::SUP(Integer))
 rr4 := rootOf((x^3 - 3*x  + 5)::SUP(Integer))
-testTrue("(rr3 pretend iAN = rr4 pretend iAN)@Boolean")
+testTrue("(rr3 pretend AN = rr4 pretend AN)@Boolean")
 
 testcase "bad reduction in PGCD"
 

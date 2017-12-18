@@ -1,7 +1,6 @@
 )abbrev package IBPTOOLS IntegralBasisPolynomialTools
 ++ Author: Clifton Williamson
 ++ Date Created: 13 August 1993
-++ Date Last Updated: 17 August 1993
 ++ Basic Operations: mapUnivariate, mapBivariate
 ++ Related Domains: PAdicWildFunctionFieldIntegralBasis(K, R, UP, F)
 ++ Also See: WildFunctionFieldIntegralBasis, FunctionFieldIntegralBasis
@@ -89,7 +88,6 @@ IntegralBasisPolynomialTools(K, R, UP, L) : Exports == Implementation where
 )abbrev package IBACHIN ChineseRemainderToolsForIntegralBases
 ++ Author: Clifton Williamson
 ++ Date Created: 9 August 1993
-++ Date Last Updated: 3 December 1993
 ++ Basic Operations: chineseRemainder, factorList
 ++ Related Domains: PAdicWildFunctionFieldIntegralBasis(K, R, UP, F)
 ++ Also See: WildFunctionFieldIntegralBasis, FunctionFieldIntegralBasis
@@ -190,7 +188,6 @@ ChineseRemainderToolsForIntegralBases(K, R, UP) : Exports == Implementation wher
       fBar : SUP sae := map((r1 : R) : sae +-> convert(r1)@sae, fSUP)$SUP2(R, sae)
       gBar : SUP sae := map((r1 : R) : sae +-> convert(r1)@sae, gSUP)$SUP2(R, sae)
       ee := extendedEuclidean(fBar, gBar)
---      not one?(ee.generator) =>
       not (ee.generator = 1) =>
         error "polynomials aren't relatively prime"
       ss1 := ee.coef1; tt1 := ee.coef2
@@ -230,9 +227,9 @@ ChineseRemainderToolsForIntegralBases(K, R, UP) : Exports == Implementation wher
       --q := map((numer(#1) rem den)/1, q)
       -- 'den' is a power of an irreducible polynomial
       --!! make this computation more efficient!!
-      factoredDen := factor(den)$DDFACT(K, R)
-      prime := nthFactor(factoredDen, 1)
-      n := nthExponent(factoredDen, 1) :: NNI
+      factoredDen := factorList factor(den)$DDFACT(K, R)
+      prime := first(factoredDen).fctr
+      n := first(factoredDen).xpnt :: NNI
       invPoly := approximateExtendedEuclidean(q, p, prime, n).coef1
       -- monicDivide may be inefficient?
       [monicDivide(pp * invPoly * q, p * q).remainder for pp in list]
@@ -264,7 +261,6 @@ ChineseRemainderToolsForIntegralBases(K, R, UP) : Exports == Implementation wher
 )abbrev package PWFFINTB PAdicWildFunctionFieldIntegralBasis
 ++ Author: Clifton Williamson
 ++ Date Created: 5 July 1993
-++ Date Last Updated: 17 August 1993
 ++ Basic Operations: integralBasis, localIntegralBasis
 ++ Related Domains: WildFunctionFieldIntegralBasis(K, R, UP, F)
 ++ Also See: FunctionFieldIntegralBasis

@@ -2,7 +2,6 @@
 ++ Basic system operators
 ++ Author: Manuel Bronstein
 ++ Date Created: 22 March 1988
-++ Date Last Updated: 11 October 1993
 ++ Description:
 ++   A basic operator is an object that can be applied to a list of
 ++   arguments from a set, the result being a kernel over that set.
@@ -132,7 +131,6 @@ BasicOperator() : Exports == Implementation where
     oper(se, n, prop)    == [se, n, prop]
     weight(op, n)        == setProperty(op, WEIGHT, n pretend None)
     nullary? op          == zero?(op.narg)
---    unary? op            == one?(op.narg)
     unary? op            == ((op.narg) = 1)
     nary? op             == negative?(op.narg)
     equality(op, func)   == setProperty(op, EQUAL?, func pretend None)
@@ -180,8 +178,8 @@ BasicOperator() : Exports == Implementation where
       (EQ$Lisp)(op1, op2) => true
       name(op1) ~= name(op2) => false
       op1.narg ~= op2.narg => false
+      set(keys properties op1) ~=$Set(Symbol) set(keys properties op2) => false
       -- Should equality of operators depend on properties???
-      brace(keys properties op1) ~=$Set(Symbol) brace(keys properties op2) => false
       (func := property(op1, EQUAL?)) case None =>
                    ((func::None) pretend ((%, %) -> Boolean)) (op1, op2)
       true
@@ -198,9 +196,9 @@ BasicOperator() : Exports == Implementation where
       (w1 := weight op1) ~= (w2 := weight op2) => w1 < w2
       op1.narg ~= op2.narg => op1.narg < op2.narg
       name(op1) ~= name(op2) => name(op1) < name(op2)
+      n1 := #(k1 := set(keys(properties op1))$Set(Symbol))
+      n2 := #(k2 := set(keys(properties op2))$Set(Symbol))
       -- Should ordering of operators depend on properties??
-      n1 := #(k1 := brace(keys(properties op1))$Set(Symbol))
-      n2 := #(k2 := brace(keys(properties op2))$Set(Symbol))
       n1 ~= n2 => n1 < n2
       not zero?(n1 := #(d1 := difference(k1, k2))) =>
         n1 ~= (n2 := #(d2 := difference(k2, k1))) => n1 < n2
@@ -215,7 +213,6 @@ BasicOperator() : Exports == Implementation where
 ++ Tools to set/get common properties of operators
 ++ Author: Manuel Bronstein
 ++ Date Created: 28 Mar 1988
-++ Date Last Updated: 15 May 1990
 ++ Description:
 ++   This package exports functions to set some commonly used properties
 ++   of operators, including properties which contain functions.
@@ -333,7 +330,6 @@ BasicOperatorFunctions1(A : SetCategory) : Exports == Implementation where
 ++ Provides commonly used operators
 ++ Author: Manuel Bronstein
 ++ Date Created: 25 Mar 1988
-++ Date Last Updated: 2 December 1994
 ++ Description:
 ++ This package exports the elementary operators, with some semantics
 ++ already attached to them. The semantics that is attached here is not
@@ -395,8 +391,8 @@ CommonOperators() : Exports == Implementation where
     opacoth := operator('acoth, 1)
     opasech := operator('asech, 1)
     opacsch := operator('acsch, 1)
-    opbox   := operator('%box)$OP
-    oppren  := operator('%paren)$OP
+    opbox   := operator('%box, 1)$OP
+    oppren  := operator('%paren, 1)$OP
     opquote := operator('%quote)$OP
     opdiff  := operator('%diff, 3)
     opsi    := operator('Si, 1)

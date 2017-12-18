@@ -152,8 +152,9 @@ delete_current_char(void)
         if (buff_flag[curr_pntr] == 1 || buff_flag[curr_pntr] == 0) {
             myputchar(_BLANK);
             myputchar(_BKSPC);
-            strcpy(&buff[curr_pntr],
-                   &buff[curr_pntr + 1]);
+            memmove(&buff[curr_pntr],
+                    &buff[curr_pntr + 1],
+                    buff_pntr - curr_pntr - 1);
             flagcpy(&buff_flag[curr_pntr],
                     &buff_flag[curr_pntr + 1]);
             buff_pntr--;
@@ -165,8 +166,9 @@ delete_current_char(void)
             myputchar(_BLANK);
             myputchar(_BKSPC);
             myputchar(_BKSPC);
-            strcpy(&buff[curr_pntr],
-                   &buff[curr_pntr + 2]);
+            memmove(&buff[curr_pntr],
+                    &buff[curr_pntr + 2],
+                    buff_pntr - curr_pntr - 2);
             flagcpy(&buff_flag[curr_pntr],
                     &buff_flag[curr_pntr + 2]);
             buff_pntr -= 2;
@@ -380,8 +382,8 @@ back_over_current_char(void)
             myputchar(_BLANK);
             myputchar(_BKSPC);
             myputchar(_BKSPC);
-            strcpy(&buff[curr_pntr - 2],
-                   &buff[curr_pntr]);
+            memmove(&buff[curr_pntr - 2],
+                   &buff[curr_pntr], buff_pntr - curr_pntr);
             flagcpy(&buff_flag[curr_pntr - 2],
                     &buff_flag[curr_pntr]);
             buff_pntr -= 2;
@@ -392,8 +394,8 @@ back_over_current_char(void)
             myputchar(_BKSPC);
             myputchar(_BLANK);
             myputchar(_BKSPC);
-            strcpy(&buff[curr_pntr - 1],
-                   &buff[curr_pntr]);
+            memmove(&buff[curr_pntr - 1],
+                   &buff[curr_pntr], buff_pntr - curr_pntr);
             flagcpy(&buff_flag[curr_pntr - 1],
                     &buff_flag[curr_pntr]);
             curr_pntr--;

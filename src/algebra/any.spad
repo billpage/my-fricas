@@ -1,7 +1,5 @@
 )abbrev domain NONE None
 ++ Author:
-++ Date Created:
-++ Change History:
 ++ Basic Functions: coerce
 ++ Related Constructors: NoneFunctions1
 ++ Also See: Any
@@ -15,13 +13,11 @@
 ++    code).
 
 None() : SetCategory == add
-    coerce(none:%):OutputForm == "NONE" :: OutputForm
+    coerce(none : %) : OutputForm == message("NONE")
     x : % = y : % == EQ(x, y)$Lisp
 
 )abbrev package NONE1 NoneFunctions1
 ++ Author:
-++ Date Created:
-++ Change History:
 ++ Basic Functions: coerce
 ++ Related Constructors: None
 ++ Also See:
@@ -29,7 +25,7 @@ None() : SetCategory == add
 ++ Keywords:
 ++ Description:
 ++   \spadtype{NoneFunctions1} implements functions on \spadtype{None}.
-++   It particular it includes a particulary dangerous coercion from
+++   It includes a particularly dangerous coercion from
 ++   any other type to \spadtype{None}.
 
 NoneFunctions1(S : Type) : Exports == Implementation where
@@ -43,8 +39,6 @@ NoneFunctions1(S : Type) : Exports == Implementation where
 
 )abbrev domain ANY Any
 ++ Author: Robert S. Sutor
-++ Date Created:
-++ Change History:
 ++ Basic Functions: any, domainOf, objectOf, dom, obj, showTypeInOutput
 ++ Related Constructors: AnyFunctions1
 ++ Also See: None
@@ -62,8 +56,8 @@ NoneFunctions1(S : Type) : Exports == Implementation where
 Any() : SetCategory with
         any             : (SExpression, None) -> %
           ++ any(type, object) is a technical function for creating
-          ++ an object of \spadtype{Any}. Arugment \spad{type} is a \spadgloss{LISP} form
-          ++ for the type of \spad{object}.
+          ++ an object of \spadtype{Any}. Argument \spad{type} is
+          ++ a \spadgloss{LISP} form for the type of \spad{object}.
         domainOf        : % -> OutputForm
           ++ domainOf(a) returns a printable form of the type of the
           ++ original object that was converted to \spadtype{Any}.
@@ -91,7 +85,7 @@ Any() : SetCategory with
 
      obj x      == x.ob
      dom x      == x.dm
-     domainOf x == x.dm pretend OutputForm
+     domainOf(x) == typeToOutputForm(x.dm)$Lisp
      x = y      ==
          dx := dom x
          dy := dom y
@@ -99,7 +93,7 @@ Any() : SetCategory with
          Dx : Type := evalType(dx)$Lisp
          Dx has BasicType =>
              (obj x) pretend Dx = (obj y) pretend Dx
-         -- FIXME: we want
+         -- FIXME: we want id:605
          -- error "Comparison in domain which is not a BasicType"
          -- but currently pattern matching needs
          EQ(obj x, obj y)$Lisp
@@ -120,7 +114,7 @@ Any() : SetCategory with
              p : SExpression := prefix2String(devaluate(x.dm)$Lisp)$Lisp
              atom?(p) => list(p pretend OutputForm)$List(OutputForm)
              p pretend List(OutputForm)
-         hconcat cons(obj1, cons(":"::OutputForm, dom1))
+         hconcat cons(obj1, cons(message(":"), dom1))
 
      any(domain, object) ==
        (isValidType(domain)$Lisp)@Boolean => [domain, object]
@@ -130,8 +124,6 @@ Any() : SetCategory with
 
 )abbrev package ANY1 AnyFunctions1
 ++ Author:
-++ Date Created:
-++ Change History:
 ++ Basic Functions:  coerce, retractIfCan, retractable?, retract
 ++ Related Constructors: Any
 ++ Also See:
@@ -180,7 +172,6 @@ AnyFunctions1(S : Type) : with
 -- and are known to the compiler and interpreter for type resolution.
 ++ Author: Stephen M. Watt
 ++ Date Created: 1986
-++ Date Last Updated: May 30, 1991
 ++ Basic Operations:
 ++ Related Domains: ErrorFunctions, ResolveLatticeCompletion, Exit
 ++ Also See:
@@ -206,7 +197,6 @@ Void : with
 )abbrev domain EXIT Exit
 ++ Author: Stephen M. Watt
 ++ Date Created: 1986
-++ Date Last Updated: May 30, 1991
 ++ Basic Operations:
 ++ Related Domains: ErrorFunctions, ResolveLatticeCompletion, Void
 ++ Also See:
@@ -228,7 +218,6 @@ Exit : SetCategory == add
 )abbrev package RESLATC ResolveLatticeCompletion
 ++ Author: Stephen M. Watt
 ++ Date Created: 1986
-++ Date Last Updated: May 30, 1991
 ++ Basic Operations:
 ++ Related Domains: ErrorFunctions, Exit, Void
 ++ Also See:

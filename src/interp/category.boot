@@ -95,8 +95,8 @@ sigParams(sigList) ==
 --   attList              - list of all conditional ancestors
 --   PrincipalAncestor    - principal ancestor (if any)
 mkCategory(sigList, attList, domList, PrincipalAncestor) ==
-  NSigList:= nil
-  if PrincipalAncestor=nil then count:= 6 else count:= SIZE PrincipalAncestor
+  NSigList := nil
+  count := 6
   sigList:=
     [if s is [sig,pred]
        then
@@ -113,18 +113,15 @@ mkCategory(sigList, attList, domList, PrincipalAncestor) ==
      repeat NewLocals:= delete(first u,NewLocals)
   for u in NewLocals repeat
     (OldLocals:= [[u,:count],:OldLocals]; count:= count+1)
-  v:= GETREFV count
+  v:= GETREFV 6
   v.(0):= nil
   v.(1):= sigList
   v.2:= attList
   v.3:= ["Category"]
-  if not PrincipalAncestor=nil
-     then
-      for x in 6..SIZE PrincipalAncestor-1 repeat v.x:= PrincipalAncestor.x
-      v.4:= [first PrincipalAncestor.4,CADR PrincipalAncestor.4,OldLocals]
-   else v.4:= [nil,nil,OldLocals] --associated categories and domains
+  if not(PrincipalAncestor = nil) then
+      v.4 := [first PrincipalAncestor.4, CADR PrincipalAncestor.4, OldLocals]
+   else v.4 := [nil,nil,OldLocals] --associated categories and domains
   v.5:= domList
-  for [nsig,:sequence] in NSigList repeat v.sequence:= nsig
   v
 
 isCategory a == REFVECP a and #a>5 and a.3=["Category"]
@@ -140,10 +137,8 @@ DropImplementations (a is [sig,pred,:implem]) ==
 SigListUnion(extra,original) ==
   --augments original with everything in extra that is not in original
   for (o:=[[ofn,osig,:.],opred,:.]) in original repeat
-    -- The purpose of this loop is to detect cases when the
-    -- original list contains, e.g. ** with NonNegativeIntegers, and
-    -- the extra list would like to add ** with PositiveIntegers.
-    -- The PI map is therefore given an implementation of "Subsumed"
+    -- The purpose of this loop is to detect cases when
+    -- original list already contains given operation
     for x in SigListOpSubsume(o,extra) repeat
       [[xfn,xsig,:.],xpred,:.]:=x
       xfn=ofn and xsig=osig =>
@@ -151,42 +146,16 @@ SigListUnion(extra,original) ==
         xpred=opred => extra:= delete(x,extra)
              --same signature and same predicate
         opred = true => extra:= delete(x,extra)
-   -- PRETTYPRINT ("we ought to subsume",x,o)
-      not MachineLevelSubsume(QCAR o,QCAR x) =>
-         '"Source level subsumption not implemented"
-      extra:= delete(x,extra)
   for e in extra repeat
-    [esig,epred,:.]:= e
-    eimplem:=[]
-    for x in SigListOpSubsume(e,original) repeat
+      [esig, epred, :.] := e
+      for x in SigListOpSubsume(e, original) repeat
         --PRETTYPRINT(LIST("SigListOpSubsume",e,x))
-      not MachineLevelSubsume(QCAR e,QCAR x) =>
-        --systemError '"Source level subsumption not implemented"
-        original:= [e,:original]
-        return nil -- this exits from the innermost for loop
-      original:= delete(x,original)
-      [xsig,xpred,:ximplem]:= x
---      if xsig ~= esig then   -- not quite strong enough
-      if first xsig ~= first esig or CADR xsig ~= CADR esig then
--- the new version won't get confused by "constant"markers
-         if ximplem is [["Subsumed",:.],:.] then
-            original := [x,:original]
-          else
-            original:= [[xsig,xpred,["Subsumed",:esig]],:original]
-       else epred:=mkOr(epred,xpred)
--- this used always to be done, as noted below, but that's not safe
-      if not(ximplem is [["Subsumed",:.],:.]) then eimplem:= ximplem
-      if eimplem then esig := [first esig, CADR esig]
-           -- in case there's a constant marker
-      e:= [esig,epred,:eimplem]
---    e:= [esig,mkOr(xpred,epred),:ximplem]
--- Original version -gets it wrong if the new operator is only
--- present under certain conditions
-        -- We must pick up the previous implementation, if any
---+
-      if ximplem is [[q,.,index]] and INTEGERP index and (q="ELT" or q="CONST")
-        then $NewCatVec. index:= e
-    original:= [e,:original]
+          original := delete(x,original)
+          [xsig, xpred, :ximplem] := x
+          if ximplem then esig := [first esig, CADR esig]
+             -- in case there's a constant marker
+          e := [esig, mkOr(epred, xpred), :ximplem]
+      original := [e, :original]
   original
 
 mkOr(a,b) ==
@@ -301,26 +270,6 @@ SourceLevelSubset(a,b) ==
   a=b => true
   false
 
-MachineLevelSubsume([name1,[out1,:in1],:flag1],[name2,[out2,:in2],:flag2]) ==
-  -- Checks for machine-level subsumption in the sense of SYSTEM SCRIPT
-  --  true if the first signature subsumes the second
-  --  flag1 = flag2 and: this really should be checked, but
-  name1=name2 and MachineLevelSubset(out1,out2) and
-    (and/[MachineLevelSubset(inarg2,inarg1) for inarg1 in in1 for inarg2 in in2]
-      )
-
-MachineLevelSubset(a,b) ==
-  --true if a is a machine-level subset of b
-  a=b => true
-  b is ["Union",:blist] and member(a,blist) and
-    (and/[STRINGP x for x in blist | x~=a]) => true
-           --all other branches must be distinct objects
-  SYMBOLP(b) and assoc(a, GET(b, "Subsets")) => true
-  a is [a1] and b is [b1] and SYMBOLP(b1) and
-    assoc(a1, GET(b1, "Subsets")) => true
-             --we assume all subsets are true at the machine level
-  nil
-
 --% Ancestor chasing code
 
 get_cond(x) ==
@@ -390,13 +339,46 @@ DescendantP(a,b) ==
   AncestorP(b,[first u for u in CADR a.4]) => true
   nil
 
+
+simplify_cond1(catname, cond) ==
+    -- FIXME: this is ugly hack to get around compiler bug. id:661
+    -- Namely, sometimes '$' is not what it should be...
+    $compForModeIfTrue => cond
+    cond is ["has", "$", =catname] => nil
+    cond is ["OR", :l] =>
+        rl := []
+        for c1 in l repeat
+            nc := simplify_cond1(catname, c1)
+            not(nc) => "iterate"
+            rl := cons(nc, rl)
+        rl = [] => nil
+        #rl = 1 => first(rl)
+        ["OR", :rl]
+    cond is ["AND", :l] =>
+        rl := []
+        for c1 in l repeat
+            nc := simplify_cond1(catname, c1)
+            not(nc) =>
+                rl := [nil]
+                return nil
+            rl := cons(nc, rl)
+        rl = [] => true
+        #rl = 1 => first(rl)
+        ["AND", :rl]
+    cond
+
+simplify_cond2(vec, cond) ==
+    vec.(0) = nil => cond
+    simplify_cond1(vec.(0), cond)
+
 --% The implementation of Join
 
 -- given uncoditinal category vec0 and list of categories
 -- with associated conditions l produce fundamental ancestors
 -- of the join of vec0 and l
 join_fundamental_ancestors(vec0, l) ==
-  FundamentalAncestors := [[first x, get_cond(x)] for x in CADR vec0.4]
+  FundamentalAncestors := [[v, c] for x in CADR vec0.4 | (v := first x;
+                              c := simplify_cond2(v, get_cond(x)))]
   if vec0.(0) then FundamentalAncestors:=
     [[vec0.(0)],:FundamentalAncestors]
                     --principal ancestor . all those already included
@@ -408,6 +390,8 @@ join_fundamental_ancestors(vec0, l) ==
     if not (b.(0)=nil) then
                    --It's a named category
       bname:= b.(0)
+      condition := simplify_cond1(bname, condition)
+      not(condition) => "iterate"
       CondAncestorP(bname,FundamentalAncestors,condition) => nil
       if (uu := ASSQ(bname, FundamentalAncestors)) then
           FundamentalAncestors := delete(uu, FundamentalAncestors)
@@ -427,9 +411,8 @@ join_fundamental_ancestors(vec0, l) ==
   FundamentalAncestors
 
 JoinInner(l,$e) ==
-  $NewCatVec: local := nil
+  NewCatVec := nil
   CondList := nil
-  CondList2 := nil
   for u in l repeat
     for at in u.2 repeat
       at2:= first at
@@ -442,14 +425,14 @@ JoinInner(l,$e) ==
           --It's true, so we add this as unconditional
       -- not (pred is ["and",:.]) => CondList:= [[CatEval at2,pred],:CondList]
       CondList:= [[CatEval at2,pred],:CondList]
-  [$NewCatVec,:l]:= l
+  [NewCatVec, :l] := l
   l':= [:CondList,:[[u,true] for u in l]]
     -- This is a list of all the categories that this extends
     -- conditionally or unconditionally
-  sigl:= $NewCatVec.(1)
-  globalDomains:= $NewCatVec.5
-  $NewCatVec:= COPY_-SEQ $NewCatVec
-  FundamentalAncestors := join_fundamental_ancestors($NewCatVec, l')
+  sigl := NewCatVec.(1)
+  globalDomains := NewCatVec.5
+  NewCatVec := COPY_-SEQ NewCatVec
+  FundamentalAncestors := join_fundamental_ancestors(NewCatVec, l')
 
   for b in l repeat
     sigl:= SigListUnion([DropImplementations u for u in b.(1)],sigl)
@@ -463,15 +446,15 @@ JoinInner(l,$e) ==
             newpred=true => op
             oldpred=true => [sig,newpred,:implem]
             [sig,MKPF([oldpred,newpred],"and"),:implem]
-  c:= first $NewCatVec.4
-  pName:= $NewCatVec.(0)
+  c := first NewCatVec.4
+  pName := NewCatVec.(0)
   if pName and not member(pName,c) then c:= [pName,:c]
   -- strip out the pointer to Principal Ancestor
   if pName then
       FundamentalAncestors :=
           [x for x in FundamentalAncestors | first(x) ~= pName]
-  $NewCatVec.4:= [c,FundamentalAncestors,CADDR $NewCatVec.4]
-  mkCategory(sigl, nil, globalDomains, $NewCatVec)
+  NewCatVec.4 := [c,FundamentalAncestors, CADDR NewCatVec.4]
+  mkCategory(sigl, nil, globalDomains, NewCatVec)
 
 Join(:L) ==
   env :=

@@ -1,7 +1,5 @@
 )abbrev category COMPCAT ComplexCategory
 ++ Author:
-++ Date Created:
-++ Date Last Updated: 18 March 1994
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -14,7 +12,7 @@
 ComplexCategory(R : CommutativeRing) : Category ==
   Join(MonogenicAlgebra(R, SparseUnivariatePolynomial R), FullyRetractableTo R,
    DifferentialExtension R, FullyEvalableOver R, FullyPatternMatchable(R),
-    Patternable(R), FullyLinearlyExplicitRingOver R, CommutativeRing) with
+    Patternable(R), FullyLinearlyExplicitOver R, CommutativeRing) with
      imaginary :   () -> %          ++ imaginary() = sqrt(-1) = %i.
      conjugate :   % -> %           ++ conjugate(x + %i y) returns x - %i y.
      complex  :   (R, R) -> %      ++ complex(x, y) constructs x + %i*y.
@@ -180,9 +178,7 @@ ComplexCategory(R : CommutativeRing) : Category ==
          zero? i => re
          outi := '%i::OutputForm
          ip :=
---           one? i => outi
            (i = 1) => outi
---           one?(-i) => -outi
            ((-i) = 1) => -outi
            ie * outi
          zero? r => ip
@@ -265,7 +261,6 @@ ComplexCategory(R : CommutativeRing) : Category ==
 
        if R has IntegralDomain then
          _exquo(x : %, r : R) ==
---           one? r => x
            (r = 1) => x
            (r1 := real(x) exquo r) case "failed" => "failed"
            (r2 := imag(x) exquo r) case "failed" => "failed"
@@ -481,7 +476,6 @@ ComplexCategory(R : CommutativeRing) : Category ==
 )abbrev package COMPLPAT ComplexPattern
 ++ Author: Barry Trager
 ++ Date Created: 30 Nov 1995
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -509,7 +503,6 @@ ComplexPattern(R, S, CS) : C == T where
 )abbrev package CPMATCH ComplexPatternMatch
 ++ Author: Barry Trager
 ++ Date Created: 30 Nov 1995
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -557,8 +550,6 @@ ComplexPatternMatch(R, S, CS) : C == T where
 
 )abbrev domain COMPLEX Complex
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -598,7 +589,6 @@ Complex(R : CommutativeRing) : ComplexCategory(R) with
        0                == [0, 0]
        1                == [1, 0]
        zero? x          == zero?(x.real) and zero?(x.imag)
---       one? x           == one?(x.real) and zero?(x.imag)
        one? x           == ((x.real) = 1) and zero?(x.imag)
        coerce(r : R) : %    == [r, 0]
        complex(r, i)   == [r, i]
@@ -626,8 +616,6 @@ Complex(R : CommutativeRing) : ComplexCategory(R) with
 
 )abbrev package COMPLEX2 ComplexFunctions2
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -646,7 +634,6 @@ ComplexFunctions2(R : CommutativeRing, S : CommutativeRing) : with
 )abbrev package CINTSLPE ComplexIntegerSolveLinearPolynomialEquation
 ++ Author: James Davenport
 ++ Date Created: 1990
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:

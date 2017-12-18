@@ -1,7 +1,6 @@
 )abbrev domain QALGSET QuasiAlgebraicSet
 ++ Author:  William Sit
 ++ Date Created: March 13, 1992
-++ Date Last Updated: June 12, 1992
 ++ Basic Operations:
 ++ Related Constructors: GroebnerPackage
 ++ See Also: QuasiAlgebraicSet2
@@ -89,7 +88,8 @@ QuasiAlgebraicSet(R, Var, Expon, Dpoly) : C == T
        ++ forming a groebner basis, and the defining polynomial for the
        ++ inequation reduced with respect to the basis, using Buchberger's
        ++ algorithm.
-     if (R has EuclideanDomain) and (R has CharacteristicZero) then
+     if (R has PolynomialFactorizationExplicit) and
+        (R has CharacteristicZero) then
        simplify : % -> %
          ++ simplify(s) returns a different and presumably simpler
          ++ representation of s with the defining polynomials for the
@@ -113,7 +113,8 @@ QuasiAlgebraicSet(R, Var, Expon, Dpoly) : C == T
      oldpoly  : newPoly          ->  Union(Dpoly,"failed")
 
 
-     if (R has EuclideanDomain) and (R has CharacteristicZero) then
+     if (R has PolynomialFactorizationExplicit) and
+        (R has CharacteristicZero) then
        factorset (y : Dpoly) : List Dpoly ==
          ground? y => []
          [j.factor for j in factors factor$mrf  y]
@@ -143,9 +144,9 @@ QuasiAlgebraicSet(R, Var, Expon, Dpoly) : C == T
        monomial(leadingCoefficient q, second(dq))$Dpoly + (g::Dpoly)
 
      coerce x ==
-       x.status = true => "Empty"::Ex
-       bracket [[hconcat(f::Ex, " = 0"::Ex) for f in x.zero ]::Ex,
-                 hconcat( x.nzero::Ex, " != 0"::Ex)]
+       x.status = true => message("Empty")
+       bracket [[hconcat(f::Ex, message(" = 0")) for f in x.zero ]::Ex,
+                 hconcat( x.nzero::Ex, message(" != 0"))]
 
      empty? x ==
        if x.status case "failed" then x := idealSimplify x
@@ -167,7 +168,7 @@ QuasiAlgebraicSet(R, Var, Expon, Dpoly) : C == T
        tp : newPoly := (monomial(1, [1, 0$Expon])$newPoly * npoly n0) - 1
        ngb := groebner concat(tp, [npoly g for g in z0])
        member? (1$newPoly, ngb) => empty()
-       gb : List Dpoly := nil
+       gb : List Dpoly := []
        while not empty? ngb repeat
          if ((f := oldpoly ngb.first) case Dpoly) then gb := concat(f, gb)
          ngb := ngb.rest
@@ -180,12 +181,11 @@ QuasiAlgebraicSet(R, Var, Expon, Dpoly) : C == T
 
      overset?(p, qlist) ==
        empty? qlist => false
-       or/[(brace$(Set Dpoly) q) <$(Set Dpoly) (brace$(Set Dpoly) p) for q in qlist]
+       or/[(set$(Set Dpoly) q) <$(Set Dpoly) (set$(Set Dpoly) p) for q in qlist]
 
 )abbrev package QALGSET2 QuasiAlgebraicSet2
 ++ Author:  William Sit
 ++ Date Created: March 13, 1992
-++ Date Last Updated: June 12, 1992
 ++ Basic Operations:
 ++ Related Constructors: GroebnerPackage, IdealDecompositionPackage,
 ++                      PolynomialIdeal
@@ -282,7 +282,7 @@ QuasiAlgebraicSet2(vl) : C == T where
        id := ideal gen
        ngb := generators radical(id)
        member? (1$newPoly, ngb) => empty()$QALG
-       gb : List Dpoly := nil
+       gb : List Dpoly := []
        while not empty? ngb repeat
          if ((k := oldpoly ngb.first) case Dpoly) then gb := concat(k, gb)
          ngb := ngb.rest

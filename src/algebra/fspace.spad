@@ -2,7 +2,6 @@
 ++ Category for domains on which operators can be applied
 ++ Author: Manuel Bronstein
 ++ Date Created: 22 March 1988
-++ Date Last Updated: 27 May 1994
 ++ Description:
 ++ An expression space is a set which is closed under certain operators;
 ++ Keywords: operator, kernel, expression, space.
@@ -54,23 +53,11 @@ ExpressionSpace() : Category == Defn where
       ++ being evaluated when operators are applied to it. For example,
       ++ \spad{log(1)} returns 0, but \spad{log(box 1)}
       ++ returns the formal kernel log(1).
-    box          : List % -> %
-      ++ box([f1, ..., fn]) returns \spad{(f1, ..., fn)} with a 'box'
-      ++ around them that
-      ++ prevents the fi from being evaluated when operators are applied to
-      ++ them, and makes them applicable to a unary operator. For example,
-      ++ \spad{atan(box [x, 2])} returns the formal kernel \spad{atan(x, 2)}.
     paren        : % -> %
       ++ paren(f) returns (f). This prevents f from
       ++ being evaluated when operators are applied to it. For example,
       ++ \spad{log(1)} returns 0, but \spad{log(paren 1)} returns the
       ++ formal kernel log((1)).
-    paren        : List % -> %
-      ++ paren([f1, ..., fn]) returns \spad{(f1, ..., fn)}. This
-      ++ prevents the fi from being evaluated when operators are applied to
-      ++ them, and makes them applicable to a unary operator. For example,
-      ++ \spad{atan(paren [x, 2])} returns the formal
-      ++ kernel \spad{atan((x, 2))}.
     distribute   : % -> %
       ++ distribute(f) expands all the kernels in f that are
       ++ formally enclosed by a \spadfunFrom{box}{ExpressionSpace}
@@ -87,13 +74,13 @@ ExpressionSpace() : Category == Defn where
       ++ height equal to \spad{1 + max(height(f1), ..., height(fn))}.
     mainKernel   : %  -> Union(K, "failed")
       ++ mainKernel(f) returns a kernel of f with maximum nesting level, or
-      ++ if f has no kernels (i.e. f is a constant).
+      ++ "failed" if f has no kernels (i.e. f is a constant).
     kernels      : %  -> List K
       ++ kernels(f) returns the list of all the top-level kernels
       ++ appearing in f, but not the ones appearing in the arguments
       ++ of the top-level kernels.
     kernels : List(%) -> List K
-      ++ kernels(([f1,...,fn]) returns the list of all the top-level
+      ++ kernels([f1,...,fn]) returns the list of all the top-level
       ++ kernels appearing in f1, ..., fn but not the ones appearing
       ++ in the arguments of the top-level kernels.
     tower        : %  -> List K
@@ -193,8 +180,8 @@ ExpressionSpace() : Category == Defn where
     oppren := operator(PAREN)$CommonOperators()
     opbox  := operator(BOX)$CommonOperators()
 
-    box(x : %)     == box [x]
-    paren(x : %)   == paren [x]
+    box(x : %)     == opbox [x]
+    paren(x : %)   == oppren [x]
     belong? op   ==
         has?(op, 'any) and (is?(op, PAREN) or is?(op, BOX))
     listk f      == parts allKernels f
@@ -208,8 +195,12 @@ ExpressionSpace() : Category == Defn where
     freeOf?(x : %, s : SY)       == not member?(s, [name k for k in listk x])
     distribute x == unwrap([k for k in listk x |
                               is?(k, oppren) or is?(k, opbox)], x)
-    box(l : List %)                  == opbox l
-    paren(l : List %)                == oppren l
+
+    if % has Ring then
+
+        derivative(opbox, (x : %) : % +-> 1)$BasicOperatorFunctions1(%)
+        derivative(oppren, (x : %) : % +-> 1)$BasicOperatorFunctions1(%)
+
     freeOf?(x : %, k : %)              == not member?(retract k, listk x)
     kernel(op : OP, arg : %)           == kernel(op, [arg])
     elt(op : OP, x : %)                == op [x]
@@ -265,7 +256,7 @@ ExpressionSpace() : Category == Defn where
 -- arguments of rootOf's, integrals, sums and products which appear only in
 -- their first arguments
     allKernels f ==
-      s := brace(l := kernels f)
+      s := set(l := kernels f)
       for k in l repeat
           t :=
               (u := property(operator k, DUMMYVAR)) case None =>
@@ -360,7 +351,6 @@ ExpressionSpace() : Category == Defn where
 ++ Lifting of maps from expression spaces to kernels over them
 ++ Author: Manuel Bronstein
 ++ Date Created: 23 March 1988
-++ Date Last Updated: 19 April 1991
 ++ Description:
 ++   This package allows a map from any expression space into any object
 ++   to be lifted to a kernel over the expression set, using a given
@@ -383,7 +373,6 @@ ExpressionSpaceFunctions1(F : ExpressionSpace, S : Type) : with
 ++ Lifting of maps from expression spaces to kernels over them
 ++ Author: Manuel Bronstein
 ++ Date Created: 23 March 1988
-++ Date Last Updated: 19 April 1991
 ++ Description:
 ++ This package allows a mapping E -> F to be lifted to a kernel over E;
 ++ This lifting can fail if the operator of the kernel cannot be applied
@@ -401,7 +390,6 @@ ExpressionSpaceFunctions2(E : ExpressionSpace, F : ExpressionSpace) : with
 ++ Category for formal functions
 ++ Author: Manuel Bronstein
 ++ Date Created: 22 March 1988
-++ Date Last Updated: 14 February 1994
 ++ Description:
 ++   A space of formal functions with arguments in an arbitrary
 ++   ordered set.
@@ -416,7 +404,7 @@ FunctionSpace(R : Comparable) : Category == Definition where
   Q  ==> Fraction R
   PR ==> Polynomial R
   MP ==> SparseMultivariatePolynomial(R, K)
-  QF==> PolynomialCategoryQuotientFunctions(IndexedExponents K, K, R, MP, %)
+  QF ==> PolynomialCategoryQuotientFunctions(IndexedExponents K, K, R, MP, %)
   FSPECF ==> FunctionalSpecialFunction
 
   SPECIALDISP  ==> '%specialDisp
@@ -467,7 +455,7 @@ FunctionSpace(R : Comparable) : Category == Definition where
            ++ if \spad{p = a1*...*an} and \spad{n > 1}.
          isExpt : % -> Union(Record(var:K,exponent:Z),"failed")
            ++ isExpt(p) returns \spad{[x, n]} if \spad{p = x^n}
-           ++ and \spad{n <> 0}.
+           ++ and \spad{n ~= 0}.
        if R has Group then Group
        if R has AbelianSemiGroup then
          AbelianMonoid
@@ -476,13 +464,13 @@ FunctionSpace(R : Comparable) : Category == Definition where
            ++ if \spad{p = m1 +...+ mn} and \spad{n > 1}.
          isMult : % -> Union(Record(coef:Z, var:K),"failed")
            ++ isMult(p) returns \spad{[n, x]} if \spad{p = n * x}
-           ++ and \spad{n <> 0}.
+           ++ and \spad{n ~= 0}.
        if R has AbelianGroup then AbelianGroup
        if R has Ring then
          Ring
          RetractableTo PR
          PartialDifferentialRing SY
-         FullyLinearlyExplicitRingOver R
+         FullyLinearlyExplicitOver R
          coerce    : MP -> %
            ++ coerce(p) returns p as an element of %.
          numer     : %  -> MP
@@ -495,13 +483,13 @@ FunctionSpace(R : Comparable) : Category == Definition where
            ++ numerator(f) returns the numerator of \spad{f} converted to %.
          isExpt:(%,OP) -> Union(Record(var:K,exponent:Z),"failed")
            ++ isExpt(p, op) returns \spad{[x, n]} if \spad{p = x^n}
-           ++ and \spad{n <> 0} and \spad{x = op(a)}.
+           ++ and \spad{n ~= 0} and \spad{x = op(a)}.
          isExpt:(%,SY) -> Union(Record(var:K,exponent:Z),"failed")
            ++ isExpt(p, f) returns \spad{[x, n]} if \spad{p = x^n}
-           ++ and \spad{n <> 0} and \spad{x = f(a)}.
+           ++ and \spad{n ~= 0} and \spad{x = f(a)}.
          isPower   : % -> Union(Record(val:%,exponent:Z),"failed")
            ++ isPower(p) returns \spad{[x, n]} if \spad{p = x^n}
-           ++ and \spad{n <> 0}.
+           ++ and \spad{n ~= 0}.
          eval : (%, List SY, List N, List(% -> %)) -> %
            ++ eval(x, [s1, ..., sm], [n1, ..., nm], [f1, ..., fm]) replaces
            ++ every \spad{si(a)^ni} in x by \spad{fi(a)} for any \spad{a}.
@@ -831,7 +819,6 @@ FunctionSpace(R : Comparable) : Category == Definition where
         [kernel(op, z), g, l.n]
 
       opderiv(op, n) ==
---        one? n =>
         (n = 1) =>
           g := symsub(gendiff, n)::%
           [x +-> kernel(opdiff, [kernel(op, g), g, first x])]
@@ -931,7 +918,6 @@ FunctionSpace(R : Comparable) : Category == Definition where
 
       if R has RetractableTo Z then
           smpIsMult p ==
---            (u := mainVariable p) case K and one? degree(q := univariate(p, u::K))
             (u := mainVariable p) case K and (degree(q := univariate(p, u::K))=1)
               and zero?(leadingCoefficient reductum q)
                 and ((r := retractIfCan(leadingCoefficient q)@Union(R,"failed"))
@@ -1308,7 +1294,6 @@ FunctionSpace(R : Comparable) : Category == Definition where
 ++ Lifting of maps to function spaces
 ++ Author: Manuel Bronstein
 ++ Date Created: 22 March 1988
-++ Date Last Updated: 3 May 1994
 ++ Description:
 ++   This package allows a mapping R -> S to be lifted to a mapping
 ++   from a function space over R to a function space over S;

@@ -1,7 +1,6 @@
 )abbrev category ACF AlgebraicallyClosedField
 ++ Author: Manuel Bronstein
 ++ Date Created: 22 Mar 1988
-++ Date Last Updated: 27 November 1991
 ++ Description:
 ++   Model for algebraically closed fields.
 ++ Keywords: algebraic, closure, field.
@@ -110,27 +109,26 @@ AlgebraicallyClosedField() : Category == Join(Field, RadicalCategory) with
     binomialRoots(p, y, fn) ==
      -- p = a * x^n + b
       alpha := assign(x := new(y)$Symbol, fn(p, x))
---      one?(n := degree p) =>  [ alpha ]
       ((n := degree p) = 1) =>  [ alpha ]
       cyclo := cyclotomic(n, monomial(1, 1)$SUP)$NumberTheoreticPolynomialFunctions(SUP)
       beta := assign(x := new(y)$Symbol, fn(cyclo, x))
       [alpha*beta^i for i in 0..(n-1)::NonNegativeInteger]
 
-    import from PolynomialDecomposition(SUP, %)
+    import from UnivariatePolynomialDecompositionPackage(%, SUP)
 
     allroots(p, y, fn) ==
       zero? p => error "allroots: polynomial must be nonzero"
       zero? coefficient(p, 0) =>
          concat(0, allroots(p quo monomial(1, 1), y, fn))
-      zero?(p1 := reductum p) => empty()
+      zero?(p1 := reductum p) => []$List(%)
       zero? reductum p1 => binomialRoots(p, y, fn)
-      decompList := decompose(p)
+      decompList := completeDecompose(p)
       # decompList > 1 =>
           h := last decompList
-          g := leftFactor(p, h) :: SUP
+          g := leftFactorIfCan(p, h) :: SUP
           groots := allroots(g, y, fn)
           "append"/[allroots(h-r::SUP, y, fn) for r in groots]
-      ans := nil()$List(%)
+      ans := []$List(%)
       while not ground? p repeat
         alpha := assign(x := new(y)$Symbol, fn(p, x))
         q     := monomial(1, 1)$SUP - alpha::SUP
@@ -145,7 +143,6 @@ AlgebraicallyClosedField() : Category == Join(Field, RadicalCategory) with
 )abbrev category ACFS AlgebraicallyClosedFunctionSpace
 ++ Author: Manuel Bronstein
 ++ Date Created: 31 October 1988
-++ Date Last Updated: 7 October 1991
 ++ Description:
 ++   Model for algebraically closed function spaces.
 ++ Keywords: algebraic, closure, field.
@@ -191,6 +188,7 @@ AlgebraicallyClosedFunctionSpace(R : Join(Comparable, IntegralDomain)):
       ++ The new symbols are bound in the interpreter
       ++ to the respective values.
     rootSum : (%, SparseUnivariatePolynomial %, Symbol) -> %
+    if R has RetractableTo Integer then RetractableTo AlgebraicNumber
   add
 
     import from Integer
@@ -255,7 +253,6 @@ AlgebraicallyClosedFunctionSpace(R : Join(Comparable, IntegralDomain)):
 )abbrev package AF AlgebraicFunction
 ++ Author: Manuel Bronstein
 ++ Date Created: 21 March 1988
-++ Date Last Updated: 11 November 1993
 ++ Description:
 ++   This package provides algebraic functions over an integral domain.
 ++ Keywords: algebraic, function.
@@ -358,7 +355,6 @@ AlgebraicFunction(R, F) : Exports == Implementation where
         monomial? q => 0
 
         (d := degree q) <= 0 => error "rootOf: constant polynomial"
---        one? d=> - leadingCoefficient(reductum q) / leadingCoefficient q
         (d = 1) => - leadingCoefficient(reductum q) / leadingCoefficient q
         ((rx := retractIfCan(x)@Union(SE, "failed")) case SE) and
           ((r := UP2R q) case UPR) => rootOf(r::UPR, rx::SE)::F
@@ -377,7 +373,6 @@ AlgebraicFunction(R, F) : Exports == Implementation where
       inrootof(q, x) ==
         monomial? q => 0
         (d := degree q) <= 0 => error "rootOf: constant polynomial"
---        one? d => - leadingCoefficient(reductum q) /leadingCoefficient q
         (d = 1) => - leadingCoefficient(reductum q) /leadingCoefficient q
         kernel(opalg, [q x, x])
 
@@ -439,18 +434,18 @@ AlgebraicFunction(R, F) : Exports == Implementation where
             outputForm(p, dv::OutputForm) = (0$Z)::OutputForm)
 
     dvrootsum(l : List F, x : SE) : F ==
-        print("dvrootsum"::OutputForm)
-        print(l::OutputForm)
+        -- print("dvrootsum"::OutputForm)
+        -- print(l::OutputForm)
         dv := retract(alpha := l.2)@K
         dvs := retract(alpha)@SE
         p : UP := numer(univariate(l.3, dv))
-        print(p::OutputForm)
+        -- print(p::OutputForm)
         dalpha := - (map((s : F) : F +-> differentiate(s, x), p) alpha)
             / ((differentiate p) alpha)
         expr := l.1
         nexpr := dalpha*differentiate(expr, dvs) +
                  differentiate(expr, x)
-        print(nexpr::OutputForm)
+        -- print(nexpr::OutputForm)
         nexpr = 0 => 0
         root_sum1(nexpr, p, alpha)
 
@@ -499,7 +494,6 @@ AlgebraicFunction(R, F) : Exports == Implementation where
 
       inroot l ==
         zero?(n := retract(second l)@Z) => error "root: exponent = 0"
---        one?(x := first l) or one? n => x
         ((x := first l) = 1) or (n = 1) => x
         (r := retractIfCan(x)@Union(R,"failed")) case R => iroot(r::R,n)
         (u := isExpt(x)) case Record(var : K, exponent : Z) =>
@@ -537,9 +531,14 @@ AlgebraicFunction(R, F) : Exports == Implementation where
         if R has RadicalCategory then
           if R has imaginary : () -> R then iroot(r, n) == nthRoot(r, n)::F
           else
-            iroot(r, n) ==
-              odd? n or not(smaller?(r, 0)) => nthRoot(r, n)::F
-              iroot0(r, n)
+              if R has FloatingPointSystem then
+                  iroot(r, n) ==
+                      odd? n or not(smaller?(r, 0)) => nthRoot(r, n)::F
+                      hackroot(r::F, n)
+              else
+                  iroot(r, n) ==
+                      odd? n or not(smaller?(r, 0)) => nthRoot(r, n)::F
+                      iroot0(r, n)
 
         else iroot(r, n) == iroot0(r, n)
 

@@ -1,7 +1,6 @@
 )abbrev domain STACK Stack
 ++ Author: Michael Monagan and Stephen Watt
 ++ Date Created: June 86 and July 87
-++ Date Last Updated: January 10, 2008
 ++ Basic Operations:
 ++ Related Domains:
 ++ Also See:
@@ -26,10 +25,8 @@ Stack(S : SetCategory) : StackAggregate S with
     map!(f : S -> S, s : %) ==
         setref(s, map!(f, deref s)$List(S))
         s
-    coerce(d : %) : OutputForm == bracket [e::OutputForm for e in deref d]
     copy s == ref copy deref s
-    depth s == # deref s
-    # s == depth s
+    # s == #deref s
     pop! (s : %) : S ==
         empty? s => error "empty stack"
         e := first deref s
@@ -42,8 +39,8 @@ Stack(S : SetCategory) : StackAggregate S with
     inspect s == top s
     push!(e, s) == (setref(s, cons(e, deref s));e)
     insert!(e : S, s : %) : % == (push!(e, s);s)
-    empty() == ref nil()$List(S)
-    empty? s == null deref s
+    empty() == ref []$List(S)
+    empty? s == empty?(deref(s))
     construct s == ref copy s
     stack s == construct s
     hashUpdate!(st, s) == hashUpdate!(st, deref s)
@@ -51,7 +48,6 @@ Stack(S : SetCategory) : StackAggregate S with
 )abbrev domain ASTACK ArrayStack
 ++ Author: Michael Monagan and Stephen Watt
 ++ Date Created: June 86 and July 87
-++ Date Last Updated: Feb 92
 ++ Basic Operations:
 ++ Related Domains:
 ++ Also See:
@@ -81,7 +77,6 @@ ArrayStack(S : SetCategory) : StackAggregate(S) with
         [(d.(n - i))::OutputForm for i in 1..n]::OutputForm
 
     -- stack operations
-    depth s == # s
     empty? s == empty?(s)$Rep
     extract! s == pop! s
     inspect(s) == top(s)
@@ -105,7 +100,6 @@ ArrayStack(S : SetCategory) : StackAggregate(S) with
 )abbrev domain QUEUE Queue
 ++ Author: Michael Monagan and Stephen Watt
 ++ Date Created: June 86 and July 87
-++ Date Last Updated: Feb 92
 ++ Basic Operations:
 ++ Related Domains:
 ++ Also See:
@@ -125,8 +119,9 @@ Queue(S : SetCategory) : QueueAggregate S with
   == Stack S add
     Rep := Reference List S
     lastTail==> LAST$Lisp
+
     enqueue!(e, q) ==
-        if null deref q then setref(q, list e)
+        if empty?(deref(q)) then setref(q, list e)
         else lastTail.(deref q).rest := list e
         e
     insert!(e, q) == (enqueue!(e, q);q)
@@ -137,7 +132,6 @@ Queue(S : SetCategory) : QueueAggregate S with
         e
     extract! q == dequeue! q
     rotate! q == if empty? q then q else (enqueue!(dequeue! q, q); q)
-    length q == # deref q
     front q == if empty? q then error "empty queue" else first deref q
     inspect q == front q
     back q == if empty? q then error "empty queue" else last deref q
@@ -146,7 +140,6 @@ Queue(S : SetCategory) : QueueAggregate S with
 )abbrev domain DEQUEUE Dequeue
 ++ Author: Michael Monagan and Stephen Watt
 ++ Date Created: June 86 and July 87
-++ Date Last Updated: Feb 92
 ++ Basic Operations:
 ++ Related Domains:
 ++ Also See:
@@ -184,8 +177,6 @@ Dequeue(S : SetCategory) : DequeueAggregate S with
         e := top d
         setref(d, rest deref d)
         e
-    height d == # deref d
-    depth d == height d
     insertTop!(e, d) == (setref(d, cons(e, deref d)); e)
     lastTail==> LAST$Lisp
     insertBottom!(e, d) ==
@@ -200,7 +191,6 @@ Dequeue(S : SetCategory) : DequeueAggregate S with
 )abbrev domain HEAP Heap
 ++ Author: Michael Monagan and Stephen Watt
 ++ Date Created: June 86 and July 87
-++ Date Last Updated: Feb 92
 ++ Basic Operations:
 ++ Related Domains:
 ++ Also See:
@@ -220,7 +210,7 @@ Heap(S : OrderedSet) : Exports == Implementation where
       ++ heap(ls) creates a heap of elements consisting of the
       ++ elements of ls.
   Implementation == IndexedFlexibleArray(S, 0) add
-    Rep := IndexedFlexibleArray( S, 0)
+    Rep := IndexedFlexibleArray(S, 0)
     empty() == empty()$Rep
     heap l == construct(l)
     siftUp : (%, Integer, Integer) -> Void

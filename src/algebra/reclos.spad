@@ -1,18 +1,18 @@
 )if false
 This file describes the Real Closure 1.0 package which consists of different
-packages, categoris and domains :
+packages, categories and domains :
 
-- the package RealPolynomialUtilitiesPackage whichs receives a field and a
+- the package RealPolynomialUtilitiesPackage which receives a field and a
 univariate polynomial domain with coefficients in the field. It computes some
 simple functions such as Strum and Sylvester sequences.
 
-- The category RealRootCharacterizationCategory provides abstarct
+- The category RealRootCharacterizationCategory provides abstract
 functionalities to work with "real roots" of univariate polynomials. These
 resemble variables with some functionalities needed to compute important
 operations.
 
-- RealClosedField is a category with provides comon operations available over
-real closed fiels. These include finding all the roots of univariate
+- RealClosedField is a category which provides common operations available over
+real closed fields. These include finding all the roots of univariate
 polynomial, taking square roots, ...
 
 - The domain RightOpenIntervalRootCharacterization is the main code that
@@ -33,7 +33,7 @@ CAVEEATS
 Since real algebraic expressions are stored as depending on "real roots" which
 are managed like variables, there is an ordering on these. This ordering is
 dynamical in the sense that any new algebraic takes precedence over older
-ones. In particular every cretaion function raises a new "real root". This has
+ones. In particular every creation function raises a new "real root". This has
 the effect that when you type something like sqrt(2) + sqrt(2) you have two
 new variables which happen to be equal. To avoid this name the expression such
 as in s2 := sqrt(2) ; s2 + s2
@@ -53,7 +53,7 @@ algorithms and cannot be distributed. Please contact the author if you have a
 particular problem to solve or want to use these versions.
 
 Be aware that approximations behave as post-processing and that all
-computations are done excatly. They can thus be quite time consuming when
+computations are done exactly. They can thus be quite time consuming when
 depending on several "real roots".
 )endif
 
@@ -62,7 +62,6 @@ depending on several "real roots".
 ++ Date Created: summer 1992
 ++ Basic Functions: provides polynomial utilities
 ++ Related Constructors: RealClosure,
-++ Date Last Updated: July 2004
 ++ Also See:
 ++ AMS Classifications:
 ++ Keywords: Sturm sequences
@@ -120,7 +119,7 @@ RealPolynomialUtilitiesPackage(TheField, ThePols) : PUB == PRIV where
        boundOfCauchy(p) ==
          c : TheField := inv(leadingCoefficient(p))
          l := [ c*term for term in rest(coefficients(p))]
-         null(l) => 1
+         empty?(l) => 1
          1 + ("max" / [ abs(t) for t in l ])
 
 --       sturmVariationsOf(l) ==
@@ -133,7 +132,7 @@ RealPolynomialUtilitiesPackage(TheField, ThePols) : PUB == PRIV where
 --         res
 
        sturmVariationsOf(l) ==
-         null(l) => error "POLUTIL: sturmVariationsOf: empty list !"
+         empty?(l) => error "POLUTIL: sturmVariationsOf: empty list !"
          l1 := first(l)
          -- first 0 counts as a sign
          ll : List(TheField) := []
@@ -141,7 +140,7 @@ RealPolynomialUtilitiesPackage(TheField, ThePols) : PUB == PRIV where
            -- zeros don't count
            if not(zero?(term)) then ll := cons(term, ll)
          -- if l1 is not zero then ll = reverse(l)
-         null(ll) => error "POLUTIL: sturmVariationsOf: Bad sequence"
+         empty?(ll) => error "POLUTIL: sturmVariationsOf: Bad sequence"
          ln := first(ll)
          ll := reverse(rest(ll))
          -- if l1 is not zero then first(l) = first(ll)
@@ -151,9 +150,9 @@ RealPolynomialUtilitiesPackage(TheField, ThePols) : PUB == PRIV where
 
        lazyVariations(l, sl, sh) ==
          zero?(sl) or zero?(sh) => error "POLUTIL: lazyVariations: zero sign!"
-         null(l) =>
+         empty?(l) =>
            if sl = sh then 0 else 1
-         null(rest(l)) =>
+         empty?(rest(l)) =>
            if zero?(first(l))
            then error "POLUTIL: lazyVariations: zero sign!"
            else
@@ -168,13 +167,9 @@ RealPolynomialUtilitiesPackage(TheField, ThePols) : PUB == PRIV where
          lazyVariations([first(l)], sl, s) +
            lazyVariations(rest(rest(l)), s, sh)
 
-@
-\section{category RRCC RealRootCharacterizationCategory}
-<<category RRCC RealRootCharacterizationCategory>>=
 )abbrev category RRCC RealRootCharacterizationCategory
 ++ Author: Renaud Rioboo
 ++ Date Created: summer 1992
-++ Date Last Updated: January 2004
 ++ Basic Functions: provides operations with generic real roots of
 ++                  polynomials
 ++ Related Constructors: RealClosure, RightOpenIntervalRootCharacterization
@@ -183,9 +178,9 @@ RealPolynomialUtilitiesPackage(TheField, ThePols) : PUB == PRIV where
 ++ Keywords: Real Algebraic Numbers
 ++ References:
 ++ Description:
-++ \spadtype{RealRootCharacterizationCategory} provides common acces
+++ \spadtype{RealRootCharacterizationCategory} provides common access
 ++ functions for all real root codings.
-RealRootCharacterizationCategory(TheField, ThePols ) : Category == PUB where
+RealRootCharacterizationCategory(TheField, ThePols) : Category == PUB where
 
    TheField : Join(OrderedRing, Field)
    ThePols : UnivariatePolynomialCategory(TheField)
@@ -263,7 +258,6 @@ RealRootCharacterizationCategory(TheField, ThePols ) : Category == PUB where
 )abbrev category RCFIELD RealClosedField
 ++ Author: Renaud Rioboo
 ++ Date Created: may 1993
-++ Date Last Updated: January 2004
 ++ Basic Functions: provides computations with generic real roots of
 ++                  polynomials
 ++ Related Constructors: SimpleOrderedAlgebraicExtension, RealClosure
@@ -272,7 +266,7 @@ RealRootCharacterizationCategory(TheField, ThePols ) : Category == PUB where
 ++ Keywords: Real Algebraic Numbers
 ++ References:
 ++ Description:
-++ \spadtype{RealClosedField} provides common acces
+++ \spadtype{RealClosedField} provides common access
 ++ functions for all real closed fields.
 RealClosedField : Category == PUB where
 
@@ -417,8 +411,7 @@ RealClosedField : Category == PUB where
 )abbrev domain ROIRC RightOpenIntervalRootCharacterization
 ++ Author: Renaud Rioboo
 ++ Date Created: summer 1992
-++ Date Last Updated: January 2004
-++ Basic Functions: provides computations with real roots of olynomials
+++ Basic Functions: provides computations with real roots of polynomials
 ++ Related Constructors: RealRootCharacterizationCategory, RealClosure
 ++ Also See:
 ++ AMS Classifications:
@@ -462,7 +455,7 @@ RightOpenIntervalRootCharacterization(TheField, ThePolDom) : PUB == PRIV where
            ++ \spad{mightHaveRoots(p, r)} is false if \spad{p.r} is not 0
       relativeApprox :     (P, %, TheField) -> TheField
            ++ \spad{relativeApprox(exp, c, p) = a} is relatively close to exp
-           ++ as a polynomial in c ip to precision p
+           ++ as a polynomial in c up to precision p
 
   PRIV == add
 
@@ -676,14 +669,14 @@ RightOpenIntervalRootCharacterization(TheField, ThePolDom) : PUB == PRIV where
 
 
    hasVarsl(l : List(TheField)) ==
-    null(l) => false
+    empty?(l) => false
     f := sign(first(l))
     for term in rest(l) repeat
       if f*term < 0 then return(true)
     false
 
    hasVars(p : P) ==
-    zero?(p) => error "ROIRC: hasVars: null polynonial"
+    zero?(p) => error "ROIRC: hasVars: null polynomial"
     zero?(coefficient(p, 0)) => true
     hasVarsl(coefficients(p))
 
@@ -704,8 +697,8 @@ RightOpenIntervalRootCharacterization(TheField, ThePolDom) : PUB == PRIV where
 --      (varStar(addOne(q)) ~= 0)
 
    coerce(rootChar : %) : O ==
-     commaSeparate([ hconcat("[" :: O , (rootChar.low)::O),
-                     hconcat((rootChar.high)::O,"[" ::O ) ])
+       commaSeparate([hconcat(message("["), (rootChar.low)::O),
+                      hconcat((rootChar.high)::O, message("[")) ])
 
    c1 = c2 ==
      mM := max(c1.low, c2.low)
@@ -825,7 +818,7 @@ RightOpenIntervalRootCharacterization(TheField, ThePolDom) : PUB == PRIV where
 
    refine!(rootChar) ==
      -- this is not a safe function, it can work with badly created object
-     -- we do not assume (rootChar.defPol).(rootChar.high) <> 0
+     -- we do not assume (rootChar.defPol).(rootChar.high) ~= 0
         int := middle(rootChar)
         s1 := sign((rootChar.defPol).(rootChar.low))
         zero?(s1) =>
@@ -845,7 +838,7 @@ RightOpenIntervalRootCharacterization(TheField, ThePolDom) : PUB == PRIV where
         rootChar
 
    refine(rootChar) ==
-     -- we assume (rootChar.defPol).(rootChar.high) <> 0
+     -- we assume (rootChar.defPol).(rootChar.high) ~= 0
         int := middle(rootChar)
         s := (rootChar.defPol).int * (rootChar.defPol).(rootChar.high)
         zero?(s) => [int, rootChar.high, monomial(1, 1)-int::P]
@@ -880,7 +873,6 @@ RightOpenIntervalRootCharacterization(TheField, ThePolDom) : PUB == PRIV where
 -- ordered field
 ++ Author: Renaud Rioboo
 ++ Date Created: summer 1988
-++ Date Last Updated: January 2004
 ++ Basic Functions: provides computations in an ordered real closure
 ++ Related Constructors: RightOpenIntervalRootCharacterization
 ++ Also See:
@@ -901,7 +893,7 @@ RealClosure(TheField) : PUB == PRIV where
 
 --   ThePols    : UnivariatePolynomialCategory(%)
 --   PME       ==> ThePols
---   TheCharDom : RealRootCharacterizationCategory(%, ThePols )
+--   TheCharDom : RealRootCharacterizationCategory(%, ThePols)
 --   SEG       ==> TheCharDom
 -- this does not work yet
 

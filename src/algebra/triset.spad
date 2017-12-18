@@ -1,7 +1,6 @@
 )abbrev category TSETCAT TriangularSetCategory
 ++ Author: Marc Moreno Maza (marc@nag.co.uk)
 ++ Date Created: 04/26/1994
-++ Date Last Updated: 12/15/1998
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -26,7 +25,7 @@
 ++ if it is reduced w.r.t. every polynomial of \spad{T}. \newline
 ++ References:
 ++  [1] P. AUBRY, D. LAZARD and M. MORENO MAZA "On the Theories
-++      of Triangular Sets" Journal of Symbol. Comp. (to appear)
+++      of Triangular Sets" Journal of Symbol. Comp. 28:105-124, 1999.
 ++ Version: 4.
 
 TriangularSetCategory(R : IntegralDomain, E : OrderedAbelianMonoidSup, _
@@ -475,7 +474,6 @@ TriangularSetCategory(R : IntegralDomain, E : OrderedAbelianMonoidSup, _
 )abbrev domain GTSET GeneralTriangularSet
 ++ Author: Marc Moreno Maza (marc@nag.co.uk)
 ++ Date Created: 10/06/1995
-++ Date Last Updated: 06/12/1996
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -491,7 +489,7 @@ TriangularSetCategory(R : IntegralDomain, E : OrderedAbelianMonoidSup, _
 ++ are displayed in reverse order.\newline
 ++ References:
 ++  [1] P. AUBRY, D. LAZARD and M. MORENO MAZA "On the Theories
-++      of Triangular Sets" Journal of Symbol. Comp. (to appear)
+++      of Triangular Sets" Journal of Symbol. Comp. 28:105-124, 1999.
 ++ Version: 1
 
 GeneralTriangularSet(R, E, V, P) : Exports == Implementation where
@@ -538,7 +536,7 @@ GeneralTriangularSet(R, E, V, P) : Exports == Implementation where
        false
 
      -- the following assume that rep(ts) is decreasingly sorted
-     -- w.r.t. the main variavles of the polynomials in rep(ts)
+     -- w.r.t. the main variables of the polynomials in rep(ts)
      coerce(ts : %) : OutputForm ==
        lp : List(P) := reverse(rep(ts))
        brace([p::OutputForm for p in lp]$List(OutputForm))$OutputForm
@@ -582,7 +580,6 @@ GeneralTriangularSet(R, E, V, P) : Exports == Implementation where
 )abbrev package PSETPK PolynomialSetUtilitiesPackage
 ++ Author: Marc Moreno Maza (marc@nag.co.uk)
 ++ Date Created: 12/01/1995
-++ Date Last Updated: 12/15/1998
 ++ SPARC Version
 ++ Basic Operations:
 ++ Related Domains:
@@ -712,7 +709,7 @@ PolynomialSetUtilitiesPackage (R, E, V, P) : Exports == Implementation where
         ++ \spad{removeRoughlyRedundantFactorsInPols(lp, lf)} returns
         ++ \spad{newlp}where \spad{newlp} is obtained from \spad{lp}
         ++ by removing in every polynomial \spad{p} of \spad{lp}
-        ++ any occurence of a polynomial \spad{f} in \spad{lf}.
+        ++ any occurrence of a polynomial \spad{f} in \spad{lf}.
         ++ This may involve a lot of exact-quotients computations.
      removeRoughlyRedundantFactorsInPols : (LP, LP, B) -> LP
         ++ \spad{removeRoughlyRedundantFactorsInPols(lp, lf, opt)} returns
@@ -726,7 +723,7 @@ PolynomialSetUtilitiesPackage (R, E, V, P) : Exports == Implementation where
      interReduce : LP -> LP
         ++ \spad{interReduce(lp)} returns \spad{lq} such that \spad{lp}
         ++ and \spad{lq} generate the same ideal and no polynomial
-        ++ in \spad{lq} is reducuble by the others in the sense
+        ++ in \spad{lq} is reducible by the others in the sense
         ++ of Groebner bases. Since no assumptions are required
         ++ the result may depend on the ordering the reductions are
         ++ performed.
@@ -790,7 +787,7 @@ PolynomialSetUtilitiesPackage (R, E, V, P) : Exports == Implementation where
           ++ factor of any polynomial \spad{f} in \spad{lf}. Moreover,
           ++ squares over \spad{R} are first removed in every
           ++ polynomial \spad{lp}.
-     if (R has EuclideanDomain) and (R has CharacteristicZero)
+     if (R has PolynomialFactorizationExplicit) and (R has CharacteristicZero)
      then
        irreducibleFactors : LP -> LP
           ++ \spad{irreducibleFactors(lp)} returns \spad{lf} such that if
@@ -872,7 +869,6 @@ PolynomialSetUtilitiesPackage (R, E, V, P) : Exports == Implementation where
 
      linear? p ==
        ground? p => false
---       one?(mdeg(p))
        (mdeg(p) = 1)
 
      linearPolynomials  ps ==
@@ -1010,7 +1006,6 @@ PolynomialSetUtilitiesPackage (R, E, V, P) : Exports == Implementation where
          bs := (rec::RBT).bas
          rs := (rec::RBT).top
          rs :=  rewriteIdealWithRemainder(rs, bs)$T
---         contradiction := ((not empty? rs) and (one? first(rs)))
          contradiction := ((not empty? rs) and (first(rs) = 1))
          if not contradiction
            then
@@ -1064,7 +1059,7 @@ PolynomialSetUtilitiesPackage (R, E, V, P) : Exports == Implementation where
        lq := removeRedundantFactors lq
        sort(infRittWu?, concat(lp, lq))
 
-     if (R has EuclideanDomain) and (R has CharacteristicZero)
+     if (R has PolynomialFactorizationExplicit) and (R has CharacteristicZero)
      then
        irreducibleFactors lp ==
          newlp : LP := []
@@ -1399,7 +1394,6 @@ PolynomialSetUtilitiesPackage (R, E, V, P) : Exports == Implementation where
 )abbrev domain WUTSET WuWenTsunTriangularSet
 ++ Author: Marc Moreno Maza (marc@nag.co.uk)
 ++ Date Created: 11/18/1995
-++ Date Last Updated: 12/15/1998
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1448,7 +1442,7 @@ WuWenTsunTriangularSet(R, E, V, P) : Exports == Implementation where
         ++ (in Wu Wen Tsun sense w.r.t the reduction-test \spad{redOp?})
         ++ of some set generating the same ideal as \spad{ps} (with
         ++ rank not higher than  any basic set of \spad{ps}), if no non-zero
-        ++ constant polynomials appear during the computatioms, else
+        ++ constant polynomials appear during the computations, else
         ++ \spad{"failed"} is returned. In the former case, \spad{bs} has to be
         ++ understood as a candidate for being a characteristic set of \spad{ps}.
         ++ In the original algorithm, \spad{bs} is simply a basic set of \spad{ps}.
@@ -1507,18 +1501,15 @@ WuWenTsunTriangularSet(R, E, V, P) : Exports == Implementation where
              bs := (rec::RBT).bas
              rs := (rec::RBT).top
              rs :=  rewriteIdealWithRemainder(rs, bs)
---             contradiction := ((not empty? rs) and (one? first(rs)))
              contradiction := ((not empty? rs) and (first(rs) = 1))
              if (not empty? rs) and (not contradiction)
                then
                  rs := rewriteSetWithReduction(rs, bs, redOp, redOp?)
---                 contradiction := ((not empty? rs) and (one? first(rs)))
                  contradiction := ((not empty? rs) and (first(rs) = 1))
          if (not empty? rs) and (not contradiction)
            then
              rs := removeDuplicates concat(rs, members(bs))
              rs := rewriteIdealWithQuasiMonicGenerators(rs, redOp?, redOp)$pa
---             contradiction := ((not empty? rs) and (one? first(rs)))
              contradiction := ((not empty? rs) and (first(rs) = 1))
        contradiction => "failed"::Union(RBT,"failed")
        ([bs,qs]$RBT)::Union(RBT,"failed")
@@ -1546,12 +1537,10 @@ WuWenTsunTriangularSet(R, E, V, P) : Exports == Implementation where
              ms := (rec::RBT).bas
              qs := (rec::RBT).top
              qs := rewriteIdealWithRemainder(qs, ms)
---             contradiction := ((not empty? qs) and (one? first(qs)))
              contradiction := ((not empty? qs) and (first(qs) = 1))
              if not contradiction
                then
                  rs :=  rewriteSetWithReduction(qs, ms, lazyPrem, reduced?)
---                 contradiction := ((not empty? rs) and (one? first(rs)))
                  contradiction := ((not empty? rs) and (first(rs) = 1))
              if  (not contradiction) and (not empty? rs)
                then
@@ -1571,7 +1560,7 @@ WuWenTsunTriangularSet(R, E, V, P) : Exports == Implementation where
           charSet? := characteristicSetUsingTrace(ps, redOp?, redOp)
           if not (charSet? case %)
              then
-                setvalue!(esl::ALpT, [nil()$LP, empty()$%, true]$NLpT)
+                setvalue!(esl::ALpT, [[]$LP, empty()$%, true]$NLpT)
                 updateStatus!(a)
              else
                 cs := (charSet?)::%
@@ -1583,7 +1572,7 @@ WuWenTsunTriangularSet(R, E, V, P) : Exports == Implementation where
                       setvalue!(esl::ALpT, [ps, cs, true]$NLpT)
                       updateStatus!(a)
                    else
-                      ln : List NLpT := [[nil()$LP, cs, true]$NLpT]
+                      ln : List NLpT := [[[]$LP, cs, true]$NLpT]
                       while not empty? lics repeat
                          newps := cons(first(lics), concat(cs::LP, ps))
                          lics := rest lics

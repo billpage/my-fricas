@@ -1,7 +1,6 @@
 )abbrev domain FFCGP FiniteFieldCyclicGroupExtensionByPolynomial
 ++ Authors: J.Grabmeier, A.Scheerhorn
 ++ Date Created: 26.03.1991
-++ Date Last Updated: 31 March 1991
 ++ Basic Operations:
 ++ Related Constructors: FiniteFieldFunctions
 ++ Also See: FiniteFieldExtensionByPolynomial,
@@ -95,7 +94,7 @@ FiniteFieldCyclicGroupExtensionByPolynomial(GF, defpol) : _
     -- the corresponding primitive element of the ground field
     -- equals the trace of the primitive element w.r.t. the ground field
 
-    facOfGroupSize := nil()$(List Record(factor : Integer, exponent : Integer))
+    facOfGroupSize := []$(List Record(factor : Integer, exponent : Integer))
     -- the factorization of sizeCG
 
     initzech? : Boolean := true
@@ -126,7 +125,6 @@ FiniteFieldCyclicGroupExtensionByPolynomial(GF, defpol) : _
       (sizeCG quo gcd(sizeCG, x pretend NNI))::PI
 
     primitive?(x : %) ==
---      zero?(x) or one?(x) => false
       zero?(x) or (x = 1) => false
       gcd(x::Rep, sizeCG)$Rep = 1$Rep => true
       false
@@ -273,10 +271,10 @@ FiniteFieldCyclicGroupExtensionByPolynomial(GF, defpol) : _
 
 -- to get a "exponent like" output form
     coerce(x : %) : OUT ==
-      x =$Rep (-$Rep 1$Rep) => "0"::OUT
-      x =$Rep 0$Rep => "1"::OUT
-      y : I := lookup(x)-1
-      alpha ^$OUT (y::OUT)
+        x =$Rep (-$Rep 1$Rep) => message("0")
+        x =$Rep 0$Rep => message("1")
+        y : I := lookup(x) - 1
+        alpha ^$OUT (y::OUT)
 
     x : % = y : % ==  x =$Rep y
 
@@ -294,7 +292,6 @@ FiniteFieldCyclicGroupExtensionByPolynomial(GF, defpol) : _
 
     inv(x : %)  ==
       zero?(x) => error "inv: not invertible"
---      one?(x) => 1
       (x = 1) => 1
       sizeCG -$Rep x
 
@@ -311,7 +308,6 @@ FiniteFieldCyclicGroupExtensionByPolynomial(GF, defpol) : _
 )abbrev domain FFCGX FiniteFieldCyclicGroupExtension
 ++ Authors: J.Grabmeier, A.Scheerhorn
 ++ Date Created: 04.04.1991
-++ Date Last Updated:
 ++ Basic Operations:
 ++ Related Constructors:  FiniteFieldCyclicGroupExtensionByPolynomial,
 ++  FiniteFieldPolynomialPackage
@@ -352,7 +348,6 @@ FiniteFieldCyclicGroupExtension(GF, extdeg) : _
 )abbrev domain FFCG FiniteFieldCyclicGroup
 ++ Authors: J.Grabmeier, A.Scheerhorn
 ++ Date Created: 04.04.1991
-++ Date Last Updated:
 ++ Basic Operations:
 ++ Related Constructors:  FiniteFieldCyclicGroupExtensionByPolynomial,
 ++  FiniteFieldPolynomialPackage

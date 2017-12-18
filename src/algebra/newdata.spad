@@ -1,7 +1,6 @@
 )abbrev package IPRNTPK InternalPrintPackage
 ++ Author: Themos Tsikas
 ++ Date Created: 09/09/1998
-++ Date Last Updated: 09/09/1998
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -26,7 +25,6 @@ InternalPrintPackage() : Exports == Implementation where
 )abbrev package TBCMPPK TabulatedComputationPackage
 ++ Author: Marc Moreno Maza
 ++ Date Created: 09/09/1998
-++ Date Last Updated: 12/16/1998
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -38,7 +36,7 @@ InternalPrintPackage() : Exports == Implementation where
 ++   for dealing with operations with type \spad{Key -> Entry}. The result of
 ++   such operations can be stored and retrieved with this package by using
 ++   a hash-table. The user does not need to worry about the management of
-++   this hash-table. However, onnly one hash-table is built by calling
+++   this hash-table. However, only one hash-table is built by calling
 ++   \spad{TabulatedComputationPackage(Key , Entry)}.
 ++ Version: 2.
 
@@ -53,12 +51,12 @@ TabulatedComputationPackage(Key , Entry) : Exports == Implementation where
      initTable! : () -> Void
        ++ \spad{initTable!()} initializes the hash-table.
      printInfo! : (String, String) -> Void
-       ++ \spad{printInfo!(x, y)} initializes the mesages to be printed
+       ++ \spad{printInfo!(x, y)} initializes the messages to be printed
        ++ when manipulating items from the hash-table. If
        ++ a key is retrieved then \spad{x} is displayed. If an item is
        ++ stored then \spad{y} is displayed.
      startStats! : (String) -> Void
-       ++ \spad{startStats!(x)} initializes the statisitics process and
+       ++ \spad{startStats!(x)} initializes the statistics process and
        ++ sets the comments to display when statistics are printed
      printStats! : () -> Void
        ++ \spad{printStats!()} prints the statistics.
@@ -71,7 +69,7 @@ TabulatedComputationPackage(Key , Entry) : Exports == Implementation where
        ++ \spad{printingInfo?()} returns true iff messages are printed
        ++ when manipulating items from the hash-table.
      makingStats? : () -> Boolean
-       ++ \spad{makingStats?()} returns true iff the statisitics process
+       ++ \spad{makingStats?()} returns true iff the statistics process
        ++ is running.
      extractIfCan : Key -> Union(Entry,"failed")
        ++ \spad{extractIfCan(x)} searches the item whose key is \spad{x}.
@@ -149,7 +147,6 @@ TabulatedComputationPackage(Key , Entry) : Exports == Implementation where
 )abbrev domain SPLNODE SplittingNode
 ++ Author: Marc Moereno Maza
 ++ Date Created: 07/05/1996
-++ Date Last Updated:  07/19/1996
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -293,12 +290,11 @@ SplittingNode(V, C) : Exports == Implementation where
           else
             o3 := message(" closed == false")
         l := [o1, o2, o3]
-        bracket commaSeparate l
+        bracket l
 
 )abbrev domain SPLTREE SplittingTree
 ++ Author: Marc Moereno Maza
 ++ Date Created: 07/05/1996
-++ Date Last Updated:  07/19/1996
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -310,7 +306,7 @@ SplittingNode(V, C) : Exports == Implementation where
 ++      algebriques" These, Universite P.etM. Curie, Paris, 1997.
 ++ Description:
 ++    This domain exports a modest implementation of splitting
-++    trees. Spliiting trees are needed when the
+++    trees. Splitting trees are needed when the
 ++    evaluation of some quantity under some hypothesis
 ++    requires to split the hypothesis into sub-cases.
 ++    For instance by adding some new hypothesis on one

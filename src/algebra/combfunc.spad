@@ -1,11 +1,10 @@
 )abbrev category COMBOPC CombinatorialOpsCategory
 ++ Category for summations and products
 ++ Author: Manuel Bronstein
-++ Date Created: ???
-++ Date Last Updated: 22 February 1993 (JHD/BMT)
 ++ Description:
 ++   CombinatorialOpsCategory is the category obtaining by adjoining
-++   summations and products to the usual combinatorial operations;
+++   summations and products to the usual combinatorial operations.
+
 CombinatorialOpsCategory() : Category ==
   CombinatorialFunctionCategory with
     factorials : % -> %
@@ -31,13 +30,9 @@ CombinatorialOpsCategory() : Category ==
 ++ Provides the usual combinatorial functions
 ++ Author: Manuel Bronstein, Martin Rubey
 ++ Date Created: 2 Aug 1988
-++ Date Last Updated: 30 October 2005
 ++ Description:
 ++   Provides combinatorial functions over an integral domain.
 ++ Keywords: combinatorial, function, factorial.
-++ Examples:  )r COMBF INPUT
-
-
 
 CombinatorialFunction(R, F) : Exports == Implementation where
   R : Join(Comparable, IntegralDomain)
@@ -257,12 +252,12 @@ CombinatorialFunction(R, F) : Exports == Implementation where
     product(x : F, s : SegmentBinding F) ==
       k := kernel(variable s)$K
       dm := dummy
-      opdprod [eval(x, k, dm), dm, k::F, lo segment s, hi segment s]
+      opdprod [eval(x, k, dm), dm, k::F, low(segment(s)), high(segment(s))]
 
     summation(x : F, s : SegmentBinding F) ==
       k := kernel(variable s)$K
       dm := dummy
-      opdsum [eval(x, k, dm), dm, k::F, lo segment s, hi segment s]
+      opdsum [eval(x, k, dm), dm, k::F, low(segment(s)), high(segment(s))]
 
     smpfact(p, l) ==
       map(x +-> K2fact(x, l), x +-> x::F, p)$PolynomialCategoryLifting(
@@ -292,7 +287,6 @@ CombinatorialFunction(R, F) : Exports == Implementation where
 
     iprod l ==
       zero? first l => 0
---      one? first l => 1
       (first l = 1) => 1
       kernel(opprod, l)
 
@@ -311,14 +305,12 @@ CombinatorialFunction(R, F) : Exports == Implementation where
       first(l) * (fourth rest l - fourth l + 1)
 
     ifact x ==
---      zero? x or one? x => 1
       zero? x or (x = 1) => 1
       kernel(opfact, x)
 
     ibinom l ==
       n := first l
       ((p := second l) = 0) or (p = n) => 1
---      one? p or (p = n - 1) => n
       (p = 1) or (p = n - 1) => n
       kernel(opbinom, l)
 
@@ -369,13 +361,10 @@ CombinatorialFunction(R, F) : Exports == Implementation where
         zero?(x := first l) =>
           zero? second l => error "0 ^ 0"
           0
---        one? x or zero?(n := second l) => 1
         (x = 1) or zero?(n : F := second l) => 1
---        one? n => x
         (n = 1) => x
         (u := isExpt(x, OPEXP)) case "failed" => kernel(oppow, l)
         rec := u::Record(var : K, exponent : Z)
---        one?(y := first argument(rec.var)) or y = -1 =>
         ((y := first argument(rec.var))=1) or y = -1 =>
             (operator(rec.var)) (rec.exponent * y * n)
         kernel(oppow, l)
@@ -628,7 +617,8 @@ FunctionalSpecialFunction(R, F) : Exports == Implementation where
         ++ jacobiDn(z, m)^2 - ellipticE(m)/ellipticK(m)} and
         ++ \spad{jacobiZeta(0, m) = 0}.
     jacobiTheta : (F, F) -> F
-        ++ jacobiTheta(q, z) is the third Jacobi Theta function
+        ++ jacobiTheta(z, m) is the Jacobi Theta function in Jacobi
+        ++ notation.
     lerchPhi : (F, F, F) -> F
         ++ lerchPhi(z, s, a) is the Lerch Phi function
     riemannZeta : F -> F
@@ -702,6 +692,7 @@ FunctionalSpecialFunction(R, F) : Exports == Implementation where
     SPECIALINPUT ==> '%specialInput
 
     iabs      : F -> F
+    iconjugate: F -> F
     iGamma    : F -> F
     iBeta     : (F, F) -> F
     idigamma  : F -> F
@@ -1571,13 +1562,26 @@ FunctionalSpecialFunction(R, F) : Exports == Implementation where
 
     opJacobiTheta := operator('jacobiTheta)$CommonOperators
 
-    jacobiTheta(q, z) == opJacobiTheta(q, z)
+    jacobiTheta(z, m) == opJacobiTheta(z, m)
 
-    eJacobiTheta(q : F, z : F) : F ==
-        kernel(opJacobiTheta, [q, z])
+    eJacobiTheta(z : F, m : F) : F ==
+        kernel(opJacobiTheta, [z, m])
 
     elJacobiTheta(l : List F) : F == eJacobiTheta(l(1), l(2))
     holomorphic(evaluate(opJacobiTheta, elJacobiTheta)$BasicOperatorFunctions1(F))
+
+    eJacobiThetaGrad_z(l : List F) : F ==
+        z := l(1)
+        m := l(2)
+        jacobiZeta(z, m)*jacobiTheta(z, m)
+
+    eJacobiThetaGrad_m(l : List F) : F ==
+        z := l(1)
+        m := l(2)
+        dm := dummy
+        kernel(opdiff, [opJacobiTheta [z, dm], dm, m])
+
+    derivative(opJacobiTheta, [eJacobiThetaGrad_z, eJacobiThetaGrad_m])
 
     -- handle LerchPhi
 
@@ -1783,7 +1787,6 @@ FunctionalSpecialFunction(R, F) : Exports == Implementation where
 
     -- Could put more unconditional special rules for other functions here
     iGamma x ==
---      one? x => x
       (x = 1) => x
       kernel(opGamma, x)
 
@@ -2489,17 +2492,16 @@ FunctionalSpecialFunction(R, F) : Exports == Implementation where
                                                  pretend None)
     setProperty(opPolylog, SPECIALDIFF, dPolylog@((List F, SE)->F)
                                                  pretend None)
+)boot $tryRecompileArguments := true
 
 
 )abbrev package SUMFS FunctionSpaceSum
 ++ Top-level sum function
 ++ Author: Manuel Bronstein
-++ Date Created: ???
-++ Date Last Updated: 19 April 1991
 ++ Description: computes sums of top-level expressions;
 FunctionSpaceSum(R, F) : Exports == Implementation where
   R : Join(IntegralDomain, Comparable,
-          RetractableTo Integer, LinearlyExplicitRingOver Integer)
+          RetractableTo Integer, LinearlyExplicitOver Integer)
   F : Join(FunctionSpace R, CombinatorialOpsCategory,
           AlgebraicallyClosedField, TranscendentalFunctionCategory)
 
@@ -2527,7 +2529,7 @@ FunctionSpaceSum(R, F) : Exports == Implementation where
     sum(x : F, s : SegmentBinding F) ==
       k := kernel(variable s)@K
       (u := innersum(x, k)) case "failed" => summation(x, s)
-      eval(u::F, k, 1 + hi segment s) - eval(u::F, k, lo segment s)
+      eval(u::F, k, 1 + high(segment(s))) - eval(u::F, k, low(segment(s)))
 
     sum(x : F, v : SE) ==
       (u := innersum(x, kernel(v)@K)) case "failed" => summation(x,v)

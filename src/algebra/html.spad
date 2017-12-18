@@ -64,25 +64,8 @@ HTMLFormat has advantages that the other output formats don't, for instance,
 
 \section{Installing}
 
-Unless this package comes with Axiom/Fricas then it will need to be downloaded
-(I assume if you are reading this you have already downloaded it) and
-installed and compiled so that the interpreter knows about it.
+See 'Displaying MathML' in 'mathml.spad'.
 
-This all seems very complicated and I haven't tried it myself.
-
-Then setup:
-\begin{verbatim}
-src/interp/setvars.boot.pamphlet
-src/algebra/Makefile.pamphlet
-src/algebra/exposed.lsp.pamphlet
-src/algebra/Lattice.pamphlet
-src/doc/axiom.bib.pamphlet
-interp/i-output.boot.pamphlet
-\end{verbatim}
-as described by Arthur C. Ralfs in MathMLFormat.
-
-Then compile everything and you're ready to go. If you know an easy way
-to do this please let me know as I would like to try it.
 \section{Using the formatter}
 We can cause the command line interpreter to output in html by typing
 the following:
@@ -426,7 +409,7 @@ HTMLFormat() : public == private where
     formatSC(args : L E, prec : I)  : Tree S ==
       if debug then sayHt "formatSC: "concat[" args=",_
         argsToString(args)," prec=",string(prec)$S]
-      null args => tree("")
+      empty?(args) => tree("")
       cells : L Tree S := [_
         newNode("td id='sc' style='border-bottom-style:solid'",_
         formatHtml(a, prec)) for a in args]
@@ -509,7 +492,7 @@ HTMLFormat() : public == private where
       op = 'PAREN =>
         newNodes("",[tree("("),formatHtml(first args, minPrec),tree(")")])
       op = 'OVERBAR =>
-        null args => tree("")
+        empty?(args) => tree("")
         buildOverbar(formatHtml(first args, minPrec))
       op = 'ROOT and #args < 1 => tree("")
       op = 'ROOT and #args = 1 => _
@@ -521,7 +504,7 @@ HTMLFormat() : public == private where
         -- '..' indicates a range in a list for example
         tmp : Tree S := newNodes("",[formatHtml(first args, minPrec),_
           tree("..")])
-        null rest args =>  tmp
+        empty?(rest(args)) =>  tmp
         newNodes("",[tmp,formatHtml(first rest args, minPrec)])
       op = 'SC => formatSC(args,minPrec)
       op = 'MATRIX => formatMatrix rest args
@@ -545,7 +528,7 @@ HTMLFormat() : public == private where
       atomE : L E := atomize(expr)
       op : S := stringify first atomE
       op ~= "SUPERSUB" => tree("Mistake in formatSuperSub: no SUPERSUB")
-      #args ~= 1 => tree("Mistake in SuperSub: #args <> 1")
+      #args ~= 1 => tree("Mistake in SuperSub: #args ~= 1")
       var : E := first args
       -- should be looking at something like {{SUPERSUB}{var}{ }{, ,..., }}
       -- for example here's the second derivative of y w.r.t. x
@@ -919,7 +902,7 @@ HTMLFormat() : public == private where
       if debug then sayHt "formatNaryNoGroup: "concat["op=",op,_
         " args=",argsToString(args)," prec=",string(prec)$S]
       checkargs : Boolean := false
-      null args => empty()$Tree(S)
+      empty?(args) => empty()$Tree(S)
       p : I := position(op, naryOps)
       p < 1 => error "unknown nary op"
       -- need to test for "ZAG" case and divert it here
@@ -1040,9 +1023,9 @@ HTMLFormat() : public == private where
 )if false
 \eject
 \begin{thebibliography}{99}
-\bibitem{1} http : //www.w3schools.com/html/
-\bibitem{2} http : //www.w3.org/
-\bibitem{3} http : //www.euclideanspace.com/maths/standards/program/output/
+\bibitem{1} \url{http://www.w3schools.com/html/}
+\bibitem{2} \url{http://www.w3.org/}
+\bibitem{3} \url{http://www.euclideanspace.com/prog/scratchpad/mycode/system/output/index.htm}
 \end{thebibliography}
 \end{document}
 )endif

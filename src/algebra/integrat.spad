@@ -2,14 +2,14 @@
 ++ Top-level complex function integration
 ++ Author: Manuel Bronstein
 ++ Date Created: 4 February 1988
-++ Date Last Updated: 11 June 1993
 ++ Description:
 ++   \spadtype{FunctionSpaceComplexIntegration} provides functions for the
 ++   indefinite integration of complex-valued functions.
 ++ Keywords: function, integration.
 FunctionSpaceComplexIntegration(R, F) : Exports == Implementation where
-  R : Join(EuclideanDomain, Comparable, CharacteristicZero,
-           RetractableTo Integer, LinearlyExplicitRingOver Integer)
+  R : Join(GcdDomain, Comparable, CharacteristicZero,
+           PolynomialFactorizationExplicit,
+           RetractableTo Integer, LinearlyExplicitOver Integer)
   F : Join(TranscendentalFunctionCategory,
            AlgebraicallyClosedFunctionSpace R)
 
@@ -66,25 +66,25 @@ FunctionSpaceComplexIntegration(R, F) : Exports == Implementation where
           h := trigs2explogs(F2FG g, [K2KG k for k in tower f
                          | is?(k, 'tan) or is?(k, 'cot)])
           real?(g := FG2F h) =>
-            internalIntegrate0(rootSimp(rischNormalize(g, x).func), x)
-          real?(g := FG2F(h := rootSimp(rischNormalize(h, x).func))) =>
+            internalIntegrate0(rischNormalize(g, x).func, x)
+          real?(g := FG2F(h := rischNormalize(h, x).func)) =>
                                                        internalIntegrate0(g, x)
           map(FG2F, lfintegrate(h, x))
-      internalIntegrate0(rootSimp(rischNormalize(g, x).func), x)
+      internalIntegrate0(rischNormalize(g, x).func, x)
 
 )abbrev package FSINT FunctionSpaceIntegration
 ++ Top-level real function integration
 ++ Author: Manuel Bronstein
 ++ Date Created: 4 February 1988
-++ Date Last Updated: 11 June 1993
 ++ Keywords: function, integration.
 ++ Description:
 ++   \spadtype{FunctionSpaceIntegration} provides functions for the
 ++   indefinite integration of real-valued functions.
 ++ Examples: )r INTEF INPUT
 FunctionSpaceIntegration(R, F) : Exports == Implementation where
-  R : Join(EuclideanDomain, Comparable, CharacteristicZero,
-           RetractableTo Integer, LinearlyExplicitRingOver Integer)
+  R : Join(GcdDomain, Comparable, CharacteristicZero,
+           PolynomialFactorizationExplicit,
+           RetractableTo Integer, LinearlyExplicitOver Integer)
   F : Join(TranscendentalFunctionCategory, PrimitiveFunctionCategory,
            AlgebraicallyClosedFunctionSpace R)
 
@@ -148,7 +148,7 @@ FunctionSpaceIntegration(R, F) : Exports == Implementation where
 
     rinteg(i, f, x, h) ==
         not elem? i => [integral(f, x)$F]
-        [mkPrimh(f, x, h) for f in expand i]
+        [mkPrimh(f, x, h) for f in expand(i, x)]
 
 -- replace tan(a/2)^2 by (1-cos a)/(1+cos a) if tan(a/2) is in ltan
     halfangle a ==
@@ -268,7 +268,7 @@ FunctionSpaceIntegration(R, F) : Exports == Implementation where
     goComplex?(rt, l, ltan) == not(empty? ltan) or rt
 
     integrate(f, x) ==
-      -- FIXME: we need better way to check if base ring is
+      -- FIXME: we need better way to check if base ring is id:698
       -- real
       R has imaginary : () -> % or R is AlgebraicNumber =>
           complexIntegrate(f, x)
@@ -338,7 +338,7 @@ FunctionSpaceIntegration(R, F) : Exports == Implementation where
           tgg1 := [trigs2explogs(k::FG, []) for k in tgg0]
           rtg1 := inv_lst(tgg0, tgg1)
           gg := eval(gg0, tgg0, tgg1)
-          -- FIXME: we should really rerun algebraic normalization
+          -- FIXME: we should really rerun algebraic normalization id:699
           -- but currently we do nothing
           -- rootSimp caused regression on arc trigonometric functions
           -- gg := rootSimp(gg)$AlgebraicManipulations(G, FG)
@@ -385,9 +385,3 @@ FunctionSpaceIntegration(R, F) : Exports == Implementation where
 --LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 --NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 --SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
--- SPAD files for the integration world should be compiled in the
--- following order:
---
---   intaux  rderf  intrf  curve  curvepkg  divisor  pfo
---   intalg  intaf  EFSTRUC  rdeef  intef  irexpand  integrat

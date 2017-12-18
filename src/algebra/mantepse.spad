@@ -16,7 +16,7 @@
   first few terms.  It extends and complements Christian Krattenthaler's
   program \Rate\ and the relevant parts of Bruno Salvy and Paul Zimmermann's
   \GFUN.  An article describing this package can be found at
-  \url{http : //arxiv.org/abs/math.CO/0702086}.
+  \url{http://arxiv.org/abs/math.CO/0702086}.
 \end{abstract}
 \tableofcontents
 \section{domain UFPS UnivariateFormalPowerSeries}
@@ -800,12 +800,11 @@ GuessExpBin(F, S, EXPRR, retract, coerce) : Exports == Implementation where
 
         for i in 0..maxDeg repeat
             if debug(options)$GOPT0 then
-                output(hconcat("Guess: degree ExpRat "::OutputForm,
-                       i::OutputForm))$OutputPackage
+                output("Guess: degree ExpRat ", i::OutputForm)$OutputPackage
 
             if debug(options)$GOPT0 then
                 systemCommand("sys date +%s")$MoreSystemCommands
-                output("Guess: interpolating..."::OutputForm)$OutputPackage
+                output("Guess: interpolating...")$OutputPackage
 
             ri : FSUPFPOLYS
                := interpolate(xlist, ylist, (len-1-i)::NNI) _
@@ -821,7 +820,7 @@ GuessExpBin(F, S, EXPRR, retract, coerce) : Exports == Implementation where
     --            output(hconcat("ylist: ", ylist::OutputForm))$OutputPackage
     --            output(hconcat("ri: ", ri::OutputForm))$OutputPackage
     --            systemCommand("sys date +%s")$MoreSystemCommands
-                output("Guess: polynomials..."::OutputForm)$OutputPackage
+                output("Guess: polynomials...")$OutputPackage
 
             poly1 : POLYS := numer(elt(ri, x1)$SUP(FPOLYS) - y1)
             poly2 : POLYS := numer(elt(ri, x2)$SUP(FPOLYS) - y2)
@@ -847,8 +846,7 @@ GuessExpBin(F, S, EXPRR, retract, coerce) : Exports == Implementation where
 
             if debug(options)$GOPT0 then
     --            systemCommand("sys date +%s")$MoreSystemCommands
-                output("Guess: interpolating resultants..."::OutputForm
-                      )$OutputPackage
+                output("Guess: interpolating resultants...")$OutputPackage
 
             res1 : SUP S
                  := newton(evalResultant(poly1, poly3, o1, d1, a1, A))
@@ -879,7 +877,7 @@ GuessExpBin(F, S, EXPRR, retract, coerce) : Exports == Implementation where
 
             if debug(options)$GOPT0 then
     --            systemCommand("sys date +%s")$MoreSystemCommands
-                output("Guess: computing gcd..."::OutputForm)$OutputPackage
+                output("Guess: computing gcd...")$OutputPackage
 
     -- we want to solve over F
     -- for polynomial domains S this seems to be very costly!
@@ -887,7 +885,7 @@ GuessExpBin(F, S, EXPRR, retract, coerce) : Exports == Implementation where
 
             if debug(options)$GOPT0 then
     --            systemCommand("sys date +%s")$MoreSystemCommands
-                output("Guess: solving..."::OutputForm)$OutputPackage
+                output("Guess: solving...")$OutputPackage
 
     -- res3 is a polynomial in A=a0+(len+3)*a1
     -- now we have to find the roots of res3
@@ -900,7 +898,7 @@ GuessExpBin(F, S, EXPRR, retract, coerce) : Exports == Implementation where
                 Av : F := -coefficient(f.factor, 0)
                          / leadingCoefficient f.factor
 
-    -- FIXME: in an earlier version, we disregarded vanishing Av
+    -- FIXME: in an earlier version, we disregarded vanishing Av id:709
     --    maybe we intended to disregard vanishing a1v? Either doesn't really
     --    make sense to me right now.
 
@@ -910,13 +908,13 @@ GuessExpBin(F, S, EXPRR, retract, coerce) : Exports == Implementation where
     -- Note that it really may happen that poly3 vanishes when specializing
     -- A. Consider for example guessExpRat([1, 1, 1, 1]).
 
-    -- FIXME: We check poly1 below, too. I should work out in what cases poly3
+    -- FIXME: We check poly1 below, too. I should work out in what cases poly3 id:710
     -- vanishes.
 
                 for g in factors factor(univariate evalPoly)$GF
                           | degree g.factor = 1 repeat
     --                 if debug(options)$GOPT0 then
-    --                     output(hconcat("g: ", g::OutputForm))$OutputPackage
+    --                     output("g: ", g::OutputForm)$OutputPackage
 
                     a1v : F := -coefficient(g.factor, 0)
                               / leadingCoefficient g.factor
@@ -956,7 +954,7 @@ GuessExpBin(F, S, EXPRR, retract, coerce) : Exports == Implementation where
     -- degrees if we have found already some solutions. I.e., the
     -- indentation here is correct.
 
-            if not null(res) and one(options)$GOPT0 then return res
+            if not(empty?(res)) and one(options)$GOPT0 then return res
 
         res
 
@@ -1115,7 +1113,7 @@ GuessExpBin(F, S, EXPRR, retract, coerce) : Exports == Implementation where
     --                  $OutputPackage
 
             if debug(options)$GOPT0 then
-                output("Guess: computing gcd..."::OutputForm)$OutputPackage
+                output("Guess: computing gcd...")$OutputPackage
 
     -- we want to solve over F
             res3 : SUP F := SUPS2SUPF(primitivePart(gcd(res1, res2)))
@@ -1137,7 +1135,7 @@ GuessExpBin(F, S, EXPRR, retract, coerce) : Exports == Implementation where
     --             if debug(options)$GOPT0 then
     --                 output(hconcat("Av: ", Av::OutputForm))$OutputPackage
 
-    -- FIXME: in an earlier version, we disregarded vanishing Av
+    -- FIXME: in an earlier version, we disregarded vanishing Av id:711
     --        maybe we intended to disregard vanishing a1v? Either doesn't really
     --        make sense to me right now.
 
@@ -1147,7 +1145,7 @@ GuessExpBin(F, S, EXPRR, retract, coerce) : Exports == Implementation where
     -- Note that it really may happen that poly3 vanishes when specializing
     -- A. Consider for example guessExpRat([1, 1, 1, 1]).
 
-    -- FIXME: We check poly1 below, too. I should work out in what cases poly3
+    -- FIXME: We check poly1 below, too. I should work out in what cases poly3 id:712
     -- vanishes.
 
                 for g in factors factor(univariate evalPoly)$GF
@@ -1212,7 +1210,7 @@ GuessExpBin(F, S, EXPRR, retract, coerce) : Exports == Implementation where
     -- If we are only interested in one solution, we do not try other degrees if we
     -- have found already some solutions. I.e., the indentation here is correct.
 
-            if not null(res) and one(options)$GOPT0 then return res
+            if not(empty?(res)) and one(options)$GOPT0 then return res
 
         res
 
@@ -1299,7 +1297,7 @@ GuessExpBin(F, S, EXPRR, retract, coerce) : Exports == Implementation where
         guessBinRat(q : Symbol) : GUESSER ==
              (z1 : List F, z2 : LGOPT) : GUESSRESULT +->
                 guessBinRatAux0(z1, qD q, qBinExt q, qBinExtEXPR q, z2)
-
+)boot $tryRecompileArguments := true
 
 )if false
 \section{package GUESS Guess}
@@ -3226,7 +3224,7 @@ is not a solution to Hermite-Pade problem.
             output("Guess: checking solution")$OutputPackage
 
 
-       -- FIXME: we should also check that the non-zero terms contain the
+       -- FIXME: we should also check that the non-zero terms contain the id:713
        -- generating function
 
         nonZeroCoefficients : Union("one", "several", "none") := "none"
@@ -3248,7 +3246,7 @@ is not a solution to Hermite-Pade problem.
                       $OutputPackage
 
 
-    -- FIXME: we really should special case the check of recurrences also if
+    -- FIXME: we really should special case the check of recurrences also if id:714
     --        it *happens* to be a linear recurrence.
 
         len := #list
@@ -3287,22 +3285,23 @@ is not a solution to Hermite-Pade problem.
                 break
 
             if d > dmax then
-                print("bailing out from checkInterpolant"::OutputForm)
-                print(("please report the input to "
-                       "fricas-devel@googlegroups.com")::OutputForm)
+                print(message("bailing out from checkInterpolant"))
+                print(message("please report the input to "
+                       "fricas-devel@googlegroups.com"))
                 order := d
                 break
 
         order < sigma =>
-            print(hconcat("Order too low: ", order::OutputForm))
-            print(hconcat("sigma: ", sigma::OutputForm))
+            print(hconcat(message("Order too low: "), order::OutputForm))
+            print(hconcat(message("sigma: "), sigma::OutputForm))
             return "no_solution"
 
         ground? c =>
             if debug(options)$GOPT0 then
-                print(hconcat("Proposed solution does not fit coefficient ",
+                print(hconcat(
+                    message("Proposed solution does not fit coefficient "),
                               order::OutputForm))
-                print(hconcat("sigma: ", sigma::OutputForm))
+                print(hconcat(message("sigma: "), sigma::OutputForm))
             return "reject"
 
         "good"
@@ -3420,9 +3419,9 @@ lists of partitions are closed under inclusion.
                 return reslist
 
             if debug(options)$GOPT0 then
-                output(hconcat(["Guess: trying order ", o::OutputForm,
-                                ", guessDegree is ", guessDegree::OutputForm]))
-                      $OutputPackage
+                output(hconcat([message("Guess: trying order "), o::OutputForm,
+                                message(", guessDegree is "),
+                                guessDegree::OutputForm]))$OutputPackage
 
             if (maxD := maxDegree(options)$GOPT0) case NNI and _
                not empty? rest(degreeS, o) and _
@@ -3694,10 +3693,9 @@ following operators:
         newMaxLevel := maxLevel(options)$GOPT0
         xx := (indexName(options)$GOPT0)::EXPRR
         if debug(options)$GOPT0 and newMaxLevel case NNI then
-            output(hconcat("Guess: guessing level ", newMaxLevel::OutputForm))
-                  $OutputPackage
+            output(hconcat(message("Guess: guessing level "),
+                           newMaxLevel::OutputForm))$OutputPackage
 
-    --        output(hconcat("guessing ", list::OutputForm))$OutputPackage
         res : GUESSRESULT := []
         len := #list :: PositiveInteger
         if len <= 1 then return res
@@ -3785,7 +3783,7 @@ following operators:
     guess(list : List F, guessers : List GUESSER, ops : List Symbol
          ) : GUESSRESULT ==
         guess(list, guessers, ops, [])
-
+)boot $tryRecompileArguments := true
 
 -- concerning algebraic functions, it may make sense to look at A.J.van der
 -- Poorten, Power Series Representing Algebraic Functions, Section 6.

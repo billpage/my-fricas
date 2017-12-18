@@ -2,11 +2,10 @@
 ++ Laplace transform
 ++ Author: Manuel Bronstein
 ++ Date Created: 30 May 1990
-++ Date Last Updated: 13 December 1995
 ++ Description: This package computes the forward Laplace Transform.
 LaplaceTransform(R, F) : Exports == Implementation where
-  R : Join(EuclideanDomain, Comparable, CharacteristicZero,
-           RetractableTo Integer, LinearlyExplicitRingOver Integer)
+  R : Join(PolynomialFactorizationExplicit, Comparable, CharacteristicZero,
+           RetractableTo Integer, LinearlyExplicitOver Integer)
   F : Join(TranscendentalFunctionCategory, PrimitiveFunctionCategory,
            AlgebraicallyClosedFunctionSpace R)
 
@@ -166,7 +165,12 @@ LaplaceTransform(R, F) : Exports == Implementation where
       is?(g, oplap) or ((i := integrate(g, v)) case List(F)) => "failed"
       (u := limit(i::F, equation(vv::OFE, plusInfinity()$OFE)$EQ)) case OFE =>
         (l := limit(i::F, equation(vv::OFE, ss::OFE)$EQ)) case OFE =>
-          retractIfCan(u::OFE - l::OFE)@Union(F, "failed")
+            uu := u::OFE
+            ll := l::OFE
+            u1 := whatInfinity(uu)
+            l1 := whatInfinity(ll)
+            u1 = 0 and l1 = 0 => retract(uu)@F - retract(ll)@F
+            "failed"
         "failed"
       "failed"
 
@@ -197,7 +201,6 @@ LaplaceTransform(R, F) : Exports == Implementation where
     -- or using one of known base cases
     locallaplace(f, t, tt, s, ss) ==
       zero? f => 0
---      one? f  => inv ss
       (f = 1)  => inv ss
 
       -- laplace(f(t)/t, t, s)
@@ -250,11 +253,10 @@ LaplaceTransform(R, F) : Exports == Implementation where
 ++ Inverse Laplace transform
 ++ Author: Barry Trager
 ++ Date Created: 3 Sept 1991
-++ Date Last Updated: 3 Sept 1991
 ++ Description: This package computes the inverse Laplace Transform.
 InverseLaplaceTransform(R, F) : Exports == Implementation where
   R : Join(EuclideanDomain, Comparable, CharacteristicZero,
-           RetractableTo Integer, LinearlyExplicitRingOver Integer)
+           RetractableTo Integer, LinearlyExplicitOver Integer)
   F : Join(TranscendentalFunctionCategory, PrimitiveFunctionCategory,
            SpecialFunctionCategory, AlgebraicallyClosedFunctionSpace R)
 

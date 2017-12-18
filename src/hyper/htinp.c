@@ -39,8 +39,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <setjmp.h>
 
 #include "hyper.h"
-#include "mem.h"
-#include "group.h"
 #include "parse.h"
 #include "bsdsignal.h"
 
@@ -408,7 +406,7 @@ get_graph_output(char *command,char *pagename,int com_type)
 
     send_command(command, com_type);
     n = get_int(spad_socket);
-    /* FIXME: this looks crazy */
+    /* FIXME: this looks crazy  id:649*/
     for (i = 0; i < n; i++) {
         get_string_buf(spad_socket, buf, 1024);
     }

@@ -1,8 +1,6 @@
 )abbrev package IALGFACT InnerAlgFactor
 ++ Factorisation in a simple algebraic extension
 ++ Author: Patrizia Gianni
-++ Date Created: ???
-++ Date Last Updated: 20 Jul 1988
 ++ Description:
 ++ Factorization of univariate polynomials with coefficients in an
 ++ algebraic extension of a field over which we can factor UP's;
@@ -91,8 +89,6 @@ InnerAlgFactor(F, UP, AlExt, AlPol) : Exports == Implementation where
 )abbrev package RFFACT RationalFunctionFactor
 ++ Factorisation in UP FRAC POLY INT
 ++ Author: Patrizia Gianni
-++ Date Created: ???
-++ Date Last Updated: ???
 ++ Description:
 ++ Factorization of univariate polynomials with coefficients which
 ++ are rational functions with integer coefficients.
@@ -128,8 +124,6 @@ RationalFunctionFactor(UP) : Exports == Implementation where
 )abbrev package ALGFACT AlgFactor
 ++ Factorization of UP AN;
 ++ Author: Manuel Bronstein
-++ Date Created: ???
-++ Date Last Updated: ???
 ++ Description:
 ++ Factorization of univariate polynomials with coefficients in
 ++ \spadtype{AlgebraicNumber}.
@@ -193,7 +187,6 @@ AlgFactor(UP) : Exports == Implementation where
             _*/[extend(fc.factor, fc.exponent) for fc in factors fp]
 
     extend(p, n) ==
---      one? degree p => primeFactor(p, n)
       (degree p = 1) => primeFactor(p, n)
       q := monomial(1, 1)$UP - zeroOf(p pretend SUP)::UP
       primeFactor(q, n) * split((p exquo q)::UP) ^ (n::N)
@@ -203,12 +196,10 @@ AlgFactor(UP) : Exports == Implementation where
         (monomial(1, 1)$UP - zeroOf(p pretend SUP)::UP))::UP)
 
     irred? p ==
-      fp := factor p
---      one? numberOfFactors fp and one? nthExponent(fp, 1)
-      (numberOfFactors fp = 1) and  (nthExponent(fp, 1) = 1)
+      fp := factorList factor p
+      (# fp = 1) and (first(fp).xpnt = 1)
 
     fact(p, l) ==
---      one? degree p => primeFactor(p, 1)
       (degree p = 1) => primeFactor(p, 1)
       empty? l =>
         dr := factor(downpoly p)$RationalFactorize(UPQ)

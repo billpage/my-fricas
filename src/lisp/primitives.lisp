@@ -98,12 +98,25 @@
 (defmacro suffixed_name(name s)
     `(intern (concatenate 'string (symbol-name ',name)
                                   (format nil "~A" ,s))))
+
 #+:sbcl
 (defmacro sbcl_make_sized_vector(nb n)
-    (multiple-value-bind (typetag n-bits)
-        (SB-IMPL::%VECTOR-WIDETAG-AND-N-BITS `(unsigned-byte ,nb))
-        `(SB-KERNEL:ALLOCATE-VECTOR ,typetag ,n
-                       (ceiling (* ,n ,n-bits) sb-vm:n-word-bits))))
+    (let ((get-tag (find-symbol "%VECTOR-WIDETAG-AND-N-BITS" "SB-IMPL"))
+          (length-sym nil))
+        (if (null get-tag)
+            (progn
+                (setf get-tag
+                    (find-symbol "%VECTOR-WIDETAG-AND-N-BITS-SHIFT"
+                                 "SB-IMPL"))
+                (setf length-sym (find-symbol "VECTOR-LENGTH-IN-WORDS"
+                                              "SB-IMPL"))))
+        (multiple-value-bind (typetag n-bits)
+            (FUNCALL get-tag `(unsigned-byte ,nb))
+            (let ((length-form
+                   (if length-sym
+                       `(,length-sym ,n ,n-bits)
+                       `(ceiling (* ,n ,n-bits) sb-vm:n-word-bits))))
+                `(SB-KERNEL:ALLOCATE-VECTOR ,typetag ,n ,length-form)))))
 
 (defmacro DEF_SIZED_UOPS(nb)
 
@@ -508,9 +521,9 @@
 
 ; Misc operations
 
-(defmacro |qset_first|(l x) `(SETF (CAR ,l) ,x))
+(defmacro |qset_first|(l x) `(SETF (CAR (the cons ,l)) ,x))
 
-(defmacro |qset_rest|(l x) `(SETF (CDR ,l) ,x))
+(defmacro |qset_rest|(l x) `(SETF (CDR (the cons ,l)) ,x))
 
 (defmacro setelt (vec ind val) `(setf (elt ,vec ,ind) ,val))
 
@@ -564,8 +577,6 @@
 
 (defmacro qvsize (x)
  `(the fixnum (length (the simple-vector ,x))))
-
-(defmacro qlessp(x y) `(< ,x ,y))
 
 (defmacro eqcar (x y)
   (if (atom x)
@@ -669,10 +680,7 @@
     `(let ((,gi ,fn))
        (the (values t)
          (funcall
-          (the #-(or :GCL :genera :lispworks)
-                   (function ,(make-list (length l) :initial-element t) t)
-               #+(or :GCL :genera :lispworks)function
-            (car ,gi))
+          (the function (car ,gi))
           ,@args
           (cdr ,gi))))))
 

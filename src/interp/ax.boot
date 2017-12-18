@@ -40,7 +40,7 @@ $stripTypes := false
 -- is to pretend that they are such as required by the respective
 -- constructor.
 -- $pretendFlag will be set to true, if default operations are detected.
--- TODO: This is a reasonable assumption, but wrong in general.
+-- TODO: This is a reasonable assumption, but wrong in general. id:650
 $pretendFlag := false
 
 -- The variables $modemapArgs and $augmentedArgs and the code surrounding it
@@ -206,8 +206,6 @@ optcomma [op,:args] ==
 
 axFormatDecl(sym, type) ==
    if sym = '$ then sym := '%
-   opOf type in '(StreamAggregate FiniteLinearAggregate) =>
-        ['Declare, sym, 'Type]
    ['Declare, sym, axFormatType type]
 
 makeTypeSequence l ==
@@ -223,7 +221,10 @@ axFormatType(typeform) ==
      STRINGP typeform =>
         ['Apply,'Enumeration, INTERN typeform]
      INTEGERP typeform =>
-       -- need to test for PositiveInteger vs Integer
+        -- need to test for PositiveInteger vs Integer
+        typeform = 0 =>
+           axAddLiteral('integer, 'Integer, 'Literal)
+           ['RestrictTo, ['LitInteger, '"0"], 'Integer]
         axAddLiteral('integer, 'PositiveInteger, 'Literal)
         ['RestrictTo, ['LitInteger, STRINGIMAGE typeform ], 'PositiveInteger]
      FLOATP typeform => ['LitFloat, STRINGIMAGE typeform]

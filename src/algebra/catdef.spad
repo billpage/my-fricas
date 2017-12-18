@@ -1,7 +1,5 @@
 )abbrev category ABELGRP AbelianGroup
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -38,8 +36,6 @@ AbelianGroup() : Category == CancellationAbelianMonoid with
 
 )abbrev category ABELMON AbelianMonoid
 ++ Author:
-++ Date Created:
-++ Date Last Updated: May 10, 2013.
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -81,8 +77,6 @@ AbelianMonoid() : Category == AbelianSemiGroup with
 
 )abbrev category ABELSG AbelianSemiGroup
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -110,8 +104,6 @@ AbelianSemiGroup() : Category == SetCategory with
 
 )abbrev category ALGEBRA Algebra
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -138,8 +130,6 @@ Algebra(R : CommutativeRing) : Category ==
 )abbrev category BASTYPE BasicType
 --% BasicType
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -157,8 +147,6 @@ BasicType() : Category == with
 
 )abbrev category BMODULE BiModule
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -176,8 +164,6 @@ BiModule(R : SemiRng, S : SemiRng) : Category ==
 
 )abbrev category CABMON CancellationAbelianMonoid
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -201,8 +187,6 @@ CancellationAbelianMonoid() : Category == AbelianMonoid with
 
 )abbrev category CHARNZ CharacteristicNonZero
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -218,8 +202,6 @@ CharacteristicNonZero() : Category == Ring with
 
 )abbrev category CHARZ CharacteristicZero
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -232,8 +214,6 @@ CharacteristicZero() : Category == Ring
 
 )abbrev category COMRING CommutativeRing
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -244,14 +224,11 @@ CharacteristicZero() : Category == Ring
 ++ The category of commutative rings with unity, i.e. rings where
 ++ \spadop{*} is commutative, and which have a multiplicative identity.
 ++ element.
---CommutativeRing(): Category == Join(Ring, BiModule(%: Ring, %: Ring)) with
-CommutativeRing() : Category == Join(Ring, BiModule(%, %), CommutativeStar)
+CommutativeRing() : Category == Join(Ring, Algebra(%), CommutativeStar)
 
 
 )abbrev category DIFRING DifferentialRing
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -289,8 +266,6 @@ DifferentialRing() : Category == Ring with
 
 )abbrev category DIFEXT DifferentialExtension
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -335,8 +310,6 @@ DifferentialExtension(R : Ring) : Category == Ring with
 
 )abbrev category DIVRING DivisionRing
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -375,8 +348,6 @@ DivisionRing() : Category ==
 
 )abbrev category ENTIRER EntireRing
 ++ Author:
-++ Date Created:
-++ Date Last Updated: May 10, 2013.
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -395,7 +366,7 @@ DivisionRing() : Category ==
 ++   canonicalUnitNormal\tab{20}the canonical field is the same for
 ++     all associates
 ++   canonicalsClosed\tab{20}the product of two canonicals is itself canonical
-EntireRing() : Category == Join(Ring, BiModule(%, %), noZeroDivisors) with
+EntireRing() : Category == Join(Ring, noZeroDivisors) with
     --operations
       "exquo": (%,%) -> Union(%,"failed")
             ++ exquo(a, b) either returns an element c such that
@@ -440,8 +411,6 @@ EntireRing() : Category == Join(Ring, BiModule(%, %), noZeroDivisors) with
 
 )abbrev category EUCDOM EuclideanDomain
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -529,7 +498,6 @@ EuclideanDomain() : Category == PrincipalIdealDomain with
       IdealElt ==> Record(coef1 : %, coef2 : %, generator : %)
       unitNormalizeIdealElt(s : IdealElt) : IdealElt ==
           (u, c, a) := unitNormal(s.generator)
---          one? a => s
           (a = 1) => s
           [a*s.coef1, a*s.coef2, c]$IdealElt
       extendedEuclidean(x, y) ==         --Extended Euclidean Algorithm
@@ -594,8 +562,6 @@ EuclideanDomain() : Category == PrincipalIdealDomain with
 
 )abbrev category FIELD Field
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -629,7 +595,9 @@ Field() : Category == Join(EuclideanDomain, UniqueFactorizationDomain,
       associates?(x, y) == if zero? x then zero? y else not(zero? y)
       inv x ==((u := recip x) case "failed" => error "not invertible"; u)
       x exquo y == (y = 0 => "failed"; x / y)
-      gcd(x, y) == 1
+      gcd(x, y) ==
+          x = 0 and y = 0 => 0
+          1
       euclideanSize(x) == 0
       prime? x == false
       squareFree x == x::Factored(%)
@@ -639,8 +607,6 @@ Field() : Category == Join(EuclideanDomain, UniqueFactorizationDomain,
 
 )abbrev category FINITE Finite
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -658,12 +624,13 @@ Field() : Category == Join(EuclideanDomain, UniqueFactorizationDomain,
 Finite() : Category == Join(SetCategory, ConvertibleTo InputForm,
                             Comparable) with
     --operations
-      size : () ->  NonNegativeInteger
+      size : () -> NonNegativeInteger
         ++ size() returns the number of elements in the set.
       index : PositiveInteger -> %
         ++ index(i) takes a positive integer i less than or equal
         ++ to \spad{size()} and
-        ++ returns the \spad{i}-th element of the set. This operation establishs a bijection
+        ++ returns the \spad{i}-th element of the set. This
+        ++ operation establishes a bijection
         ++ between the elements of the finite set and \spad{1..size()}.
       lookup : % -> PositiveInteger
         ++ lookup(x) returns a positive integer such that
@@ -686,10 +653,8 @@ Finite() : Category == Join(SetCategory, ConvertibleTo InputForm,
           smaller?(x : %, y : %) : Boolean ==
               lookup(x) <$PositiveInteger lookup(y)
 
-)abbrev category FLINEXP FullyLinearlyExplicitRingOver
+)abbrev category FLINEXP FullyLinearlyExplicitOver
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -697,16 +662,16 @@ Finite() : Category == Join(SetCategory, ConvertibleTo InputForm,
 ++ Keywords:
 ++ References:
 ++ Description:
-++ S is \spadtype{FullyLinearlyExplicitRingOver R} means that S is a
-++ \spadtype{LinearlyExplicitRingOver R} and, in addition, if R is a
-++ \spadtype{LinearlyExplicitRingOver Integer}, then so is S
-FullyLinearlyExplicitRingOver(R : Ring) : Category ==
-  LinearlyExplicitRingOver R with
-    if (R has LinearlyExplicitRingOver Integer) then
-            LinearlyExplicitRingOver Integer
+++ S is \spadtype{FullyLinearlyExplicitOver R} means that S is a
+++ \spadtype{LinearlyExplicitOver R} and, in addition, if R is a
+++ \spadtype{LinearlyExplicitOver Integer}, then so is S
+FullyLinearlyExplicitOver(R : Ring) : Category ==
+  LinearlyExplicitOver R with
+    if (R has LinearlyExplicitOver Integer) then
+            LinearlyExplicitOver Integer
  add
   if not(R is Integer) then
-      if (R has LinearlyExplicitRingOver Integer) then
+      if (R has LinearlyExplicitOver Integer) then
           reducedSystem(m : Matrix %) : Matrix(Integer) ==
               reducedSystem(reducedSystem(m)@Matrix(R))
 
@@ -717,8 +682,6 @@ FullyLinearlyExplicitRingOver(R : Ring) : Category ==
 
 )abbrev category GCDDOM GcdDomain
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -726,9 +689,9 @@ FullyLinearlyExplicitRingOver(R : Ring) : Category ==
 ++ Keywords:
 ++ References: Davenport & Trager 1
 ++ Description:
-++ This category describes domains where
-++ \spadfun{gcd} can be computed but where there is no guarantee
-++ of the existence of \spadfun{factor} operation for factorisation into irreducibles.
+++ This category describes domains where \spadfun{gcd} can be
+++ computed but where there is no guarantee of the existence
+++ of \spadfun{factor} operation for factorization into irreducibles.
 ++ However, if such a \spadfun{factor} operation exist, factorization will be
 ++ unique up to order and units.
 
@@ -790,8 +753,6 @@ GcdDomain() : Category == Join(IntegralDomain, LeftOreRing) with
 
 )abbrev category GROUP Group
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -828,8 +789,6 @@ Group() : Category == Join(Monoid, unitsKnown) with
 
 )abbrev category INTDOM IntegralDomain
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -841,14 +800,11 @@ Group() : Category == Join(Monoid, unitsKnown) with
 ++ rings with no zero divisors.
 ++
 IntegralDomain() : Category ==
---  Join(CommutativeRing, Algebra(%: CommutativeRing), EntireRing) with
   Join(CommutativeRing, Algebra(%), EntireRing)
 
 
 )abbrev category LMODULE LeftModule
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -857,7 +813,7 @@ IntegralDomain() : Category ==
 ++ References:
 ++ Description:
 ++ The category of left modules over an rng (ring not necessarily with unit).
-++ This is an abelian group which supports left multiplation by elements of
+++ This is an abelian group which supports left multiplication by elements of
 ++ the rng.
 ++
 ++ Axioms:
@@ -887,10 +843,8 @@ LeftOreRing : Category == EntireRing with
      ++ and llcm_res = coeff1*c1 = coeff2*c2
 
 
-)abbrev category LINEXP LinearlyExplicitRingOver
+)abbrev category LINEXP LinearlyExplicitOver
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -899,7 +853,7 @@ LeftOreRing : Category == EntireRing with
 ++ References:
 ++ Description:
 ++ An extension ring with an explicit linear dependence test.
-LinearlyExplicitRingOver(R : Ring) : Category == Ring with
+LinearlyExplicitOver(R : Ring) : Category == Ring with
   reducedSystem : Matrix % -> Matrix R
     ++ reducedSystem(A) returns a matrix B such that \spad{A x = 0} and \spad{B x = 0}
     ++ have the same solutions in R.
@@ -909,8 +863,6 @@ LinearlyExplicitRingOver(R : Ring) : Category == Ring with
 
 )abbrev category MODULE Module
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -931,8 +883,6 @@ Module(R : CommutativeRing) : Category == BiModule(R, R)
 
 )abbrev category MONOID Monoid
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -949,34 +899,11 @@ Module(R : CommutativeRing) : Category == BiModule(R, R)
 ++
 ++ Conditional attributes:
 ++    unitsKnown\tab{15}\spadfun{recip} only returns "failed" on non-units
-Monoid() : Category == SemiGroup with
-    --operations
-      1 : constant ->  %                   ++ 1 is the multiplicative identity.
-      sample : constant -> %               ++ sample yields a value of type %
-      one? : % -> Boolean                  ++ one?(x) tests if x is equal to 1.
-      "^": (%,NonNegativeInteger) -> %
-          ++ x^n returns the repeated product
-          ++ of x n times, i.e. exponentiation.
-      recip : % -> Union(%,"failed")
-          ++ recip(x) tries to compute the multiplicative inverse for x
-          ++ or "failed" if it cannot find the inverse (see unitsKnown).
-    add
-      import from RepeatedSquaring(%)
-      one? x == x = 1
-      sample() == 1
-      recip x ==
---          one? x => x
-          (x = 1) => x
-          "failed"
-      x : % ^ n : NonNegativeInteger ==
-          zero? n => 1
-          expt(x, qcoerce(n)@PositiveInteger)
+Monoid() : Category == Join(SemiGroup, MagmaWithUnit)
 
 
 )abbrev category OAGROUP OrderedAbelianGroup
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -992,8 +919,6 @@ OrderedAbelianGroup() : Category ==
 
 )abbrev category OAMON OrderedAbelianMonoid
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1009,8 +934,6 @@ OrderedAbelianMonoid() : Category ==
 
 )abbrev category OAMONS OrderedAbelianMonoidSup
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1036,8 +959,6 @@ OrderedAbelianMonoidSup() : Category == OrderedCancellationAbelianMonoid with
 
 )abbrev category OASGP OrderedAbelianSemiGroup
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1055,7 +976,6 @@ OrderedAbelianSemiGroup() : Category == Join(OrderedSet, AbelianSemiGroup)
 )abbrev category OSGROUP OrderedSemiGroup
 ++ Author: Gabriel Dos Reis
 ++ Date Create May 25, 2008
-++ Date Last Updated: May 25, 2008
 ++ Description:  Semigroups with compatible ordering.
 
 OrderedSemiGroup() : Category == Join(OrderedSet, SemiGroup)
@@ -1063,8 +983,6 @@ OrderedSemiGroup() : Category == Join(OrderedSet, SemiGroup)
 
 )abbrev category OCAMON OrderedCancellationAbelianMonoid
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1080,8 +998,6 @@ OrderedCancellationAbelianMonoid() : Category ==
 
 )abbrev category ORDFIN OrderedFinite
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1096,7 +1012,6 @@ OrderedFinite() : Category == Join(OrderedSet, Finite)
 )abbrev category OINTDOM OrderedIntegralDomain
 ++ Author: JH Davenport (after L Gonzalez-Vega)
 ++ Date Created: 30.1.96
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1113,8 +1028,6 @@ OrderedIntegralDomain() : Category ==
 
 )abbrev category ORDMON OrderedMonoid
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1133,8 +1046,6 @@ OrderedMonoid() : Category == Join(OrderedSemiGroup, Monoid)
 
 )abbrev category ORDRING OrderedRing
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1149,7 +1060,7 @@ OrderedMonoid() : Category == Join(OrderedSemiGroup, Monoid)
 ++   \spad{0<a and b<c => ab< ac}
 
 OrderedRing() : Category == Join(OrderedAbelianGroup, Ring,
-         CharacteristicZero, Monoid) with
+         CharacteristicZero) with
      positive? : % -> Boolean
        ++ positive?(x) tests whether x is strictly greater than 0.
      negative? : % -> Boolean
@@ -1209,8 +1120,6 @@ PartialOrder() : Category == with
 
 )abbrev category ORDSET OrderedSet
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1250,8 +1159,6 @@ OrderedSet() : Category == Join(Comparable, PartialOrder) with
 
 )abbrev category PDRING PartialDifferentialRing
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1312,8 +1219,6 @@ PartialDifferentialRing(S : SetCategory) : Category == Ring with
 
 )abbrev category PFECAT PolynomialFactorizationExplicit
 ++ Author: James Davenport
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1383,8 +1288,6 @@ PolynomialFactorizationExplicit() : Category == Definition where
 
 )abbrev category PID PrincipalIdealDomain
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1413,8 +1316,6 @@ PrincipalIdealDomain() : Category == GcdDomain with
 
 )abbrev category RMODULE RightModule
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1434,13 +1335,12 @@ RightModule(R : SemiRng) : Category == AbelianSemiGroup with
       if R has AbelianMonoid then AbelianMonoid
       if R has AbelianGroup then AbelianGroup
       --operations
-      "*": (%,R) -> %  ++ x*r returns the right multiplication of the module element x
-                       ++ by the ring element r.
+      "*" : (%, R) -> %
+          ++ x*r returns the right multiplication of the module element x
+          ++ by the ring element r.
 
 )abbrev category RING Ring
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1452,20 +1352,8 @@ RightModule(R : SemiRng) : Category == AbelianSemiGroup with
 ++ not necessarily commutative.
 
 --Ring(): Category == Join(Rng, Monoid, LeftModule(%: Rng)) with
-Ring() : Category == Join(Rng, SemiRing, LeftModule(%), unitsKnown) with
-    --operations
-      characteristic : () -> NonNegativeInteger
-        ++ characteristic() returns the characteristic of the ring
-        ++ this is the smallest positive integer n such that
-        ++ \spad{n*x=0} for all x in the ring, or zero if no such n
-        ++ exists.
-        --We can not make this a constant, since some domains are mutable
-      coerce : Integer -> %
-        ++ coerce(i) converts the integer i to a member of the given domain.
---    recip: % -> Union(%,"failed") -- inherited from Monoid
-   add
-      n : Integer
-      coerce(n) == n * 1$%
+Ring() : Category == Join(Rng, SemiRing, NonAssociativeRing,
+                          unitsKnown)
 
 )abbrev category SRNG SemiRng
 ++ Author: Waldek Hebisch
@@ -1473,7 +1361,7 @@ Ring() : Category == Join(Rng, SemiRing, LeftModule(%), unitsKnown) with
 ++ The category of associative semirings, not necessarily commutative, and not
 ++ necessarily with a 1.
 
-SemiRng() : Category == Join(AbelianSemiGroup, SemiGroup)
+SemiRng() : Category == Join(NonAssociativeSemiRng, BiModule(%, %), SemiGroup)
 
 
 )abbrev category SRING SemiRing
@@ -1482,13 +1370,11 @@ SemiRng() : Category == Join(AbelianSemiGroup, SemiGroup)
 ++ The category of associative semirings, not necessarily commutative,
 ++ with 0 and 1.
 
-SemiRing() : Category == Join(SemiRng, AbelianMonoid, Monoid)
+SemiRing() : Category == Join(NonAssociativeSemiRing, SemiRng, Monoid)
 
 
 )abbrev category RNG Rng
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1506,7 +1392,7 @@ SemiRing() : Category == Join(SemiRng, AbelianMonoid, Monoid)
 ++
 ++ Conditional attributes:
 ++   \spadnoZeroDivisors\tab{25}\spad{  ab = 0 => a=0 or b=0}
-Rng() : Category == Join(AbelianGroup, SemiRng) with
+Rng() : Category == Join(NonAssociativeRng, SemiRng) with
       annihilate? : (%,%) -> Boolean
              ++ \spad{annihilate?(x,y)} holds when the product
              ++ of \spad{x} and \spad{y} is \spad{0}.
@@ -1516,8 +1402,6 @@ Rng() : Category == Join(AbelianGroup, SemiRng) with
 
 )abbrev category SGROUP SemiGroup
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1533,21 +1417,10 @@ Rng() : Category == Join(AbelianGroup, SemiRng) with
 ++
 ++ Conditional attributes:
 ++    \spad{CommutativeStar}\tab{30}\spad{ x*y = y*x }
-SemiGroup() : Category == SetCategory with
-    --operations
-      "*": (%,%) -> %                  ++ x*y returns the product of x and y.
-      "^": (%,PositiveInteger) -> %
-          ++ x^n returns the repeated product
-          ++ of x n times, i.e. exponentiation.
-    add
-      import from RepeatedSquaring(%)
-      x : % ^ n : PositiveInteger == expt(x, n)
+SemiGroup : Category == Magma
 
 )abbrev category SETCAT SetCategory
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
-++   09/09/92   RSS   added latex and hash
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1574,13 +1447,11 @@ SetCategory() : Category == Join(BasicType, CoercibleTo OutputForm) with
   add
       hash(s : %) : SingleInteger ==
           value(hashUpdate!(new()$HashState, s))$HashState
-      latex(s : %) : String       == "\mbox{\bf Unimplemented}"
+      latex(s : %) : String == "\mbox{\bf Unimplemented}"
 
 
 )abbrev category STEP StepThrough
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1608,8 +1479,6 @@ StepThrough() : Category == SetCategory with
 
 )abbrev category UFD UniqueFactorizationDomain
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -1651,8 +1520,6 @@ UniqueFactorizationDomain() : Category == GcdDomain with
 
 )abbrev category VSPACE VectorSpace
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:

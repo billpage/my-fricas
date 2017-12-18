@@ -2,7 +2,6 @@
 ++ Sets whose elements can cache an integer
 ++ Author: Manuel Bronstein
 ++ Date Created: 31 Oct 1988
-++ Date Last Updated: 14 May 1991
 ++ Description:
 ++   A cachable set is a set whose elements keep an integer as part
 ++   of their structure.
@@ -16,7 +15,7 @@ CachableSet : Category == SetCategory with
 ++ Cache of elements in a set
 ++ Author: Manuel Bronstein
 ++ Date Created: 31 Oct 1988
-++ Date Last Updated: 14 May 1991
+++ Description:
 ++   A sorted cache of a cachable set S is a dynamic structure that
 ++   keeps the elements of S sorted and assigns an integer to each
 ++   element of S once it is in the cache. This way, equality and ordering
@@ -185,8 +184,6 @@ SortedCache(S : CachableSet) : Exports == Implementation where
 )abbrev domain MKCHSET MakeCachableSet
 ++ Make a cachable set from any set
 ++ Author: Manuel Bronstein
-++ Date Created: ???
-++ Date Last Updated: 14 May 1991
 ++ Description:
 ++   MakeCachableSet(S) returns a cachable set which is equal to S as a set.
 MakeCachableSet(S : SetCategory) : Exports == Implementation where
@@ -224,7 +221,6 @@ MakeCachableSet(S : SetCategory) : Exports == Implementation where
 ++ Operators applied to elements of a set
 ++ Author: Manuel Bronstein
 ++ Date Created: 22 March 1988
-++ Date Last Updated: 10 August 1994
 ++ Description:
 ++ A kernel over a set S is an operator applied to a given list
 ++ of arguments from S.
@@ -282,17 +278,17 @@ Kernel(S : Comparable) : Exports == Implementation where
     clearCache()
 
     B2Z   : Boolean -> Integer
-    triage : (%, %)  -> Integer
+    triage : (%, %) -> Integer
     preds : OP      -> List Any
 
     is?(k : %, s : Symbol) == is?(operator k, s)
     is?(k : %, o : OP)     == (operator k) = o
     name k             == name operator k
     B2Z flag           == (flag => -1; 1)
-    kernel s           == kernel(assert(operator(s, 0), SYMBOL), nil(), 1)
+    kernel s           == kernel(assert(operator(s, 0), SYMBOL), [], 1)
 
     preds o ==
-      (u := property(o, PMPRED)) case "failed" => nil()
+      (u := property(o, PMPRED)) case "failed" => []
       (u::None) pretend List(Any)
 
     symbolIfCan k ==
@@ -309,7 +305,7 @@ Kernel(S : Comparable) : Exports == Implementation where
     kernelEnterInCache(k : %) : % ==
         --output("kernelEnterInCache: ",operator(k)::OutputForm)$OutputPackage
         if (f0 := property(operator k, SPECIALEQUAL)) case None then
-            f1 := (f0::None)  pretend ((%, %) -> Boolean)
+            f1 := (f0::None) pretend ((%, %) -> Boolean)
             (res := linearSearch(k, y +-> kerEqual(k, y, f1))) case % =>
                 return res::%
         enterInCache(k, triage)
@@ -404,7 +400,7 @@ KernelFunctions2(R : Comparable, S : Comparable) : with
  == add
   import from BasicOperatorFunctions1(R)
 
-  constantKernel r == kernel(constantOperator r, nil(), 1)
+  constantKernel r == kernel(constantOperator r, [], 1)
   constantIfCan k  == constantOpIfCan operator k
 
 --Copyright (c) 1991-2002, The Numerical ALgorithms Group Ltd.

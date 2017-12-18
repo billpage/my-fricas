@@ -1,8 +1,6 @@
 -- Author: Michael Monagan, Stephen M. Watt
 )abbrev category REAL RealConstant
 ++ Author:
-++ Date Created:
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors:
 ++ Also See:
@@ -17,9 +15,7 @@ RealConstant() : Category ==
 
 )abbrev category RNS RealNumberSystem
 ++ Author: Michael Monagan and Stephen M. Watt
-++ Date Created:
-++   January 1988
-++ Change History:
+++ Date Created: January 1988
 ++ Basic Operations: abs, ceiling, wholePart, floor, fractionPart, norm, round, truncate
 ++ Related Constructors:
 ++ Keywords: real numbers
@@ -47,8 +43,6 @@ RealNumberSystem() : Category ==
       ++ truncate x returns the integer between x and 0 closest to x.
     round : % -> %
       ++ round x computes the integer closest to x.
-    abs  : % -> %
-      ++ abs x returns the absolute value of x.
 
  add
    characteristic() == 0
@@ -83,8 +77,6 @@ RealNumberSystem() : Category ==
 
 )abbrev category FPS FloatingPointSystem
 ++ Author:
-++ Date Created:
-++ Change History:
 ++ Basic Operations: approximate, base, bits, digits, exponent, float,
 ++    mantissa, order, precision, round?
 ++ Related Constructors:
@@ -107,7 +99,10 @@ RealNumberSystem() : Category ==
 ++ the attributes do not hold.  In particular associative("+")
 ++ does not hold.  Algorithms defined over a field need special
 ++ considerations when the field is a floating point system.
-FloatingPointSystem() : Category == Join(RealNumberSystem(), Approximate) with
+FloatingPointSystem() : Category == Join(RealNumberSystem(), Approximate,
+                                         ConvertibleTo String) with
+   "/" : (%, Integer) -> %
+      ++ x / i computes the division from x by an integer i.
    float : (Integer, Integer) -> %
       ++ float(a, e) returns \spad{a * base() ^ e}.
    float : (Integer, Integer, PositiveInteger) -> %
@@ -123,6 +118,8 @@ FloatingPointSystem() : Category == Join(RealNumberSystem(), Approximate) with
       ++ mantissa(x) returns the mantissa part of x.
   -- round?: () -> B
   --    ++ round?() returns the rounding or chopping.
+   toString : % -> String
+      ++ \spad{toString(x)} returns the string representation of x.
    toString : (%, NonNegativeInteger) -> String
       ++ \spad{toString(x, n)} returns a string representation of x
       ++ truncated to n decimal digits.
@@ -162,6 +159,7 @@ FloatingPointSystem() : Category == Join(RealNumberSystem(), Approximate) with
    float(ma, ex) == float(ma, ex, base())
    digits() == max(1, 4004 * (bits()-1) quo 13301)::PositiveInteger
 
+   toString x == convert(x)@String
    toString(x : %, n : NonNegativeInteger) : String ==
        x1 := round x
        x0 := abs(x-x1)
@@ -318,9 +316,7 @@ complex number.)
 
 )abbrev domain DFLOAT DoubleFloat
 ++ Author: Michael Monagan
-++ Date Created:
-++   January 1988
-++ Change History:
+++ Date Created: January 1988
 ++ Basic Operations: exp1, hash, log2, log10, rationalApproximation, / , ^
 ++ Related Constructors:
 ++ Keywords: small float
@@ -361,8 +357,6 @@ complex number.)
 DoubleFloat() : Join(FloatingPointSystem, DifferentialRing, OpenMath,
    TranscendentalFunctionCategory, SpecialFunctionCategory, _
    ConvertibleTo InputForm) with
-      _/   : (%, Integer) -> %
-        ++ x / i computes the division from x by an integer i.
       exp1 : () -> %
         ++ exp1() returns the natural log base \spad{2.718281828...}.
       log2 :  % -> %
@@ -423,9 +417,14 @@ DoubleFloat() : Join(FloatingPointSystem, DifferentialRing, OpenMath,
    -- rational approximation to e accurate to 23 digits
    exp1()           == FLOAT(534625820200, MOST_-POSITIVE_-DOUBLE_-FLOAT$Lisp)$Lisp / FLOAT(196677847971, MOST_-POSITIVE_-DOUBLE_-FLOAT$Lisp)$Lisp
    pi()             == FLOAT(PI$Lisp, MOST_-POSITIVE_-DOUBLE_-FLOAT$Lisp)$Lisp
+
+   convert(x : %) : String ==
+       FORMAT(NIL$Lisp, format, x)$Lisp pretend String
+
    coerce(x : %) : OutputForm ==
-     x >= 0 => message(FORMAT(NIL$Lisp, format, x)$Lisp pretend String)
-     - (message(FORMAT(NIL$Lisp, format, -x)$Lisp pretend String))
+       x >= 0 => message(convert(x)@String)
+       - (coerce(-x)@OutputForm)
+
    convert(x : %) : InputForm == convert(x pretend DoubleFloat)$InputForm
    x < y            == less_DF(x, y)$Lisp
    - x              == minus_DF(x)$Lisp
@@ -575,7 +574,6 @@ DoubleFloat() : Join(FloatingPointSystem, DifferentialRing, OpenMath,
    -- floats are real
    conjugate x == x
 
-
    manexp(x) ==
       zero? x => [0, 0]
       s := sign x; x := abs x
@@ -624,12 +622,10 @@ DoubleFloat() : Join(FloatingPointSystem, DifferentialRing, OpenMath,
 
    x : % ^ r : Fraction Integer ==
       zero? x =>
-         zero? r => error "0^0 is undefined"
+         zero? r => 1
          negative? r => error "division by 0"
          0
---      zero? r or one? x => 1
       zero? r or (x = 1) => 1
---      one?  r => x
       (r = 1) => x
       n := numer r
       d := denom r

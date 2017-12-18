@@ -1,7 +1,6 @@
 )abbrev package SOLVETRA TransSolvePackage
 ++ Author: W. Wiwianka, Martin Rubey
 ++ Date Created: Summer 1991
-++ Change History: 9/91
 ++ Basic Operations: solve
 ++ Related Constructors: RadicalSolvePackage, FloatingRealPackage
 ++ Keywords:
@@ -23,8 +22,9 @@
 
 
 TransSolvePackage(R) : Exports == Implementation where
-   R : Join(Comparable, EuclideanDomain, RetractableTo Integer,
-             LinearlyExplicitRingOver Integer, CharacteristicZero)
+   R : Join(Comparable, PolynomialFactorizationExplicit,
+            RetractableTo Integer,
+            LinearlyExplicitOver Integer, CharacteristicZero)
 
    I   ==> Integer
    NNI ==> NonNegativeInteger
@@ -527,7 +527,7 @@ TransSolvePackage(R) : Exports == Implementation where
         lvk := [kernel(v)@K for v in lvar]
         "or"/[totalDegree(numer expr, lvk) > 1 for expr in lexpr] =>
             "failed"
-        "or"/[not(null(setIntersection(lvk, variables(denom expr)))) _
+        "or"/[not(empty?(setIntersection(lvk, variables(denom expr)))) _
               for expr in lexpr] => "failed"
         -- if any kernel is not a variable but depends on
         -- lvar, then system is nonlinear
@@ -535,7 +535,7 @@ TransSolvePackage(R) : Exports == Implementation where
         kers := reduce(setUnion, llk)
         for ker in kers repeat
             symbolIfCan(ker) case S => "iterate"
-            if not(null(setIntersection(lvar, variables(ker::RE)))) then
+            if not(empty?(setIntersection(lvar, variables(ker::RE)))) then
                 return "failed"
         ps := [numer(expr) for expr in lexpr]
         r := intoMatrix(ps, lvk)$LinearSystemPolynomialPackage(R,
@@ -588,7 +588,6 @@ TransSolvePackage(R) : Exports == Implementation where
 )abbrev package SOLVESER TransSolvePackageService
 ++ Author: W. Wiwianka
 ++ Date Created: Summer 1991
-++ Change History: 9/91
 ++ Basic Operations: decomposeFunc, unvectorise
 ++ Related Constructors:
 ++ Keywords:

@@ -289,7 +289,6 @@ trimComments str ==
 asyExportAlist con ==
 --format of 'operationAlist property of LISPLIBS (as returned from koOps):
 --    <sig slotNumberOrNil optPred optELT>
---    <sig sig'            predOrT "Subsumed">
 --!!! asyFile NEED: need to know if function is implemented by domain!!!
   docHash := HGET($docHash,con)
   [[op,:[fn(x,op) for x in rec]] for op in HKEYS docHash | rec := HGET(docHash,op)]
@@ -366,7 +365,7 @@ asyAncestorList x == [asyAncestors y for y in x]
 --    <sig pred origin         exposed?>
 
 --abb,kind,file,sourcefile,coSig,dbLineNumber,constructorArgs,libfile
---((sig  where(NIL or #)  condition(T or pred)  ELTorSubsumed) ...
+--((sig  where(NIL or #)  condition(T or pred)  ELT) ...
 --expanded lists are: sig, predicate, origin, exposeFlag, comments
 
 --============================================================================
@@ -385,7 +384,7 @@ asytran fn ==
     name = "%%" => 'skip       --skip over top-level properties
     $docHashLocal: local := MAKE_-HASH_-TABLE()
     asytranDeclaration(d,'(top),nil,false)
-    if null name then hohohoho()
+    if null name then BREAK()
     HPUT($docHash,name,$docHashLocal)
   CLOSE inStream
   'done
@@ -585,9 +584,7 @@ asytranCategoryItem(x,levels,predlist,local?) ==
 --      (Ring))
 --    (T Matrix))   )
 extendConstructorDataTable() ==
---  tb := $constructorDataTable
   for x in listSort(function GLESSEQP,HKEYS $conHash) repeat
---     if LASSOC(x,tb) then tb := DELLASOS(x,tb)
      record := HGET($conHash,x)
      [form,sig,predlist,origin,exposure,comments,typeCode,:filename] := first record
      abb := asyAbbreviation(x,#(rest sig))
@@ -701,7 +698,7 @@ asyConstructorModemap con ==
   HGET($conHash,con) isnt [record,:.] => nil   --not there
   [form,sig,predlist,kind,exposure,comments,typeCode,:filename] := record
   $kind: local := kind
-  --NOTE: sig has the form (-> source target) or simply (target)
+  --NOTE: sig has the form (-> source target) or simply (target) id:652
   $constructorArgs : local := IFCDR form
   signature := asySignature(sig,false)
   formals := ['_$,:TAKE(#$constructorArgs,$FormalMapVariableList)]

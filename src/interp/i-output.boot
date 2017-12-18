@@ -234,7 +234,6 @@ outputTran x ==
   x is ['brace, :l]    =>
     ['BRACE,  ['AGGLST,:[outputTran y for y in l]]]
   x is ["return", l] => ["return", outputTran l]
-  x is ["return", ., :l] => ["return", :outputTran l]
 
   x is [["$elt",domain,"float"], x, y, z] and (domain = $DoubleFloat or
     domain is ['Float]) and INTEGERP x and INTEGERP y and INTEGERP z and
@@ -374,7 +373,7 @@ tensorApp(u,x,y,d) ==
       d:= APP(opString,x,y,d)
       x:= x + #opString
     [d,x]:= appInfixArg(arg,x,y,d,rightPrec,"left",nil) --app in a right arg
-    wasSimple:= atom arg and not NUMBERP arg or isRationalNumber arg
+    wasSimple := atom arg and not NUMBERP arg
     wasQuotient:= isQuotient op
     wasNumber:= NUMBERP arg
     lastOp := op
@@ -392,7 +391,7 @@ tensorWidth u ==
       w:= w + #opString
     if infixArgNeedsParens(arg, rightPrec, "left") then w:= w+2
     w:= w+WIDTH arg
-    wasSimple:= atom arg and not NUMBERP arg --or isRationalNumber arg
+    wasSimple := atom arg and not NUMBERP arg
     wasQuotient:= isQuotient op
     wasNumber:= NUMBERP arg
     firstTime:= nil
@@ -409,7 +408,7 @@ timesApp(u,x,y,d) ==
       d:= APP(BLANK,x,y,d)
       x:= x+1
     [d,x]:= appInfixArg(arg,x,y,d,rightPrec,"left",nil) --app in a right arg
-    wasSimple:= atom arg and not NUMBERP arg or isRationalNumber arg
+    wasSimple := atom arg and not NUMBERP arg or keyp arg = "OVERBAR"
     wasQuotient:= isQuotient op
     wasNumber:= NUMBERP arg
     lastOp := op
@@ -502,13 +501,10 @@ exptSuper [.,a,b] == superspan a+height b+(superspan a=0 => 0;-1)
 exptWidth [.,a,b] == WIDTH a+WIDTH b+(exptNeedsPren a => 2;0)
 
 needStar(wasSimple,wasQuotient,wasNumber,cur,op) ==
-  wasQuotient or isQuotient op => true
+  wasNumber or wasQuotient or isQuotient op => true
   wasSimple =>
-    atom cur or keyp cur="SUB" or isRationalNumber cur or op="**" or op = "^" or
-      (atom op and not NUMBERP op and not GETL(op,"APP"))
-  wasNumber =>
-    NUMBERP(cur) or isRationalNumber cur or
-        ((op="**" or op ="^") and NUMBERP(CADR cur))
+    atom cur or keyp cur="SUB" or keyp cur = "OVERBAR" or op="**" or
+      op = "^" or (atom op and not NUMBERP op and not GETL(op,"APP"))
 
 isQuotient op ==
   op="/" or op="OVER"
@@ -519,13 +515,16 @@ timesWidth u ==
   w:= 0
   for arg in rest u repeat
     op:= keyp arg
-    if not firstTime and needStar(wasSimple,wasQuotient,wasNumber,arg,op) then
+    if not firstTime and (needBlankForRoot(lastOp,op,arg) or
+       needStar(wasSimple,wasQuotient,wasNumber,arg,op) or
+        (wasNumber and op = 'ROOT and subspan arg = 1)) then
       w:= w+1
     if infixArgNeedsParens(arg, rightPrec, "left") then w:= w+2
     w:= w+WIDTH arg
-    wasSimple:= atom arg and not NUMBERP arg --or isRationalNumber arg
+    wasSimple := atom arg and not NUMBERP arg or keyp arg = "OVERBAR"
     wasQuotient:= isQuotient op
     wasNumber:= NUMBERP arg
+    lastOp := op
     firstTime:= nil
   w
 
@@ -637,14 +636,14 @@ braceApp(u,x,y,d) ==
 
 --% Aggregates
 aggWidth u ==
-  rest u is [a,:l] => WIDTH a + +/[1+WIDTH x for x in l]
+  rest u is [a,:l] => WIDTH a + +/[2+WIDTH x for x in l]
   0
 
 aggSub u == subspan rest u
 
 aggSuper u == superspan rest u
 
-aggApp(u,x,y,d) == aggregateApp(rest u,x,y,d,",")
+aggApp(u,x,y,d) == aggregateApp(rest u,x,y,d,", ")
 
 aggregateApp(u,x,y,d,s) ==
   if u is [a,:l] then
@@ -652,8 +651,8 @@ aggregateApp(u,x,y,d,s) ==
     x:= x+WIDTH a
     for b in l repeat
       d:= APP(s,x,y,d)
-      d:= APP(b,x+1,y,d)
-      x:= x+1+WIDTH b
+      d:= APP(b,x+WIDTH s,y,d)
+      x:= x+WIDTH s+WIDTH b
   d
 
 --% Function to compute Width
@@ -752,10 +751,11 @@ putWidth u ==
 opWidth(op,has2Arguments) ==
   op = "EQUATNUM" => 4
   NUMBERP op => 2+SIZE STRINGIMAGE op
-  null has2Arguments =>
-    a:= GETL(op,"PREFIXOP") => SIZE a
-    2+SIZE PNAME op
-  a:= GETL(op,"INFIXOP") => SIZE a
+  if null has2Arguments then
+    a := GETL(op, "PREFIXOP") => return SIZE a
+  else
+    a := GETL(op, "INFIXOP") => return SIZE a
+  STRINGP op => 2 + # op
   2+SIZE PNAME op
 
 matrixBorder(x,y1,y2,d,leftOrRight) ==
@@ -775,8 +775,6 @@ matrixBorder(x,y1,y2,d,leftOrRight) ==
       specialChar('vbar)
     d := APP(c,x,y,d)
   d
-
-isRationalNumber x == nil
 
 widthSC u == 10000
 
@@ -1045,7 +1043,7 @@ overlabelSuper [.,a,b] == 1 + height a + superspan b
 overlabelWidth [.,a,b] == WIDTH b
 
 overlabelApp([.,a,b], x, y, d) ==
-  underApp:= APP(b,x,y,d)
+  d := APP(b, x, y, d) -- the part that is under the label
   endPoint := x + WIDTH b - 1
   middle := QUOTIENT(x + endPoint,2)
   h := y + superspan b + 1
@@ -1057,7 +1055,7 @@ overbarSuper u == 1 + superspan u.1
 overbarWidth u == WIDTH u.1
 
 overbarApp(u,x,y,d) ==
-  underApp:= APP(u.1,x,y,d)
+  d := APP(u.1, x, y, d) -- the part that is under the bar
   apphor(x,x+WIDTH u.1-1,y+superspan u.1+1,d,UNDERBAR)
 
 intSub u ==
@@ -1849,11 +1847,9 @@ appmat(u, x, y, d) ==
    subl := rest CADR w
    superl := rest CADR rest w
    repeat
-      null rows => return(matrixBorder(x + WIDTH u - 2,
-                                       y - q,
-                                       y + p,
-                                       d,
-                                       'right))
+      null rows =>
+          wu := MAX(0, WIDTH u - 2)
+          return(matrixBorder(x + wu, y - q, y + p, d, 'right))
       xc := x
       yc := yc - 1 - first superl
       w := wl
@@ -1899,6 +1895,7 @@ matLSum(x) ==
   CONS(sumoverlist x + LENGTH x, x)
 
 matLSum2(x) ==
+  null x => [2]
   CONS(sumoverlist x + 2*(LENGTH x), x)
 
 matWList(x, y) ==
@@ -1993,10 +1990,11 @@ sumWidth u ==
   WIDTH u.1 + sumWidthA CDDR u
 
 sumWidthA u ==
-  not u => 0
-  ( member(keyp absym first u,'(_+ _-)) => 5; true => 3) +
-    WIDTH absym first u +
-      sumWidthA rest u
+  sum := 0
+  for item in u repeat
+    sum := sum + (if member(keyp absym item, '(_+ _-)) then 5 else 3)
+    sum := sum + WIDTH absym item
+  sum
 
 superSubApp(u, x, y, di) ==
   a := first (u := rest u)

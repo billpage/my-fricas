@@ -21,7 +21,6 @@
 )abbrev package STEXPS StreamExponentialSeriesOperations
 ++ Author: Franz Lehner
 ++ Date Created: 17.06.2010
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors: StreamTaylorSeriesOperations
 ++ Also See:
@@ -29,7 +28,7 @@
 ++ Keywords: stream, exponential power series
 ++ References:
 ++ Description:
-++   StreamExponentialSeriesOperations implements  arithmetic
+++   StreamExponentialSeriesOperations implements arithmetic
 ++   of exponential power series, where a power series is represented by
 ++   a stream of its coefficients.
 StreamExponentialSeriesOperations(Coef) : Exports == Implementation
@@ -154,7 +153,6 @@ $$
 )abbrev package STEXPST StreamExponentialSeriesTranscendentalFunctions
 ++ Author: Franz Lehner
 ++ Date Created: 17.06.2010
-++ Date Last Updated:
 ++ Basic Functions:
 ++ Related Constructors: StreamTaylorSeriesOperations
 ++ Also See:
@@ -200,10 +198,7 @@ $$
           empty? z => error "log: constant coefficient should not be 0"
           (c := frst z) = 0 => error "log: constant coefficient should not be 0"
           YS(y +-> lazyIntegrate(log c, exp((-y)$STSO)*deriv z)$STE)
-@
 
-\section{License}
-<<license>>=
 --Copyright (c) 2011, Franz Lehner <lehner@math.tugraz.at>
 --
 --Redistribution and use in source and binary forms, with or without
@@ -229,12 +224,4 @@ $$
 --LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 --NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 --SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-@
 
-<<*>>=
-<<license>>
-
-<<package STEXPS StreamExponentialSeriesOperations>>
-<<package STEXPST StreamExponentialSeriesTranscendentalFunctions>>
-@
-\end{document}

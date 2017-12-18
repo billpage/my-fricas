@@ -18,7 +18,6 @@
 )abbrev domain QFORM QuadraticForm
 ++ Author: Stephen M. Watt
 ++ Date Created: August 1988
-++ Date Last Updated: May 17, 1991
 ++ Basic Operations: quadraticForm, elt
 ++ Related Domains: Matrix, SquareMatrix
 ++ Also See:
@@ -349,7 +348,6 @@ This "debug" flag causes the internal working of the algorithms to be displayed 
 )abbrev domain CLIF CliffordAlgebra
 ++ Author: Martin Baker (adapted from a version by Stephen M. Watt)
 ++ Date Created: August 1988
-++ Date Last Updated: Dec 2009
 ++ Basic Operations: wholeRadix, fractRadix, wholeRagits, fractRagits
 ++ Related Domains: QuadraticForm, Quaternion, Complex
 ++ Also See:
@@ -456,7 +454,7 @@ CliffordAlgebra(n, K, bLin) : T == Impl where
           ++ array of Field which can hold the multivector values
         New     ==> new(dim, 0$K)$Rep
 
-        sayMsg ==> sayBrightly$Lisp
+        sayMsg ==> say$DisplayPackage
 
         x, y, z : %
         c : K
@@ -519,7 +517,7 @@ CliffordAlgebra(n, K, bLin) : T == Impl where
             if res = "" then res := "0"
             res
 
-        -- NOTE temporary name change to: es(n) to avoid name clash
+        -- NOTE temporary name change to: es(n) to avoid name clash id:690
         -- with e(l) below
         -- e(n) produces the appropriate unit element.
         --        iz   z
@@ -783,7 +781,7 @@ CliffordAlgebra(n, K, bLin) : T == Impl where
               s2 := concat["= ",toStringTerm(op1mult, vType),"L",toStringTerm(-op2mult, op2type)]
               s3 := concat["/\",toString(inner4),"+",toString(right)]
               s4 := concat("=",toString(resul))
-              sayMsg concat ["rcProdTerm: ",s1,s2,s3,s4]
+              sayMsg(["rcProdTerm: ", s1, s2, s3, s4])
             return resul
           -- if none of the above is true then apply:
           -- w |_ (v/\u) = (w |_ v) |_ u
@@ -797,7 +795,7 @@ CliffordAlgebra(n, K, bLin) : T == Impl where
             s2 := concat["= (",toStringTerm(op1mult,op1type),"L",toStringTerm(op2mult,vType)]
             s3 := concat(") L",toString(inner2))
             s4 := concat("=",toString(resul))
-            sayMsg concat ["rcProdTerm: ",s1,s2,s3,s4]
+            sayMsg(["rcProdTerm: ", s1, s2, s3, s4])
           resul
 
         -- Implement left contraction inner product
@@ -876,7 +874,7 @@ CliffordAlgebra(n, K, bLin) : T == Impl where
             s2 := concat["=",toString(ut),"*",toString(factor1)]
             s3 := concat["-",toString(factor2),"*",toString(vt)]
             s4 := concat["=",toString(resul)]
-            sayMsg concat ["cliffordProdTerm: ",s1,s2,s3,s4]
+            sayMsg(["cliffordProdTerm: ", s1, s2, s3, s4])
           resul := (op1mult*op2mult)*resul -- apply 'scalar' multipliers
           resul
 
@@ -985,7 +983,7 @@ CliffordAlgebra(n, K, bLin) : T == Impl where
         -- and so on
         coerceMonom(c : K, b : NNI) : Ex ==
             b = 0 => c::Ex
-            ml := [sub("e"::Ex, i::Ex) for i in 1..n | bit?(b,i-1)]
+            ml := [sub(message("e"), i::Ex) for i in 1..n | bit?(b,i-1)]
             be := reduce("*", ml)
             c = 1 => be
             c::Ex * be
@@ -995,7 +993,7 @@ CliffordAlgebra(n, K, bLin) : T == Impl where
         -- 1 + 2*e1 + 3*e2 + 4*e1e2
         coerce(x) : Ex ==
             tl := [coerceMonom(x.i, i) for i in 0..dim-1 | x.i ~= 0]
-            null tl => "0"::Ex
+            empty?(tl) => message("0")
             reduce("+", tl)
 
         localPowerSets(j : NNI) : List(List(PI)) ==
@@ -1094,7 +1092,7 @@ J. Math. Phys. 26(4), April 1985
 "On the Clifford-Littlewood-Eckmann groups: a new look at periodicity mod 8",
 Rocky Mountains Journal of Mathematics, vol 19, no. 3, (Summer 1989)
 \bibitem{7} Leopardi, Paul "Quick Introduction to Clifford Algebras"\\
-{\bf http : //web.maths.unsw.edu.au/~leopardi/clifford-2003-06-05.pdf}
+\url{http://maths-people.anu.edu.au/~leopardi/clifford-2003-06-05.pdf}
 \bibitem{8} Cartan, Elie and Study, Eduard
 "Nombres Complexes",
 Encyclopaedia Sciences Math\'ematique, \'edition fran\c caise, 15, (1908),
@@ -1108,7 +1106,7 @@ mathematics and physics", D. Reidel, (1984)
 pp161-164 of \cite{13} (1995)
 \bibitem{11} Ashdown, M.
 "GA Package for Maple V",\\
-http : //www.mrao.cam.ac.uk/~clifford/software/GA/GAhelp5.html
+\url{http://geometry.mrao.cam.ac.uk/}
 \bibitem{12} Doran, Chris and Lasenby, Anthony,
 "Geometric Algebra for Physicists"
 Cambridge University Press (2003) ISBN 0-521-48022-1

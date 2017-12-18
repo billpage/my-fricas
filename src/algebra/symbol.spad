@@ -1,7 +1,6 @@
 )abbrev domain SYMBOL Symbol
 ++ Author: Stephen Watt
 ++ Date Created: 1986
-++ Date Last Updated: 7 Mar 1991, 29 Apr. 1994 (FDLL)
 ++ Description:
 ++   Basic and scripted symbols.
 ++ Keywords: symbol.
@@ -144,11 +143,10 @@ Symbol() : Exports == Implementation where
         conjugated? x => overbar x0
         x0
 
-    subscript(sy, lx)      == script(sy, [lx, nil, nil(), nil(), nil()])
-    elt(sy, lx)            == subscript(sy, lx)
-    sy ^ lx                == superscript(sy, lx)
-    superscript(sy, lx)    == script(sy, [nil(), lx, nil(), nil(), nil()])
-    argscript(sy, lx)      == script(sy, [nil(), nil(), nil(), nil(), lx])
+    subscript(sy, lx)      == script(sy, [lx, [], [], [], []])
+    elt(sy, lx)             == subscript(sy, lx)
+    superscript(sy, lx)    == script(sy, [[], lx, [], [], []])
+    argscript(sy, lx)      == script(sy, [[], [], [], [], lx])
 
     patternMatch(x : %, p : Pattern Integer, l : PatternMatchResult(Integer, %))==
       (patternMatch(x pretend Symbol, p, l pretend
@@ -179,12 +177,12 @@ Symbol() : Exports == Implementation where
       concat(all, sc.args)
 
     script(sy : %, ls : List L) ==
-      sc : Scripts := [nil(), nil(), nil(), nil(), nil()]
-      if not null ls then (sc.sub    := first ls; ls := rest ls)
-      if not null ls then (sc.sup    := first ls; ls := rest ls)
-      if not null ls then (sc.presup := first ls; ls := rest ls)
-      if not null ls then (sc.presub := first ls; ls := rest ls)
-      if not null ls then (sc.args   := first ls; ls := rest ls)
+      sc : Scripts := [[], [], [], [], []]
+      if not(empty?(ls)) then (sc.sub := first(ls); ls := rest(ls))
+      if not(empty?(ls)) then (sc.sup := first(ls); ls := rest(ls))
+      if not(empty?(ls)) then (sc.presup := first(ls); ls := rest(ls))
+      if not(empty?(ls)) then (sc.presub := first(ls); ls := rest(ls))
+      if not(empty?(ls)) then (sc.args := first(ls); ls := rest(ls))
       script(sy, sc)
 
     script(sy : %, sc : Scripts) ==
@@ -319,9 +317,9 @@ Symbol() : Exports == Implementation where
         script(str::%, scripts sy)
 
     scripts sy ==
-      not scripted? sy => [nil(), nil(), nil(), nil(), nil()]
+      not scripted? sy => [[], [], [], [], []]
       nscripts : List NonNegativeInteger := [0, 0, 0, 0, 0]
-      lscripts : List L := [nil(), nil(), nil(), nil(), nil()]
+      lscripts : List L := [[], [], [], [], []]
       str := string(first(of_list(sy)) pretend %)
       nstr := #str
       m := minIndex nscripts

@@ -1,7 +1,6 @@
 )abbrev package FFF FiniteFieldFunctions
 ++ Author: J. Grabmeier, A. Scheerhorn
 ++ Date Created: 21 March 1991
-++ Date Last Updated: 31 March 1991
 ++ Basic Operations:
 ++ Related Constructors:
 ++ Also See:
@@ -140,9 +139,9 @@ FiniteFieldFunctions(GF) : Exports == Implementation where
           setelt!(multmat, jt, lvjh, elt(multmat, jt, lvjh) + 1)
       -- multmat
       m := nrows(multmat)$(M PF(p))
-      multtable : V L TERM := new(m, nil()$(L TERM))$(V L TERM)
+      multtable : V L TERM := new(m, []$(L TERM))$(V L TERM)
       for i in 1..m repeat
-        l : L TERM := nil()$(L TERM)
+        l : L TERM := []
         v : V PF(p) := row(multmat, i)
         for j in (1::I)..(m::I) repeat
           if (v.j ~= 0) then
@@ -193,9 +192,9 @@ FiniteFieldFunctions(GF) : Exports == Implementation where
         error "createMultiplicationTable: polynomial must be normal"
       mat := mat1 :: (M GF)
       -- initialize multiplication table
-      multtable : V L TERM := new(m, nil()$(L TERM))$(V L TERM)
+      multtable : V L TERM := new(m, []$(L TERM))$(V L TERM)
       for i in 1..m repeat
-        l : L TERM := nil()$(L TERM)
+        l : L TERM := []
         v : V GF := mat *$(M GF) Vectorise(qexp.(i-1) *$MM qexp.0)$MM
         for j in (1::SI)..(m::SI) repeat
           if (v.j ~= 0$GF) then

@@ -61,7 +61,7 @@ NRTaddDeltaCode() ==
 
 deltaTran(item,compItem) ==
   item is ['domain,lhs,:.] => NRTencode(lhs,compItem)
-  --NOTE: all items but signatures are wrapped with domain forms
+  --NOTE: all items but signatures are wrapped with domain forms id:665
   [op,:modemap] := item
   [dcSig,[.,[kind,:.]]] := modemap
   [dc,:sig] := dcSig
@@ -78,25 +78,35 @@ NRTreplaceAllLocalReferences(form) ==
   $devaluateList :local := []
   NRTputInLocalReferences form
 
-NRTencode(x,y) == encode(x,y,true) where encode(x,compForm,firstTime) ==
-  --converts a domain form to a lazy domain form; everything other than
-  --the operation name should be assigned a slot
-  null firstTime and (k:= NRTassocIndex x) => k
-  VECP x => systemErrorHere '"NRTencode"
-  PAIRP x =>
-    QCAR x='Record or x is ['Union,['_:,a,b],:.] =>
-      [QCAR x,:[['_:,a,encode(b,c,false)]
-        for [., a, b] in QCDR x for [., =a, c] in rest compForm]]
-    constructor? QCAR x or MEMQ(QCAR x,'(Union Mapping)) =>
-      [QCAR x, :[encode(y, z, false) for y in QCDR x for z in rest compForm]]
-    ['NRTEVAL,NRTreplaceAllLocalReferences COPY_-TREE lispize compForm]
-  MEMQ(x,$formalArgList) =>
-    v := $FormalMapVariableList.(POSN1(x,$formalArgList))
-    firstTime => ['local,v]
-    v
-  x = '$ => x
-  x = "$$" => x
-  ['QUOTE,x]
+NRTencode(x,y) == encode(x,y,true, true) where
+  encode(x, compForm, firstTime, domain) ==
+      -- converts a domain form to a lazy domain form; everything other than
+      -- the operation name should be assigned a slot
+      not(firstTime) and (k := NRTassocIndex x) =>
+          not(domain) and INTEGERP(k) =>
+              ['NRTEVAL, [($QuickCode => 'QREFELT; 'ELT), "$", k]]
+          k
+      VECP(x) => systemErrorHere '"NRTencode"
+      PAIRP(x) =>
+          QCAR(x) = 'Record or x is ['Union, ['_:, a, b], :.] =>
+              [QCAR(x), :[['_:, a, encode(b, c, false, true)]
+               for [., a, b] in QCDR(x) for [., =a, c] in rest compForm]]
+          constructor?(QCAR(x)) or MEMQ(QCAR x, '(Union Mapping)) =>
+              cosig := rest GETDATABASE(QCAR(x), 'COSIG)
+              if NULL(cosig) then
+                  cosig := [true for y in QCDR(x)]
+              [QCAR x, :[encode(y, z, false, cdom) for y in QCDR(x)
+                          for z in rest compForm for cdom in cosig]]
+          ['NRTEVAL, NRTreplaceAllLocalReferences(
+                             COPY_-TREE(lispize(compForm)))]
+      MEMQ(x, $formalArgList) =>
+          v := $FormalMapVariableList.(POSN1(x, $formalArgList))
+          firstTime => ['local, v]
+          domain => v
+          ['NRTEVAL, [($QuickCode => 'QREFELT; 'ELT), "$", v]]
+      x = '$ => x
+      x = "$$" => x
+      ['QUOTE, x]
 
 --------------FUNCTIONS CALLED DURING CAPSULE FUNCTION COMPILATION-------------
 listOfBoundVars form ==
@@ -147,10 +157,10 @@ optDeltaEntry(op,sig,dc,eltOrConst) ==
 genDeltaEntry opMmPair ==
 --called from compApplyModemap
 --$NRTdeltaLength=0.. always equals length of $NRTdeltaList
+  $compUniquelyIfTrue: local:= false
   [op,[dc,:sig],[.,cform:=[eltOrConst,.,nsig]]] := opMmPair
   if $profileCompiler = true then profileRecord(dc,op,sig)
   eltOrConst = 'XLAM => cform
-  if eltOrConst = 'Subsumed then eltOrConst := 'ELT
   if atom dc then
     dc = "$" => nsig := sig
     if NUMBERP nsig then nsig := substitute('$,dc,substitute("$$","$",sig))
@@ -294,7 +304,7 @@ consDomainForm(x,dc) ==
   get(x,'value,$e) or get(x,'mode,$e) => x
   MKQ x
 
--- First cut at resolving self-referential conditions.  FIXME: should
+-- First cut at resolving self-referential conditions.  FIXME: should id:666
 -- handle cyclic dependencies and conditions requiring matching at
 -- runtime.
 
@@ -314,80 +324,102 @@ get_self_preds1(pl, acc) ==
 
 get_self_preds(pl) == REMDUP get_self_preds1(pl, nil)
 
-boolean_subst_and(l, good_preds) ==
+boolean_subst_and(l, sub_data) ==
     res := []
     for cond in l repeat
-        nc := boolean_subst1(cond, good_preds)
+        nc := boolean_subst1(cond, sub_data)
         nc = true => "iterate"
-        not(nc) => nc
+        not(nc) =>
+            res := [nc]
+            return first(res)
         res := cons(nc, res)
     res = [] => true
     #res = 1 => first(res)
     ["AND", :nreverse(res)]
 
-boolean_subst_or(l, good_preds) ==
+boolean_subst_or(l, sub_data) ==
     res := []
     for cond in l repeat
-        nc := boolean_subst1(cond, good_preds)
-        nc = true => nc
+        nc := boolean_subst1(cond, sub_data)
+        nc = true =>
+            res := [nc]
+            return first(res)
         not(nc) => "iterate"
         res := cons(nc, res)
     res = [] => false
     #res = 1 => first(res)
     ["OR", :nreverse(res)]
 
-boolean_subst_not(cond, good_preds) ==
-   nc := boolean_subst1(cond, good_preds)
+boolean_subst_not(cond, sub_data) ==
+   sub_data1 := rest(rest(sub_data))
+   nc := boolean_subst1(cond, [FUNCTION boolean_substitute1, nil, :sub_data1])
    nc = true => false
    not(nc) => true
    ["NOT", nc]
 
-boolean_subst1(cond, good_preds) ==
+boolean_do_subst1(cond, sub_data) ==
+    fun := first(sub_data)
+    FUNCALL(fun, cond, rest(sub_data))
+
+boolean_subst1(cond, sub_data) ==
     cond = true => cond
     cond is [op, :l] =>
-        MEMQ(op, '(AND and)) => boolean_subst_and(l, good_preds)
-        MEMQ(op, '(OR or)) => boolean_subst_or(l, good_preds)
-        MEMQ(op, '(NOT not)) => boolean_subst_not(first(l), good_preds)
-        nc := LASSOC(cond, good_preds)
-        nc => first(nc)
-        cond
+        MEMQ(op, '(AND and)) => boolean_subst_and(l, sub_data)
+        MEMQ(op, '(OR or)) => boolean_subst_or(l, sub_data)
+        MEMQ(op, '(NOT not)) => boolean_subst_not(first(l), sub_data)
+        boolean_do_subst1(cond, sub_data)
     cond
 
-boolean_subst(condCats, good_preds) ==
-    [boolean_subst1(cond, good_preds) for cond in condCats]
+boolean_substitute1(cond, sub_data) ==
+    sub_data := rest(sub_data)
+    good_preds := first(rest(sub_data))
+    nc := LASSOC(cond, good_preds)
+    nc =>
+        RPLACA(sub_data, true)
+        first(nc)
+    cond
+
+boolean_substitute_cond(cond, sub_data) ==
+    cond = first(sub_data) =>
+        RPLACA(rest(sub_data), true)
+        false
+    boolean_substitute1(cond, sub_data)
 
 mk_has_dollar_quote(cat) ==
     ["HasCategory", "$", ["QUOTE", cat]]
+
+boolean_subst(condCats, cats, sub_data1) ==
+    [boolean_subst1(cond, [FUNCTION boolean_substitute_cond,
+                           mk_has_dollar_quote(cat), :sub_data1])
+          for cond in condCats for cat in cats]
 
 simplify_self_preds1(catvecListMaker, condCats) ==
     self_preds := get_self_preds(condCats)
     self_preds := [cat for p in self_preds | p is ["QUOTE", cat]]
     self_preds = [] => [condCats, false]
-    hairy_preds := []
-    found_preds := []
     false_preds := []
     for c1 in self_preds repeat
         op1 := opOf(c1)
         hl := []
         found := false
-        for c2 in catvecListMaker for cond in condCats while(not(found)) repeat
+        for c2 in catvecListMaker for cond in condCats repeat
             c1 = c2 =>
                 found_preds := CONS([c1, cond], found_preds)
                 found := true
             if op1 = opOf(c2) then
                 hl := CONS([c2, cond], hl)
-        if hl and not(found) then
-            hairy_preds := CONS([c1, hl], hairy_preds)
-        if not(found) then
+        if not(found) and not(hl) then
             false_preds := CONS(c1, false_preds)
     good_preds := [cc for cc in found_preds |
                      cc is [cat, cond] and not(isHasDollarPred(cond))]
     good_preds := [:[[mk_has_dollar_quote(cat), false] for cat in false_preds],
                    :[[mk_has_dollar_quote(cat), cond] for cc in good_preds
                       | cc is [cat, cond]]]
-    good_preds = [] => [condCats, false]
-    condCats := boolean_subst(condCats, good_preds)
-    [condCats, true]
+    sub_data1 := [false, good_preds]
+    condCats := boolean_subst(condCats, catvecListMaker, sub_data1)
+    if not(first(sub_data1)) then
+        userError(["simplify_self_preds1: cannot simplify", $op, self_preds])
+    [condCats, first(sub_data1)]
 
 simplify_self_preds(catvecListMaker, condCats) ==
     progress := true
@@ -452,6 +484,7 @@ buildFunctor($definition is [name,:args],sig,code,$locals,$e) ==
   catNames := ['$, :[GENVAR() for u in rest catvecListMaker]]
   domname:='dv_$
 
+  condCats := [simpBool(cc) for cc in condCats]
   condCats := simplify_self_preds(catvecListMaker, condCats)
 -->  Do this now to create predicate vector; then DescendCode can refer
 -->  to predicate vector if it can
@@ -521,18 +554,29 @@ NRTcheckVector domainShell ==
       [[first v,:$SetFunctions.i],:alist]
   alist
 
-NRTsetVector4Part1(siglist,formlist,condlist) ==
-  $uncondList: local := nil
-  $condList: local := nil
-  for sig in reverse siglist for form in reverse formlist
-         for cond in reverse condlist repeat
-                  NRTsetVector4a(sig,form,cond)
-  reducedUncondlist := REMDUP $uncondList
-  reducedConlist :=
-    [[x,:y] for [x,z] in $condList| y := SETDIFFERENCE(z,reducedUncondlist)]
-  revCondlist := reverseCondlist reducedConlist
-  orCondlist := [[x,:MKPF(y,'OR)] for [x,:y] in revCondlist]
-  [reducedUncondlist,:orCondlist]
+NRTsetVector4Part1(sigs, forms, conds) ==
+    uncond_list := nil
+    cond_list := nil
+    for sig in reverse sigs for form in reverse forms
+           for cond in reverse conds repeat
+        sig = '$ =>
+            domainList :=
+                [optimize COPY IFCAR comp(d, $EmptyMode, $e) or
+                   d for d in $domainShell.4.0]
+            uncond_list := APPEND(domainList, uncond_list)
+            if isCategoryForm(form, $e) then
+                uncond_list := [form, :uncond_list]
+        evalform := eval mkEvalableCategoryForm form
+        cond = true =>
+            uncond_list := [form, :APPEND(evalform.4.0, uncond_list)]
+        cond_list := [[cond,[form, :evalform.4.0]], :cond_list]
+
+    reducedUncondlist := REMDUP uncond_list
+    reducedConlist := [[x, :y] for [x,z] in cond_list |
+                         y := SETDIFFERENCE(z, reducedUncondlist)]
+    revCondlist := reverseCondlist reducedConlist
+    orCondlist := [[x, :MKPF(y, 'OR)] for [x, :y] in revCondlist]
+    [reducedUncondlist, :orCondlist]
 
 reverseCondlist cl ==
   alist := nil
@@ -543,18 +587,6 @@ reverseCondlist cl ==
       member(x, rest u) => nil
       RPLACD(u, [x, :rest u])
   alist
-
-NRTsetVector4a(sig,form,cond) ==
-  sig = '$ =>
-     domainList :=
-         [optimize COPY IFCAR comp(d, $EmptyMode, $e) or
-             d for d in $domainShell.4.0]
-     $uncondList := APPEND(domainList,$uncondList)
-     if isCategoryForm(form,$e) then $uncondList := [form,:$uncondList]
-     $uncondList
-  evalform := eval mkEvalableCategoryForm form
-  cond = true => $uncondList := [form,:APPEND(evalform.4.0,$uncondList)]
-  $condList := [[cond,[form,:evalform.4.0]],:$condList]
 
 NRTmakeSlot1Info() ==
 -- 4 cases:
@@ -624,11 +656,7 @@ changeDirectoryInSlot1() ==  --called by buildFunctor
        if $lastPred ~= pred then
             $newEnv := deepChaseInferences(pred,$e)
             $lastPred := pred
-       newfnsel :=
-         fnsel is ['Subsumed,op1,sig1] =>
-           ['Subsumed, op1, genSlotSig(sig1, $newEnv)]
-         fnsel
-       [[op, genSlotSig(sig, $newEnv)], pred, newfnsel]
+       [[op, genSlotSig(sig, $newEnv)], pred, fnsel]
 
 genSlotSig(sig, $e) ==
    [genDeltaSig t for t in sig]
@@ -677,7 +705,7 @@ NRTputInLocalReferences bod ==
 NRTputInHead bod ==
   atom bod => bod
   bod is ['SPADCALL,:args,fn] =>
-    NRTputInTail rest bod --NOTE: args = COPY of rest bod
+    NRTputInTail rest bod --NOTE: args = COPY of rest bod id:667
     -- The following test allows function-returning expressions
     fn is [elt,dom,ind] and not (dom='$) and MEMQ(elt,'(ELT QREFELT CONST)) =>
       k:= NRTassocIndex dom => RPLACA(LASTNODE bod,[$elt,'_$,k])

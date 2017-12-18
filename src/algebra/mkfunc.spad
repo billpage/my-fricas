@@ -1,8 +1,6 @@
 )abbrev domain INFORM InputForm
 ++ Parser forms
 ++ Author: Manuel Bronstein
-++ Date Created: ???
-++ Date Last Updated: 19 April 1991
 ++ Description:
 ++   Domain of parsed forms which can be passed to the interpreter.
 ++   This is also the interface between algebra code and facilities
@@ -52,7 +50,7 @@ InputForm():
     parse    : String -> %
       ++ parse(s) is the inverse of unparse. It parses a
       ++ string to InputForm
-    declare  : List %   -> Symbol
+    declare  : List % -> Symbol
       ++ declare(t) returns a name f such that f has been
       ++ declared to the interpreter to be of type t, but has
       ++ not been assigned a value yet.
@@ -90,7 +88,6 @@ InputForm():
 
     convert(x : DoubleFloat) : % ==
       zero? x => 0
---      one? x => 1
       (x = 1) => 1
       convert(x)$Rep
 
@@ -107,7 +104,7 @@ InputForm():
                [u.symb for u in l2]))@%]$List(%))@%)))@%
 
     flatten0(s, sy, n) ==
-      atom? s => [nil(), s]
+      atom? s => [[], s]
       a := convert(concat(string sy, convert(n)@String)::Symbol)@%
       l2 := [flatten0(x, sy, n := n+1) for x in rest(l := destruct s)]
       [concat(concat [u.lst for u in l2], conv([convert(
@@ -133,7 +130,7 @@ InputForm():
     compile(name, types) ==
       symbol car cdr car
         selectLocalMms(mkProperOp name, convert(name)@%,
-          types, nil$List(%))$Lisp
+          types, []$List(%))$Lisp
 
     mkProperOp name ==
       op : % := mkAtree(nme := convert(name)@%)$Lisp
@@ -151,7 +148,7 @@ InputForm():
         concat(convert('Tuple), [convert x for x in l]$List(%))
 
     function(f, l, name) ==
-      nn := convert(new(1 + #l, convert(nil()$List(%)))$List(%))@%
+      nn := convert(new(1 + #l, convert([]$List(%)))$List(%))@%
       conv([convert('DEF), conv(cons(convert(name)@%,
                         [convert(x)@% for x in l])), nn, nn, f]$List(%))
 
@@ -169,7 +166,6 @@ InputForm():
     s1 : % ^ n : Integer ==
       s1 = 0 and n > 0 => 0
       s1 = 1 or zero? n => 1
---      one? n => s1
       (n = 1) => s1
       conv [convert("^"::Symbol), s1, convert n]$List(%)
 
@@ -183,8 +179,6 @@ InputForm():
 
 ++ Tools for manipulating input forms
 ++ Author: Manuel Bronstein
-++ Date Created: ???
-++ Date Last Updated: 19 April 1991
 ++ Description: Tools for manipulating input forms.
 
 InputFormFunctions1(R : Type) : with
@@ -234,7 +228,6 @@ InputFormFunctions1(R : Type) : with
 ++ Tools for making interpreter functions from top-level expressions
 ++ Author: Manuel Bronstein
 ++ Date Created: 22 Nov 1988
-++ Date Last Updated: 8 Jan 1990
 ++ Description: transforms top-level objects into interpreter functions.
 MakeFunction(S : ConvertibleTo InputForm) : Exports == Implementation where
   SY ==> Symbol
@@ -251,7 +244,7 @@ MakeFunction(S : ConvertibleTo InputForm) : Exports == Implementation where
       ++ \spad{foo(x1, ..., xn) == e}.
 
   Implementation ==> add
-    function(s, name)            == function(s, name, nil())
+    function(s, name)            == function(s, name, [])
     function(s : S, name : SY, x : SY) == function(s, name, [x])
     function(s, name, x, y)      == function(s, name, [x, y])
 
@@ -263,7 +256,6 @@ MakeFunction(S : ConvertibleTo InputForm) : Exports == Implementation where
 ++ Tools for making compiled functions from top-level expressions
 ++ Author: Manuel Bronstein
 ++ Date Created: 1 Dec 1988
-++ Date Last Updated: 5 Mar 1990
 ++ Description: transforms top-level objects into compiled functions.
 MakeUnaryCompiledFunction(S, D, I) : Exports == Implementation where
   S : ConvertibleTo InputForm
@@ -298,7 +290,6 @@ MakeUnaryCompiledFunction(S, D, I) : Exports == Implementation where
 ++ Tools for making compiled functions from top-level expressions
 ++ Author: Manuel Bronstein
 ++ Date Created: 1 Dec 1988
-++ Date Last Updated: 5 Mar 1990
 ++ Description: transforms top-level objects into compiled functions.
 MakeBinaryCompiledFunction(S, D1, D2, I) : Exports == Implementation where
   S : ConvertibleTo InputForm
@@ -332,7 +323,6 @@ MakeBinaryCompiledFunction(S, D1, D2, I) : Exports == Implementation where
 ++ Tools for making compiled functions from top-level expressions
 ++ Author: Manuel Bronstein
 ++ Date Created: 2 Mar 1990
-++ Date Last Updated: 2 Dec 1996 (MCD)
 ++ Description:
 ++ MakeFloatCompiledFunction transforms top-level objects into
 ++ compiled Lisp functions whose arguments are Lisp floats.
@@ -420,7 +410,7 @@ MakeFloatCompiledFunction(S) : Exports == Implementation where
       unaryFunction compile(spadname, t)
 
     mkLispList l ==
-      ans := nil()$List(INF)
+      ans := []$List(INF)
       for s in l repeat
         (u := mkLisp s) case "failed" => return "failed"
         ans := concat(u::INF, ans)
@@ -428,17 +418,21 @@ MakeFloatCompiledFunction(S) : Exports == Implementation where
 
 
     mkLisp s ==
-      atom? s => s
+      atom? s => (integer?(s) => convert((integer s)::SF)@INF; s)
       op := first(l := destruct s)
       (u := mkLispList rest l) case "failed" => "failed"
       ll := u::List(INF)
       streqlist?(op, ["+","*","/","-"]) => convert(concat(op, ll))@INF
-      streq?(op, "^") => gencode("EXPT", ll)
-      streqlist?(op, ["exp","sin","cos","tan","atan",
+      streq?(op, "^") =>
+          integer?(ii := l(3)) =>
+              gencode("EXPT", [ll(1), ii])
+          gencode("EXPT", ll)
+      streqlist?(op, ["exp","sin","cos","tan","atan","asin","acos",
          "log", "sinh","cosh","tanh","asinh","acosh","atanh","sqrt"]) =>
             gencode(upperCase string symbol op, ll)
       streq?(op, "nthRoot") =>
-        second ll = convert(2::Integer)@INF =>gencode("SQRT",[first ll])
+        second(rest(l)) = convert(2::Integer)@INF =>
+           gencode("SQRT",[first ll])
         gencode("EXPT", concat(first ll, [1$INF / second ll]))
       streq?(op, "float") =>
         a := ll.1

@@ -73,8 +73,8 @@ Tuple(S : Type) : CoercibleTo(PrimitiveArray S) with
   select : (%, NonNegativeInteger) -> S
         ++ select(x, n) returns the n-th element of tuple x.
         ++ tuples are 0-based
-  length : % -> NonNegativeInteger
-        ++ length(x) returns the number of elements in tuple x
+  "#" : % -> NonNegativeInteger
+        ++ #(x) returns the number of elements in tuple x
   if S has CoercibleTo(OutputForm) then CoercibleTo(OutputForm)
   if S has SetCategory then SetCategory
  == add
@@ -82,7 +82,7 @@ Tuple(S : Type) : CoercibleTo(PrimitiveArray S) with
 
   coerce(x : PrimitiveArray S) : %  == [#x, x]
   coerce(x : %) : PrimitiveArray(S) == x.elts
-  length x == x.len
+  #x == x.len
 
   select(x, n) ==
     n >= x.len => error "Index out of bounds"
@@ -251,8 +251,8 @@ IndexedFlexibleArray(S : Type, mn : Integer) : Exports == Implementation where
        shrink(r, 1)
 
     delete!(r : %, i : U) ==
-       l := lo i - mn; m := maxIndex r - mn
-       h := (hasHi i => hi i - mn; m)
+       l := low(i) - mn; m := maxIndex r - mn
+       h := (hasHi i => high(i) - mn; m)
        l < 0 or h > m => error "index out of range"
        for j in l.. for k in h+1..m repeat r.f.j := r.f.k
        shrink(r, max(0, h-l+1))
@@ -355,12 +355,8 @@ IndexedOneDimensionalArray(S : Type, mn : Integer):
  OneDimensionalArrayAggregate S == add
    Qmax ==> QVMAXINDEX$Lisp
    Qsize ==> QVSIZE$Lisp
---   Qelt ==> QVELT$Lisp
---   Qsetelt ==> QSETVELT$Lisp
-   Qelt ==> ELT$Lisp
-   Qsetelt ==> SETELT$Lisp
---   Qelt1 ==> QVELT_-1$Lisp
---   Qsetelt1 ==> QSETVELT_-1$Lisp
+   Qelt ==> QAREF1$Lisp
+   Qsetelt ==> QSETVELT$Lisp
    Qnew ==> MAKE_-ARRAY$Lisp
    Qnew1 ==> MAKEARR1$Lisp
    I ==> Integer
@@ -414,7 +410,6 @@ IndexedOneDimensionalArray(S : Type, mn : Integer):
        negative? i or i > maxIndex(x) => error "index out of range"
        qsetelt!(x, i, s)
 
---   else if one? mn then
    else if (mn = 1) then
      maxIndex x       == Qsize x
      qelt(x, i)       == Qelt(x, i-1)

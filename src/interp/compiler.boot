@@ -346,7 +346,6 @@ compAtom1(x, m, e) ==
   t:=
     isSymbol x =>
       compSymbol(x,m,e) or return nil
-    m = $OutputForm and primitiveType x => [x,m,e]
     STRINGP x => [x,x,e]
     [x,primitiveType x or return nil,e]
   convert(t,m)
@@ -417,7 +416,7 @@ compArgumentsAndTryAgain(form is [.,:argl],m,e) ==
   u="failed" => nil
   compForm1(form,m,e)
 
--- FIXME: we should check the argument.
+-- FIXME: we should check the argument. id:728
 outputComp(x,e) ==
   u:=comp(['_:_:, x, $OutputForm], $OutputForm, e) => u
   x is ['construct,:argl] =>
@@ -474,20 +473,6 @@ compForm2(form is [op,:argl],m,e,modemapList) ==
   sargl:= TAKE(# argl, $TriangleVariableList)
   aList:= [[sa,:a] for a in argl for sa in sargl]
   modemapList:= SUBLIS(aList,modemapList)
-  deleteList:=[]
-  newList := []
-  -- now delete any modemaps that are subsumed by something else, provided the conditions
-  -- are right (i.e. subsumer true whenever subsumee true)
-  for u in modemapList repeat
-    if u is [[dc,:.],[cond,["Subsumed",.,nsig]]] and
-       (v:=assoc([dc,:nsig],modemapList)) and v is [.,[ncond,:.]] then
-           deleteList:=[u,:deleteList]
-           if not PredImplies(ncond,cond) then
-               newList := [[first u, [cond, ['ELT, dc, nil]]], :newList]
-  if deleteList then modemapList:=[u for u in modemapList | not MEMQ(u,deleteList)]
-  -- We can use MEMQ since deleteList was built out of members of modemapList
-  -- its important that subsumed ops (newList) be considered last
-  if newList then modemapList := append(modemapList,newList)
   Tl:=
     [[.,.,e]:= T
       for x in argl while (isSimple x and (T:= compUniquely(x,$EmptyMode,e)))]
@@ -868,12 +853,11 @@ compLeave(["leave",level,x],m,e) ==
 
 --% return
 
-compReturn(["return",level,x],m,e) ==
+compReturn(["return", x], m, e) ==
   ns := #$exitModeStack
   ns = $currentFunctionLevel =>
     stackSemanticError(["the return before","%b",x,"%d","is unneccessary"],nil)
     nil
-  level~=1 => userError '"multi-level returns not supported"
   index := MAX(0, ns - $currentFunctionLevel - 1)
   $returnMode:= resolve($exitModeStack.index,$returnMode)
   [x',m',e']:= u:= comp(x,$returnMode,e) or return nil
@@ -1125,7 +1109,9 @@ compIs(["is",a,b],m,e) ==
 --  The function coerceInteractive is used by the interpreter.
 --  One should always call the correct function, since the represent-
 --  ation of basic objects may not be the same.
-
+--
+-- Type in returned triple is m when m is not $EmptyMode,
+-- otherwise it is type from T
 coerce(T,m) ==
   $InteractiveMode =>
     keyedSystemError("S2GE0016",['"coerce",
@@ -1262,19 +1248,8 @@ resolve(din,dout) ==
   dout
 
 modeEqual(x,y) ==
-  -- this is the late modeEqual
-  -- orders Unions
   atom x or atom y => x=y
   #x ~=#y => nil
-  x is ['Union,:xl] and y is ['Union,:yl] =>
-    for x1 in xl repeat
-      for y1 in yl repeat
-        modeEqual(x1,y1) =>
-          xl := delete(x1,xl)
-          yl := delete(y1,yl)
-          return nil
-    xl or yl => nil
-    true
   (and/[modeEqual(u,v) for u in x for v in y])
 
 modeEqualSubst(m1,m,e) ==

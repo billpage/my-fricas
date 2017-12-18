@@ -334,7 +334,7 @@ transformOperationAlist operationAlist ==
       implementation is [eltEtc,.,n] and eltEtc in '(CONST ELT) => eltEtc
       implementation is [impOp,:.] =>
         impOp = 'XLAM => implementation
-        impOp in '(CONST Subsumed) => impOp
+        impOp = CONST => impOp
         keyedSystemError("S2IL0025",[impOp])
       implementation = 'mkRecord => 'mkRecord
       keyedSystemError("S2IL0025",[implementation])
@@ -344,7 +344,7 @@ transformOperationAlist operationAlist ==
         condition = 'T => [sig,n]
         [sig,n,condition]
       [sig,n,condition,kind]
-    itemList := [signatureItem, :QLASSQ(op, newAlist)]
+    itemList := insert(signatureItem, QLASSQ(op, newAlist))
     newAlist:= insertAlist(op,itemList,newAlist)
   newAlist
 

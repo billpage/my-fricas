@@ -1,7 +1,6 @@
 )abbrev category OC OctonionCategory
 ++ Author: R. Wisbauer, J. Grabmeier
 ++ Date Created: 05 September 1990
-++ Date Last Updated: 19 September 1990
 ++ Basic Operations: _+, _*, octon, real, imagi, imagj, imagk,
 ++  imagE, imagI, imagJ, imagK
 ++ Related Constructors: QuaternionCategory
@@ -19,16 +18,11 @@
 -- Examples: octonion.input
 
 OctonionCategory(R : CommutativeRing) : Category ==
-  -- we are cheating a little bit, algebras in \Language{}
-  -- are mainly considered to be associative, but that's not
-  -- an attribute and we can't guarantee that there is no piece
-  -- of code which implicitly
-  -- uses this. In a later version we shall properly combine
-  -- all this code in the context of general, non-associative
-  -- algebras, which are meanwhile implemented in \Language{}
-  Join(Algebra R, FullyRetractableTo R, FullyEvalableOver R) with
+  Join(FramedNonAssociativeAlgebra(R), FullyRetractableTo R,
+       FullyEvalableOver R) with
      conjugate : % -> %
-       ++ conjugate(o) negates the imaginary parts i, j, k, E, I, J, K of octonian o.
+       ++ conjugate(o) negates the imaginary parts i, j, k, E, I, J, K
+       ++ of octonian o.
      real :    % -> R
        ++ real(o) extracts real part of octonion o.
      imagi :   % -> R
@@ -52,7 +46,7 @@ OctonionCategory(R : CommutativeRing) : Category ==
      octon : (R, R, R, R, R, R, R, R) -> %
        ++ octon(re, ri, rj, rk, rE, rI, rJ, rK) constructs an octonion
        ++ from scalars.
-     if R has Finite then Finite
+     -- FIXME: Why we impose order here? id:715
      if R has OrderedSet then OrderedSet
      if R has ConvertibleTo InputForm then ConvertibleTo InputForm
      if R has CharacteristicZero then CharacteristicZero
@@ -78,6 +72,25 @@ OctonionCategory(R : CommutativeRing) : Category ==
  add
      characteristic() ==
        characteristic()$R
+
+     rank() == 8
+
+     coordinates(x : %) : Vector(R) ==
+         vector([real x, imagi x, imagj x, imagk x,
+                 imagE x, imagI x, imagJ x, imagK x])
+
+     represents(v : Vector(R)) ==
+         octon(v(1), v(2), v(3), v(4), v(5), v(6), v(7), v(8))
+
+     basis() : Vector(%) ==
+         res := zero(8)$Vector(%)
+         vv := zero(8)$Vector(R)
+         for i in 1..8 repeat
+             vv(i) := 1
+             res(i) := represents(vv)
+             vv(i) := 0
+         res
+
      conjugate x ==
        octon(real x, - imagi x, - imagj x, - imagk x, - imagE x, _
        - imagI x, - imagJ x, - imagK x)
@@ -143,7 +156,6 @@ OctonionCategory(R : CommutativeRing) : Category ==
              imagI(x), imagJ(x), imagK(x))
            z :=
              part := 'i::OutputForm
---             one? imagi(x) => part
              (imagi(x) = 1) => part
              (imagi(x) :: OutputForm) * part
            zero? y => z
@@ -154,7 +166,6 @@ OctonionCategory(R : CommutativeRing) : Category ==
              imagI(x), imagJ(x), imagK(x))
            z :=
              part := 'j::OutputForm
---             one? imagj(x) => part
              (imagj(x) = 1) => part
              (imagj(x) :: OutputForm) * part
            zero? y => z
@@ -165,7 +176,6 @@ OctonionCategory(R : CommutativeRing) : Category ==
              imagI(x), imagJ(x), imagK(x))
            z :=
              part := 'k::OutputForm
---             one? imagk(x) => part
              (imagk(x) = 1) => part
              (imagk(x) :: OutputForm) * part
            zero? y => z
@@ -176,7 +186,6 @@ OctonionCategory(R : CommutativeRing) : Category ==
              imagI(x), imagJ(x), imagK(x))
            z :=
              part := 'E::OutputForm
---             one? imagE(x) => part
              (imagE(x) = 1) => part
              (imagE(x) :: OutputForm) * part
            zero? y => z
@@ -186,7 +195,6 @@ OctonionCategory(R : CommutativeRing) : Category ==
            y := octon(0$R, 0$R, 0$R, 0$R, 0$R, 0$R, imagJ(x), imagK(x))
            z :=
              part := 'I::OutputForm
---             one? imagI(x) => part
              (imagI(x) = 1) => part
              (imagI(x) :: OutputForm) * part
            zero? y => z
@@ -196,14 +204,12 @@ OctonionCategory(R : CommutativeRing) : Category ==
            y := octon(0$R, 0$R, 0$R, 0$R, 0$R, 0$R, 0$R, imagK(x))
            z :=
              part := 'J::OutputForm
---             one? imagJ(x) => part
              (imagJ(x) = 1) => part
              (imagJ(x) :: OutputForm) * part
            zero? y => z
            z + (y :: OutputForm)
          -- we know that the real part, i, j, k, E, I, J parts are 0
          part := 'K::OutputForm
---         one? imagK(x) => part
          (imagK(x) = 1) => part
          (imagK(x) :: OutputForm) * part
 
@@ -255,7 +261,6 @@ OctonionCategory(R : CommutativeRing) : Category ==
 )abbrev domain OCT Octonion
 ++ Author: R. Wisbauer, J. Grabmeier
 ++ Date Created: 05 September 1990
-++ Date Last Updated: 20 September 1990
 ++ Basic Operations: _+, _*, octon, image, imagi, imagj, imagk,
 ++  imagE, imagI, imagJ, imagK
 ++ Related Constructors: Quaternion
@@ -318,7 +323,6 @@ Octonion(R : CommutativeRing) : Export == Impl where
 --% OctonionCategoryFunctions2
 ++ Author: Johannes Grabmeier
 ++ Date Created: 10 September 1990
-++ Date Last Updated: 10 September 1990
 ++ Basic Operations: map
 ++ Related Constructors:
 ++ Also See:

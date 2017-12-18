@@ -1,7 +1,6 @@
 )abbrev package IMATLIN InnerMatrixLinearAlgebraFunctions
 ++ Author: Clifton J. Williamson, P.Gianni
 ++ Date Created: 13 November 1989
-++ Date Last Updated: September 1993
 ++ Basic Operations:
 ++ Related Domains: IndexedMatrix(R, minRow, minCol), Matrix(R),
 ++    RectangularMatrix(n, m, R), SquareMatrix(n, R)
@@ -132,7 +131,7 @@ InnerMatrixLinearAlgebraFunctions(R, Row, Col, M) : _
                 minR := minRowIndex x; maxR := maxRowIndex x
                 minC := minColIndex x; maxC := maxColIndex x
                 nrow := nrows x; ncol := ncols x
-                basis : List Col := nil()
+                basis : List Col := []
                 rk := nrow; row := maxR
                 -- compute rank = # rows - # rows of all zeroes
                 while rk > 0 and rowAllZeroes?(x, row) repeat
@@ -175,6 +174,7 @@ InnerMatrixLinearAlgebraFunctions(R, Row, Col, M) : _
             (ndim := nrows y) ~= (ncols y) =>
                 error "determinant: matrix must be square"
             -- Gaussian Elimination
+            ndim = 0 => 1
             ndim = 1 => qelt(y, minRowIndex y, minColIndex y)
             x := copy y
             minR := minRowIndex x; maxR := maxRowIndex x
@@ -239,6 +239,7 @@ InnerMatrixLinearAlgebraFunctions(R, Row, Col, M) : _
     inverse x ==
       (ndim := nrows x) ~= (ncols x) =>
         error "inverse: matrix must be square"
+      ndim = 0 => x
       ndim = 2 =>
          ans2 : M := zero(ndim, ndim)
          zero?(det :=  x(1,1)*x(2,2)-x(1,2)*x(2,1)) => "failed"
@@ -264,7 +265,6 @@ InnerMatrixLinearAlgebraFunctions(R, Row, Col, M) : _
 )abbrev package MATCAT2 MatrixCategoryFunctions2
 ++ Author: Clifton J. Williamson
 ++ Date Created: 21 November 1989
-++ Date Last Updated: 21 March 1994
 ++ Basic Operations:
 ++ Related Domains: IndexedMatrix(R, minRow, minCol), Matrix(R),
 ++    RectangularMatrix(n, m, R), SquareMatrix(n, R)
@@ -331,7 +331,6 @@ MatrixCategoryFunctions2(R1, Row1, Col1, M1, R2, Row2, Col2, M2) : _
 )abbrev package RMCAT2 RectangularMatrixCategoryFunctions2
 ++ Author: Clifton J. Williamson
 ++ Date Created: 21 November 1989
-++ Date Last Updated: 12 June 1991
 ++ Basic Operations:
 ++ Related Domains: IndexedMatrix(R, minRow, minCol), Matrix(R),
 ++    RectangularMatrix(n, m, R), SquareMatrix(n, R)
@@ -388,7 +387,6 @@ RectangularMatrixCategoryFunctions2(m, n, R1, Row1, Col1, M1, R2, Row2, Col2, M2
 )abbrev package IMATQF InnerMatrixQuotientFieldFunctions
 ++ Author: Clifton J. Williamson
 ++ Date Created: 22 November 1989
-++ Date Last Updated: 22 November 1989
 ++ Basic Operations:
 ++ Related Domains: IndexedMatrix(R, minRow, minCol), Matrix(R), RectangularMatrix(n, m, R), SquareMatrix(n, R)
 ++ Also See:
@@ -445,7 +443,6 @@ InnerMatrixQuotientFieldFunctions(R, Row, Col, M, QF, Row2, Col2, M2) : _
 )abbrev package MATLIN MatrixLinearAlgebraFunctions
 ++ Author: Clifton J. Williamson, P.Gianni
 ++ Date Created: 13 November 1989
-++ Date Last Updated: December 1992
 ++ Basic Operations:
 ++ Related Domains: IndexedMatrix(R, minRow, minCol), Matrix(R),
 ++    RectangularMatrix(n, m, R), SquareMatrix(n, R)
@@ -537,7 +534,7 @@ MatrixLinearAlgebraFunctions(R, Row, Col, M) : Exports == Implementation where
     minorDet(x, m, l, i, v) ==
       z := v.m
       z case R => z
-      ans : R := 0; rl : List I := nil()
+      ans : R := 0; rl : List I := []
       j := first l; l := rest l; pos := true
       minR := minRowIndex x; minC := minColIndex x;
       repeat
@@ -548,7 +545,7 @@ MatrixLinearAlgebraFunctions(R, Row, Col, M) : Exports == Implementation where
                            qelt(x, j + minR, i + minC)
             pos => ans + md
             ans - md
-        null l =>
+        empty?(l) =>
           v.m := ans
           return ans
         pos := not pos; rl := cons(j, rl); j := first l; l := rest l
@@ -557,6 +554,7 @@ MatrixLinearAlgebraFunctions(R, Row, Col, M) : Exports == Implementation where
       (ndim := nrows x) ~= (ncols x) =>
         error "determinant: matrix must be square"
       -- minor expansion with (s---loads of) memory
+      ndim = 0 => 1
       n1 : I := ndim - 1
       v : PrimitiveArray(Union(R,"uncomputed")) :=
            new((2^ndim - 1) :: NonNegativeInteger,"uncomputed")
@@ -618,7 +616,7 @@ MatrixLinearAlgebraFunctions(R, Row, Col, M) : Exports == Implementation where
                 qsetelt!(x, k, l, (val exquo b) :: R)
           b := c
           (i := i + 1) > maxR => break
-        if ans=-1 then
+        if ans ~= 1 then
           lasti := i-1
           for j in 1..maxC repeat x(lasti, j) := -x(lasti, j)
         x
@@ -645,12 +643,14 @@ MatrixLinearAlgebraFunctions(R, Row, Col, M) : Exports == Implementation where
       invertIfCan(y) ==
         (nr := nrows y) ~= (ncols y) =>
             error "invertIfCan: matrix must be square"
+        nr = 0 => y
         adjRec := adjoint y
         (den := recip(adjRec.detMat)) case "failed" => "failed"
         den::R * adjRec.adjMat
 
       adjoint(y) ==
         (nr := nrows y) ~= (ncols y) => error "adjoint: matrix must be square"
+        nr = 0 => [y, 1]
         maxR := maxRowIndex y
         maxC := maxColIndex y
         x := horizConcat(copy y, scalarMatrix(nr, 1$R))
@@ -689,7 +689,9 @@ MatrixLinearAlgebraFunctions(R, Row, Col, M) : Exports == Implementation where
       nullSpace m == nullSpace(m)$IMATQF
 
       determinant y ==
-        (nrows y) ~= (ncols y) => error "determinant: matrix must be square"
+        (ndim := nrows y) ~= (ncols y) =>
+            error "determinant: matrix must be square"
+        ndim = 0 => 1
         fm := fractionFreeGauss!(copy y)
         fm(maxRowIndex fm, maxColIndex fm)
 

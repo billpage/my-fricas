@@ -2,7 +2,6 @@
 ++ Univariate polynomials with negative and positive exponents.
 ++ Author: Manuel Bronstein
 ++ Date Created: May 1988
-++ Date Last Updated: 26 Apr 1990
 LaurentPolynomial(R, UP) : Exports == Implementation where
   R : IntegralDomain
   UP : UnivariatePolynomialCategory R
@@ -72,7 +71,7 @@ LaurentPolynomial(R, UP) : Exports == Implementation where
 
     coerce(p : %) : O ==
       zero? p => 0::Z::O
-      l := nil()$List(O)
+      l := []$List(O)
       v := monomial(1, 1)$UP :: O
       while p ~= 0 repeat
         l := concat(l, toutput(leadingCoefficient p, degree p, v))
@@ -90,13 +89,11 @@ LaurentPolynomial(R, UP) : Exports == Implementation where
 
     monTerm(r, n, v) ==
       zero? n => r::O
---      one? n => v
       (n = 1) => v
       v ^ (n::O)
 
     toutput(r, n, v) ==
       mon := monTerm(r, n, v)
---      zero? n or one? r => mon
       zero? n or (r = 1) => mon
       r = -1 => - mon
       r::O * mon
