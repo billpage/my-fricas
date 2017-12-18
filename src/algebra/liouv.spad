@@ -16,6 +16,7 @@ LiouvillianFunction(R, F) : Exports == Implementation where
   O   ==> OutputForm
   INP ==> InputForm
   INV ==> error "Invalid argument"
+  FSF ==> FunctionalSpecialFunction(R, F)
 
   SPECIALDIFF ==> '%specialDiff
   SPECIALDISP ==> '%specialDisp
@@ -199,15 +200,19 @@ LiouvillianFunction(R, F) : Exports == Implementation where
 
     evaluate(opei,   iei)$BasicOperatorFunctions1(F)
     evaluate(opli,   ili)
-    evaluate(opsi,   isi)
+    -- holomorhic (entire)
+    holomorphic(evaluate(opsi,   isi))$FSF
     evaluate(opci,   ici)
-    evaluate(opshi,  ishi)
+    --holomorphic(evaluate(opci, ici))$FSF
+    holomorphic(evaluate(opshi, ishi))$FSF
     evaluate(opchi,  ichi)
-    evaluate(operf,  ierf)
-    evaluate(operfi, ierfi)
+    --holomorphic(evaluate(opchi, ichi))$FSF
+    holomorphic(evaluate(operf, ierf))$FSF
+    holomorphic(evaluate(operfi, ierfi))$FSF
     evaluate(opli2,  ili2)
-    evaluate(opfis,  ifis)
-    evaluate(opfic,  ific)
+    holomorphic(evaluate(opfis, ifis))$FSF
+    holomorphic(evaluate(opfic, ific))$FSF
+
     evaluate(opint,  iint)
     evaluate(opiint,  iiint)
     derivative(opsi, (z1 : F) : F +-> sin(z1) / z1)

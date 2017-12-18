@@ -97,6 +97,7 @@ SortedCache(S : CachableSet) : Exports == Implementation where
         void
 
     linearSearch(x : S, equal? : S -> Boolean) ==
+        --output("linearSearch: ",x::OutputForm)$OutputPackage
         k : Integer := 0
         -- Can not use for loop because equal? can insert new elements
         -- and change cache_use
@@ -260,7 +261,9 @@ Kernel(S : Comparable) : Exports == Implementation where
     height(k) == SPAD_-KERNEL_-NEST(k)$Lisp
     position(k : %) : N == SPAD_-KERNEL_-POSIT(k)$Lisp
     setPosition(k, n) == SET_-SPAD_-KERNEL_-POSIT(k, n)$Lisp
-    mkKer(o : OP, a : List S, n : N) : % == makeSpadKernel(o, a, n)$Lisp
+    mkKer(o : OP, a : List S, n : N) : % ==
+      --output("mkKer: ",o::OutputForm)$OutputPackage
+      makeSpadKernel(o, a, n)$Lisp
 
     SYMBOL  := '%symbol
     PMPRED  := '%pmpredicate
@@ -293,12 +296,14 @@ Kernel(S : Comparable) : Exports == Implementation where
       "failed"
 
     kerEqual(k1 : %, k2 : %, f : (%, %) -> Boolean) : Boolean ==
+        --output("kl kerEqual: ",bracket [outputDomainConstructor(S)$Lisp::OutputForm,k1::OutputForm,k2::OutputForm])$OutputPackage
         height(k1)   ~= height(k2)   => false
         operator(k1) ~= operator(k2) => false
         (n1 := #(argument k1)) ~= (n2 := #(argument k2)) => false
         f(k1, k2)
 
     kernelEnterInCache(k : %) : % ==
+        --output("kernelEnterInCache: ",operator(k)::OutputForm)$OutputPackage
         if (f0 := property(operator k, SPECIALEQUAL)) case None then
             f1 := (f0::None) pretend ((%, %) -> Boolean)
             (res := linearSearch(k, y +-> kerEqual(k, y, f1))) case % =>
@@ -316,6 +321,7 @@ Kernel(S : Comparable) : Exports == Implementation where
       position(k1) < position(k2)
 
     kernel(fn, x, n) ==
+      --output("kl kernel: ",bracket [outputDomainConstructor(S)$Lisp::OutputForm,fn::OutputForm])$OutputPackage
       ((u := arity fn) case N) and (#x ~= u::N)
                                     => error "Wrong number of arguments"
       kernelEnterInCache(mkKer(fn, x, n))
@@ -324,6 +330,7 @@ Kernel(S : Comparable) : Exports == Implementation where
     -- it is used when the converting the arguments first is not good,
     -- for instance with formal derivatives.
     coerce(k : %) : OutputForm ==
+      --output("kl coerce operator(k): ",operator(k)::OutputForm)$OutputPackage
       (v := symbolIfCan k) case Symbol => v::Symbol::OutputForm
       (f := property(o := operator k, SPECIALDISP)) case None =>
         ((f::None) pretend (List S -> OutputForm)) (argument k)
@@ -341,6 +348,15 @@ Kernel(S : Comparable) : Exports == Implementation where
       for x1 in argument(k1) for x2 in argument(k2) repeat
         x1 ~= x2 => return B2Z(smaller?(x1, x2))
       0
+
+    hashUpdate!(s : HashState, k : %) : HashState ==
+      s := hashUpdate!(s, name k)
+      s := hashUpdate!(s, height k)
+      -- what about dummy variables SPECIALEQUAL?
+      --for x in argument(k) repeat
+      --  s := hashUpdate!(s, x)
+      if argument(k)~=nil() then s := hashUpdate!(s, first argument k)
+      s
 
     if S has ConvertibleTo InputForm then
       convert(k : %) : InputForm ==

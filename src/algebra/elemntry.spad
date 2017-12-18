@@ -14,6 +14,7 @@ ElementaryFunction(R, F) : Exports == Implementation where
   OP  ==> BasicOperator
   K   ==> Kernel F
   INV ==> error "Invalid argument"
+  FSF ==> FunctionalSpecialFunction(R, F)
 
   Exports ==> with
     exp     : F -> F
@@ -632,14 +633,19 @@ ElementaryFunction(R, F) : Exports == Implementation where
 
 -- THIS DETERMINES WHEN TO PERFORM THE log exp f -> f SIMPLIFICATION
 -- CURRENT BEHAVIOR:
---     IF R IS COMPLEX(S) THEN ONLY ELEMENTS WHICH ARE RETRACTABLE TO R
---     AND EQUAL TO THEIR CONJUGATES ARE DEEMED REAL (OVERRESTRICTIVE FOR NOW)
---     OTHERWISE (e.g. R = INT OR FRAC INT), ALL THE ELEMENTS ARE DEEMED REAL
-
+---     IF R IS COMPLEX(S) THEN ONLY ELEMENTS WHICH ARE RETRACTABLE TO R
+---     AND EQUAL TO THEIR CONJUGATES ARE DEEMED REAL (OVERRESTRICTIVE FOR NOW)
+---     OTHERWISE (e.g. R = INT OR FRAC INT), ALL THE ELEMENTS ARE DEEMED REAL
+--+     ELEMENTS WHICH ARE NOT EQUAL TO THEIR CONJUGATES ARE DEEMED NOT REAL
+--+     ALL OTHER ELEMENTS ARE DEEMED REAL
+ 
     if (R has imaginary : () -> R) and (R has conjugate : R -> R) then
-         localReal? x ==
-            (u := retractIfCan(x)@Union(R, "failed")) case R
-               and (u::R) = conjugate(u::R)
+--+    if (F has conjugate : F -> F) then
+--+         localReal? x == x = conjugate(x)
+--+    else if (R has imaginary : () -> R) and (R has conjugate : R -> R) then
+            localReal? x ==
+               (u := retractIfCan(x)@Union(R, "failed")) case R
+                  and (u::R) = conjugate(u::R)
 
     else localReal? x == true
 
@@ -807,13 +813,15 @@ ElementaryFunction(R, F) : Exports == Implementation where
 
     evaluate(oppi, ipi)
     evaluate(oplog, iilog)
-    evaluate(opexp, iiexp)
-    evaluate(opsin, iisin)
-    evaluate(opcos, iicos)
-    evaluate(optan, iitan)
-    evaluate(opcot, iicot)
-    evaluate(opsec, iisec)
-    evaluate(opcsc, iicsc)
+    -- holomorhic
+    derivative(evaluate(conjugate(evaluate(oplog, iilog)),(x:F):F+->iilog(conjugate(x)$FSF)),(x:F):F+->0)
+    derivative(evaluate(conjugate(evaluate(opexp, iiexp)),(x:F):F+->iiexp(conjugate(x)$FSF)),(x:F):F+->0)
+    derivative(evaluate(conjugate(evaluate(opsin, iisin)),(x:F):F +-> iisin(conjugate(x)$FSF)),(x:F):F+->0)
+    derivative(evaluate(conjugate(evaluate(opcos, iicos)),(x:F):F +-> iicos(conjugate(x)$FSF)),(x:F):F+->0)
+    derivative(evaluate(conjugate(evaluate(optan, iitan)),(x:F):F +-> iitan(conjugate(x)$FSF)),(x:F):F+->0)
+    derivative(evaluate(conjugate(evaluate(opcot, iicot)),(x:F):F +-> iicot(conjugate(x)$FSF)),(x:F):F+->0)
+    derivative(evaluate(conjugate(evaluate(opsec, iisec)),(x:F):F +-> iisec(conjugate(x)$FSF)),(x:F):F+->0)
+    derivative(evaluate(conjugate(evaluate(opcsc, iicsc)),(x:F):F +-> iicsc(conjugate(x)$FSF)),(x:F):F+->0)
     evaluate(opasin, iiasin)
     evaluate(opacos, iiacos)
     evaluate(opatan, iiatan)
@@ -832,26 +840,38 @@ ElementaryFunction(R, F) : Exports == Implementation where
     evaluate(opacoth, iiacoth)
     evaluate(opasech, iiasech)
     evaluate(opacsch, iiacsch)
+    -- holomorhic
     derivative(opexp, exp)
+    derivative(conjugate(opexp),(x:F):F+->0)
     derivative(oplog, inv)
+    derivative(conjugate(oplog),(x:F):F+->0)
     derivative(opsin, cos)
+    derivative(conjugate(opsin),(x:F):F+->0)
     derivative(opcos, (x : F) : F +-> - sin x)
+    derivative(conjugate(opcos),(x:F):F+->0)
     derivative(optan, (x : F) : F +-> 1 + tan(x)^2)
+    derivative(conjugate(optan),(x:F):F+->0)
     derivative(opcot, (x : F) : F +-> - 1 - cot(x)^2)
+    derivative(conjugate(opcot),(x:F):F+->0)
     derivative(opsec, (x : F) : F +-> tan(x) * sec(x))
+    derivative(conjugate(opsec),(x:F):F+->0)
     derivative(opcsc, (x : F) : F +-> - cot(x) * csc(x))
+    derivative(conjugate(opcsc),(x:F):F+->0)
+    --
     derivative(opasin, (x : F) : F +-> inv sqrt(1 - x^2))
     derivative(opacos, (x : F) : F +-> - inv sqrt(1 - x^2))
     derivative(opatan, (x : F) : F +-> inv(1 + x^2))
     derivative(opacot, (x : F) : F +-> - inv(1 + x^2))
     derivative(opasec, (x : F) : F +-> inv(x^2 * sqrt(1 - inv(x^2))))
     derivative(opacsc, (x : F) : F +-> - inv(x^2 * sqrt(1 - inv(x^2))))
+    --
     derivative(opsinh, cosh)
     derivative(opcosh, sinh)
     derivative(optanh, (x : F) : F +-> 1 - tanh(x)^2)
     derivative(opcoth, (x : F) : F +-> 1 - coth(x)^2)
     derivative(opsech, (x : F) : F +-> - tanh(x) * sech(x))
     derivative(opcsch, (x : F) : F +-> - coth(x) * csch(x))
+    --
     derivative(opasinh, (x : F) : F +-> inv sqrt(1 + x^2))
     derivative(opacosh, (x : F) : F +-> inv sqrt(x^2 - 1))
     derivative(opatanh, (x : F) : F +-> inv(1 - x^2))

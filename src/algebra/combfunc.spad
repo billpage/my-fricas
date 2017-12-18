@@ -455,7 +455,6 @@ CombinatorialFunction(R, F) : Exports == Implementation where
     setProperty(opdprod, SPECIALEQUAL, equaldsumprod@((K, K) -> Boolean) pretend None)
 
 
-
 )abbrev package FSPECF FunctionalSpecialFunction
 )boot $tryRecompileArguments := nil
 ++ Provides the special functions
@@ -463,6 +462,9 @@ CombinatorialFunction(R, F) : Exports == Implementation where
 ++ Date Created: 18 Apr 1989
 ++ Description: Provides some special functions over an integral domain.
 ++ Keywords: special, function.
+++ Date Last Updated: 2 October 2014
+++   Added: 'conjugate'
+++   Modified: 'abs'
 FunctionalSpecialFunction(R, F) : Exports == Implementation where
   R : Join(Comparable, IntegralDomain)
   F : FunctionSpace R
@@ -482,7 +484,11 @@ FunctionalSpecialFunction(R, F) : Exports == Implementation where
     abs     : F -> F
       ++ abs(f) returns the absolute value operator applied to f
     conjugate: F -> F
-      ++ conjugate(f) returns the conjugate value operator applied to f
+      ++ conjugate(f) returns the conjugate operator applied to f
+    holomorphic: OP -> OP
+      ++ holomorphic(op) attaches evaluate and derivative properties to
+      ++ conjugate(op) to that define op as holomorphic (analytic).
+      ++ Assumes that evaluate(op) and derivate(op) are already defined.
     Gamma   : F -> F
       ++ Gamma(f) returns the formal Gamma function applied to f
     Gamma   : (F, F) -> F
@@ -744,6 +750,17 @@ FunctionalSpecialFunction(R, F) : Exports == Implementation where
 
     abs x         == opabs x
     conjugate x   == opconjugate x
+    holomorphic(op: OP):OP ==
+      if (f:=evaluate(op)$BasicOperatorFunctions1(F)) case "failed" then
+        op':=evaluate(conjugate(op),(x:List F):F+->kernel(op,concat([conjugate(first x)],rest x)))
+      else
+        op':=evaluate(conjugate(op),(x:List F):F+->(f::List F -> F)(concat([conjugate(first x)],rest x)))
+      (d:=derivative(op)$BasicOperatorFunctions1(F)) case "failed" =>
+        derivative(op',[(x:List F):F+->0])
+        op
+      derivative(op',concat([(x:List F):F+->0],rest d))
+      op
+
     Gamma(x)      == opGamma(x)
     Gamma(a, x)    == opGamma2(a, x)
     Beta(x, y)     == opBeta(x, y)
@@ -1440,7 +1457,6 @@ FunctionalSpecialFunction(R, F) : Exports == Implementation where
 
     elJacobiSn : List F -> F
     elJacobiSn(l : List F) : F == eJacobiSn(l(1), l(2))
-    evaluate(opJacobiSn, elJacobiSn)$BasicOperatorFunctions1(F)
 
     jacobiGradHelper(z : F, m : F) : F ==
         (z - ellipticE(jacobiSn(z, m), m)/(1 - m))/m
@@ -1456,7 +1472,7 @@ FunctionalSpecialFunction(R, F) : Exports == Implementation where
         ahalf*(eJacobiSnGrad_z(l)*jacobiGradHelper(z, m) +
            jacobiSn(z, m)*jacobiCn(z, m)^2/(1 - m))
 
-    derivative(opJacobiSn, [eJacobiSnGrad_z, eJacobiSnGrad_m])
+    holomorphic(derivative(evaluate(opJacobiSn, elJacobiSn),[eJacobiSnGrad_z, eJacobiSnGrad_m]))
 
     -- handle JacobiCn
 
@@ -1469,7 +1485,6 @@ FunctionalSpecialFunction(R, F) : Exports == Implementation where
         kernel(opJacobiCn, [z, m])
 
     elJacobiCn(l : List F) : F == eJacobiCn(l(1), l(2))
-    evaluate(opJacobiCn, elJacobiCn)$BasicOperatorFunctions1(F)
 
     eJacobiCnGrad_z(l : List F) : F ==
         z := l(1)
@@ -1482,7 +1497,7 @@ FunctionalSpecialFunction(R, F) : Exports == Implementation where
         ahalf*(eJacobiCnGrad_z(l)*jacobiGradHelper(z, m) -
            jacobiSn(z, m)^2*jacobiCn(z, m)/(1 - m))
 
-    derivative(opJacobiCn, [eJacobiCnGrad_z, eJacobiCnGrad_m])
+    holomorphic(derivative(evaluate(opJacobiCn, elJacobiCn),[eJacobiCnGrad_z, eJacobiCnGrad_m]))
 
     -- handle JacobiDn
 
@@ -1495,7 +1510,6 @@ FunctionalSpecialFunction(R, F) : Exports == Implementation where
         kernel(opJacobiDn, [z, m])
 
     elJacobiDn(l : List F) : F == eJacobiDn(l(1), l(2))
-    evaluate(opJacobiDn, elJacobiDn)$BasicOperatorFunctions1(F)
 
     eJacobiDnGrad_z(l : List F) : F ==
         z := l(1)
@@ -1508,7 +1522,7 @@ FunctionalSpecialFunction(R, F) : Exports == Implementation where
         ahalf*(eJacobiDnGrad_z(l)*jacobiGradHelper(z, m) -
            jacobiSn(z, m)^2*jacobiDn(z, m)/(1 - m))
 
-    derivative(opJacobiDn, [eJacobiDnGrad_z, eJacobiDnGrad_m])
+    holomorphic(derivative(evaluate(opJacobiDn, elJacobiDn),[eJacobiDnGrad_z, eJacobiDnGrad_m]))
 
     -- handle JacobiZeta
 
@@ -1521,7 +1535,7 @@ FunctionalSpecialFunction(R, F) : Exports == Implementation where
         kernel(opJacobiZeta, [z, m])
 
     elJacobiZeta(l : List F) : F == eJacobiZeta(l(1), l(2))
-    evaluate(opJacobiZeta, elJacobiZeta)$BasicOperatorFunctions1(F)
+    evaluate(opJacobiZeta, elJacobiZeta)
 
     eJacobiZetaGrad_z(l : List F) : F ==
         z := l(1)
@@ -1554,7 +1568,7 @@ FunctionalSpecialFunction(R, F) : Exports == Implementation where
         kernel(opJacobiTheta, [z, m])
 
     elJacobiTheta(l : List F) : F == eJacobiTheta(l(1), l(2))
-    evaluate(opJacobiTheta, elJacobiTheta)$BasicOperatorFunctions1(F)
+    holomorphic(evaluate(opJacobiTheta, elJacobiTheta)$BasicOperatorFunctions1(F))
 
     eJacobiThetaGrad_z(l : List F) : F ==
         z := l(1)
@@ -1655,7 +1669,7 @@ FunctionalSpecialFunction(R, F) : Exports == Implementation where
 
     elJacobiP(l : List F) : F == eJacobiP(l(1), l(2), l(3), l(4))
 
-    evaluate(opJacobiP, elJacobiP)$BasicOperatorFunctions1(F)
+    evaluate(opJacobiP, elJacobiP)
 
     eJacobiPGrad_z(n : F, a : F, b : F, z : F) : F ==
         ahalf*(a + b + n + 1)*jacobiP(n - 1, a + 1, b + 1, z)
@@ -1784,11 +1798,50 @@ FunctionalSpecialFunction(R, F) : Exports == Implementation where
       smaller?(x, 0) => kernel(opabs, -x)
       kernel(opabs, x)
 
-    iconjugate x ==
-      zero? x => 0
-      is?(x, opconjugate) => argument(retract(x)@K)(1)
-      is?(x, opabs) => x
-      kernel(opconjugate, x)
+    if R has abs : R -> R then
+      import from Polynomial R
+      iiabs x ==
+        (r := retractIfCan(x)@Union(Fraction Polynomial R, "failed"))
+          case "failed" => iabs x
+        f := r::Fraction Polynomial R
+        (a := retractIfCan(numer f)@Union(R, "failed")) case "failed" or
+          (b := retractIfCan(denom f)@Union(R,"failed")) case "failed" => iabs x
+        abs(a::R)::F / abs(b::R)::F
+    else
+      if F has RadicalCategory and R has conjugate : R -> R then
+        iiabs x ==
+          (r := retractIfCan(x)@Union(R, "failed"))
+            case "failed" => iabs x
+          sqrt( (r::R*conjugate(r::R))::F)
+      else iiabs x == iabs x
+
+    iconjugate(k:K):F ==
+      --output("in: ",k::OutputForm)$OutputPackage
+      if (s:=symbolIfCan(k)) case Symbol then
+        x:=conjugate(s::Symbol)$Symbol::F
+      else
+        x := conjugate(operator k) argument(k)
+      --output("out: ",x::OutputForm)$OutputPackage
+      return x
+
+    iiconjugate(x:F):F ==
+      --output("iin: ",x::OutputForm)$OutputPackage
+      if (s:=isPlus(x)) case List F then
+        --output("isPlus: ",s::OutputForm)$OutputPackage
+        x := reduce(_+$F,map(iiconjugate,s))
+      else if (s:=isTimes(x)) case List F then
+        --output("isTimes: ",s::OutputForm)$OutputPackage
+        x:= reduce(_*$F,map(iiconjugate,s))
+      else if #(ks:List K:=kernels(x))>0 then
+        --output("kernels: ",ks::OutputForm)$OutputPackage
+        x := subst(x,ks, _
+          map((k:Kernel F):F +-> (height(k)=0 =>k::F;iconjugate k), _
+            ks)$ListFunctions2(Kernel F,F))
+      else if R has conjugate:R->R and F has RetractableTo(R) then
+        if (r:=retractIfCan(x)@Union(R,"failed")) case R then
+          x:=conjugate(r::R)::F
+      --output("iout: ",x::OutputForm)$OutputPackage
+      return x
 
     iBeta(x, y) == kernel(opBeta, [x, y])
     idigamma x == kernel(opdigamma, x)
@@ -1861,31 +1914,6 @@ FunctionalSpecialFunction(R, F) : Exports == Implementation where
     iWeierstrassZeta(g2, g3, x) == kernel(opWeierstrassZeta, [g2, g3, x])
 
     -- Could put more conditional special rules for other functions here
-
-    if R has abs : R -> R then
-      import from Polynomial R
-      iiabs x ==
-        (r := retractIfCan(x)@Union(Fraction Polynomial R, "failed"))
-          case "failed" => iabs x
-        f := r::Fraction Polynomial R
-        (a := retractIfCan(numer f)@Union(R, "failed")) case "failed" or
-          (b := retractIfCan(denom f)@Union(R,"failed")) case "failed" => iabs x
-        abs(a::R)::F / abs(b::R)::F
-
-    else iiabs x == iabs x
-
-    iiconjugate(x:F):F ==
-      is?(x, opconjugate) => argument(retract(x)@K)(1)
-      is?(x, opabs) => x
-      retractIfCan(x)@Union(Symbol, "failed") case Symbol => iconjugate(x)
-      x:=eval(x,kernels(x), _
-        map((k:Kernel F):F +-> _
-          ( (height(k)=0 or height(k)=1 and retractIfCan(k::F)@Union(Symbol, "failed") case Symbol) =>iconjugate(k::F);map(iiconjugate,k)), _
-          kernels(x))$ListFunctions2(Kernel F,F))
-      if R has conjugate : R -> R then
-        x:=map(conjugate$R,numer x)::F / _
-          map(conjugate$R,denom x)::F
-      return x
 
     if R has SpecialFunctionCategory then
       iiGamma x ==
@@ -1977,8 +2005,12 @@ FunctionalSpecialFunction(R, F) : Exports == Implementation where
     -- Default behaviour is to build a kernel
     evaluate(opGamma, iiGamma)$BasicOperatorFunctions1(F)
     evaluate(opabs, iiabs)$BasicOperatorFunctions1(F)
+    -- non-holomorphic
+    evaluate(conjugate(opabs), (x:F):F +-> iiabs(x))$BasicOperatorFunctions1(F)
     evaluate(opconjugate, iiconjugate)$BasicOperatorFunctions1(F)
---    evaluate(opGamma2    , iiGamma2   )$BasicOperatorFunctions1(F)
+    evaluate(conjugate(opconjugate), (x:F):F +-> x)$BasicOperatorFunctions1(F)
+
+    -- evaluate(opGamma2    , iiGamma2   )$BasicOperatorFunctions1(F)
     evaluate(opBeta      , iiBeta     )$BasicOperatorFunctions1(F)
     evaluate(opdigamma   , iidigamma  )$BasicOperatorFunctions1(F)
     evaluate(oppolygamma , iipolygamma)$BasicOperatorFunctions1(F)
@@ -2421,16 +2453,23 @@ FunctionalSpecialFunction(R, F) : Exports == Implementation where
         derivative(op_erfs,     d_erfs)
         derivative(op_erfis,    d_erfis)
 
+    --derivative(opabs,       (x : F) : F +-> conjugate(x)*inv(2*abs(x)))
     derivative(opabs,       (x : F) : F +-> abs(x)*inv(x))
+
+
+    -- Wirtinger derivate of non-holomorphic functions
+    derivative(opconjugate, (x : F) : F +-> 0)
+    derivative(conjugate opconjugate, (x : F) : F +-> 1)
+    
     derivative(opGamma,     (x : F) : F +-> digamma(x)*Gamma(x))
     derivative(op_log_gamma, (x : F) : F +-> digamma(x))
     derivative(opBeta,      [iBetaGrad1, iBetaGrad2])
     derivative(opdigamma,   (x : F) : F +-> polygamma(1, x))
     derivative(op_eis,      d_eis)
-    derivative(opAiryAi,    (x : F) : F +-> airyAiPrime(x))
-    derivative(opAiryAiPrime,    (x : F) : F +-> x*airyAi(x))
-    derivative(opAiryBi,    (x : F) : F +-> airyBiPrime(x))
-    derivative(opAiryBiPrime,    (x : F) : F +-> x*airyBi(x))
+    holomorphic(derivative(opAiryAi,    (x : F) : F +-> airyAiPrime(x)))
+    holomorphic(derivative(opAiryAiPrime,    (x : F) : F +-> x*airyAi(x)))
+    holomorphic(derivative(opAiryBi,    (x : F) : F +-> airyBiPrime(x)))
+    holomorphic(derivative(opAiryBiPrime,    (x : F) : F +-> x*airyBi(x)))
     derivative(opLambertW,  dLambertW)
     derivative(opWeierstrassP, [iWeierstrassPGrad1, iWeierstrassPGrad2,
                                 iWeierstrassPGrad3])
@@ -2454,6 +2493,7 @@ FunctionalSpecialFunction(R, F) : Exports == Implementation where
     setProperty(opPolylog, SPECIALDIFF, dPolylog@((List F, SE)->F)
                                                  pretend None)
 )boot $tryRecompileArguments := true
+
 
 )abbrev package SUMFS FunctionSpaceSum
 ++ Top-level sum function

@@ -571,7 +571,7 @@ DoubleFloat() : Join(FloatingPointSystem, DifferentialRing, OpenMath,
 
    sign(x : %) : Integer == retract FLOAT_-SIGN(x, 1)$Lisp
    abs x   == abs_DF(x)$Lisp
-
+   -- floats are real
    conjugate x == x
 
    manexp(x) ==

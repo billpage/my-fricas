@@ -201,9 +201,9 @@ FunctionSpaceIntegration(R, F) : Exports == Implementation where
           f := eval(f, [k], [v])
       if not(empty? ltan) then
         ltemp := [tan2temp k for k in ltan]
-        f := eval(f, ltan, [k::F for k in ltemp])
+        f := subst(f, ltan, [k::F for k in ltemp])
         f := eval(f, TANTEMP, 2, halfangle)
-        f := eval(f, ltemp, [Khalf k for k in ltemp])
+        f := subst(f, ltemp, [Khalf k for k in ltemp])
       f := try_real(f)
       f := removeSinSq f
       removeConstantTerm(f, x)

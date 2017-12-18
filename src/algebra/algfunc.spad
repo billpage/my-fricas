@@ -269,6 +269,7 @@ AlgebraicFunction(R, F) : Exports == Implementation where
   P   ==> SparseMultivariatePolynomial(R, K)
   UP  ==> SparseUnivariatePolynomial F
   UPR ==> SparseUnivariatePolynomial R
+  FSF ==> FunctionalSpecialFunction(R, F)
   SPECIALDISP ==> '%specialDisp
   SPECIALDIFF ==> '%specialDiff
   SPECIALEQUAL ==> '%specialEqual
@@ -343,6 +344,7 @@ AlgebraicFunction(R, F) : Exports == Implementation where
     operator op ==
       is?(op,  'rootOf) => opalg
       is?(op, 'nthRoot) => oproot
+      is?(op, conjugate 'nthRoot) => conjugate oproot
       is?(op, '%root_sum) => oprootsum
       error "Unknown operator"
 
@@ -561,8 +563,18 @@ AlgebraicFunction(R, F) : Exports == Implementation where
              - first(argument k)::UP
         monomial(1, 1) - k::F::UP
 
+      -- nthRoot is not holomorphic
+      jnroot(l:List F):F ==
+        zero?(n := retract(second l)@Z) => error "root: exponent = 0"
+        ((x := first l) = 1) or (n = 1) => x
+        --(retractIfCan(x)@Union(R,"failed")) case "failed" => kernel(conjugate oproot, [x, n::F])
+        1/inroot([1/conjugate(x)$FSF,n::F])
+
       evaluate(oproot, inroot)$BasicOperatorFunctions1(F)
+      evaluate(conjugate oproot, jnroot)$BasicOperatorFunctions1(F)
       derivative(oproot, [dvroot, lzero])
+      --derivative(conjugate oproot, [dvroot, lzero])
+      derivative(conjugate oproot, [lzero, lzero])
 
     else   -- R is not retractable to Integer
       droot l ==
@@ -578,6 +590,8 @@ AlgebraicFunction(R, F) : Exports == Implementation where
 
     setProperty(oproot, SPECIALDISP,
                               droot@(List F -> OutputForm) pretend None)
+    setProperty(conjugate oproot, SPECIALDISP,
+      ((x:List F):OutputForm+->overbar(droot(x))) pretend None)
 
 --Copyright (c) 1991-2002, The Numerical ALgorithms Group Ltd.
 --All rights reserved.
