@@ -436,7 +436,7 @@ FunctionSpace(R : Comparable) : Category == Definition where
        if R has ConvertibleTo InputForm then
          ConvertibleTo InputForm
          eval     : (%, SY) -> %
-           ++ eval(f, foo) unquotes all the foo's in f.operator
+           ++ eval(f, foo) unquotes all the foo's in f.
          eval     : (%, List SY) -> %
            ++ eval(f, [foo1, ..., foon]) unquotes all the \spad{fooi}'s in f.
          eval     : % -> %
@@ -830,9 +830,8 @@ FunctionSpace(R : Comparable) : Category == Definition where
         grad :=
           (u := derivative op) case "failed" => opderiv(op, n)
           u::List(List % -> %)
-        if #grad ~= n then grad := opderiv(op, n)
-        gs:=[g args for g in grad]
-        return gs
+        #grad ~= n => opderiv(op, n)
+        grad
 
       smpderiv(p, x) ==
         map((s : R) : R +-> retract differentiate(s::PR, x), p)::% +
@@ -968,7 +967,7 @@ FunctionSpace(R : Comparable) : Category == Definition where
         -- check the operator
         res := operator k1 = operator k2
         not res => debugA(a1, a2, res)
-        -- check the evaluation pointddiff
+        -- check the evaluation point
         res := (a1.3 = a2.3)
         not res => debugA(a1, a2, res)
         a1.2 = a2.2 => a1.1 = a2.1
@@ -1011,9 +1010,12 @@ FunctionSpace(R : Comparable) : Category == Definition where
           (v := symbolIfCan(k)) case SY =>
             v::SY = x => 1
             0
+          ak := argument k
           (fn := property(operator k, SPECIALDIFF)) case None =>
-             ((fn::None) pretend ((List %, SY) -> %)) (argument k, x)
-          +/[g * differentiate(y, x) for g in kderiv k for y in argument k]
+             ((fn::None) pretend ((List %, SY) -> %)) (ak, x)
+          --+/[g * differentiate(y, x) for g in kderiv k for y in argument k]
+          +/[g(ak)*dyx for g in kgrad k for y in ak
+              | (dyx := differentiate(y, x)) ~= 0]
 
         mainKernel x         == mainVariable numer x
         kernels(x : %) : List(K) == variables numer x
@@ -1165,19 +1167,31 @@ FunctionSpace(R : Comparable) : Category == Definition where
           [x +-> conjugate(kernel(opdiff, [kernel(conjugate op, g), g, first x]))$FSPECF(R,%)]
         [x +-> conjugate(kernel(opdiff, diffArg(x, conjugate op, i)))$FSPECF(R,%) for i in 1..n]
 
-      kderiv'   : K -> List %
-      kderiv' k ==
-        --output("kderiv' k: ",k::OutputForm)$OutputPackage
+      --kderiv'   : K -> List %
+      --kderiv' k ==
+        ----output("kderiv' k: ",k::OutputForm)$OutputPackage
+        --zero?(n := #(args := argument k)) => empty()
+        --op := operator k
+        --grad :=
+        --  (u := derivative conjugate op) case "failed" => opderiv'(op, n)
+        --  u::List(List % -> %)
+        ----output("kderiv' grad: ",grad::OutputForm)$OutputPackage
+        --if #grad ~= n then grad := opderiv'(op, n)
+        --gs:=[g args for g in grad]
+        ----output("kderiv' gs: ",gs::OutputForm)$OutputPackage
+        --return gs
+
+      kgrad'     : K -> List(List % -> %)
+      kgrad' k ==
+        --output("kgrad' k: ",k::OutputForm)$OutputPackage
         zero?(n := #(args := argument k)) => empty()
         op := operator k
         grad :=
           (u := derivative conjugate op) case "failed" => opderiv'(op, n)
           u::List(List % -> %)
-        --output("kderiv' grad: ",grad::OutputForm)$OutputPackage
-        if #grad ~= n then grad := opderiv'(op, n)
-        gs:=[g args for g in grad]
-        --output("kderiv' gs: ",gs::OutputForm)$OutputPackage
-        return gs
+        --output("kgrad' grad: ",grad::OutputForm)$OutputPackage
+        #grad ~= n => opderiv(op, n)
+        grad
 
       -- Wirtinger's chain rule
       kerderiv(k, x) ==
@@ -1195,17 +1209,23 @@ FunctionSpace(R : Comparable) : Category == Definition where
             --output("kerderiv k1+k2: ",k1::OutputForm)$OutputPackage
             return k1
 
+        ak := argument k
         (fn := property(operator k, SPECIALDIFF)) case None =>
-           ((fn::None) pretend ((List %, SY) -> %)) (argument k, x)
-        k1:= +/[(g=0=>0;g * differentiate(y, x)) _
-          for g in kderiv k for y in argument k]
+           ((fn::None) pretend ((List %, SY) -> %)) (ak, x)
+        --k1:= +/[(g=0=>0;g * differentiate(y, x)) _
+        --  for g in kderiv k for y in argument k]
+        k1:= +/[g(ak)*dyx for g in kgrad k for y in ak
+            | (dyx := differentiate(y, x)) ~= 0]
+
         --output("kerderiv k1: ",k1::OutputForm)$OutputPackage
 
-        gs:=kderiv' k
-        ys:=argument k
+        --gs:=kderiv' k
+        --ys:=argument k
         --output("kerderiv ys: ",ys::OutputForm)$OutputPackage
-        k2:= +/[(g'=0=>0; g' * differentiate(conjugate(y)$FSPECF(R,%), x)) _
-          for g' in gs for y in ys]
+        --k2:= +/[(g'=0=>0; g' * differentiate(conjugate(y)$FSPECF(R,%), x)) _
+        --  for g' in gs for y in ys]
+        k2:= +/[g'(ak)*dyx' for g' in kgrad' k for y in ak
+            | (dyx' := differentiate(conjugate(y)$FSPECF(R,%), x)) ~= 0]
         --output("kerderiv k2: ",k2::OutputForm)$OutputPackage
         --output("kerderiv k1+k2: ",(k1+k2)::OutputForm)$OutputPackage
         return k1+k2

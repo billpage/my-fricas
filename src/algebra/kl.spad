@@ -349,14 +349,14 @@ Kernel(S : Comparable) : Exports == Implementation where
         x1 ~= x2 => return B2Z(smaller?(x1, x2))
       0
 
-    hashUpdate!(s : HashState, k : %) : HashState ==
-      s := hashUpdate!(s, name k)
-      s := hashUpdate!(s, height k)
-      -- what about dummy variables SPECIALEQUAL?
-      --for x in argument(k) repeat
-      --  s := hashUpdate!(s, x)
-      if argument(k)~=nil() then s := hashUpdate!(s, first argument k)
-      s
+    --hashUpdate!(s : HashState, k : %) : HashState ==
+    --  s := hashUpdate!(s, name k)
+    --  s := hashUpdate!(s, height k)
+    --  -- what about dummy variables SPECIALEQUAL?
+    --  --for x in argument(k) repeat
+    --  --  s := hashUpdate!(s, x)
+    --  if argument(k)~=nil()  then s := hashUpdate!(s, first argument k)
+    --  s
 
     if S has ConvertibleTo InputForm then
       convert(k : %) : InputForm ==

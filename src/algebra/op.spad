@@ -552,7 +552,8 @@ CommonOperators() : Exports == Implementation where
     opHermiteH, _
     opJacobiP, _
     opLaguerreL, _
-    opMeixnerM _
+    opMeixnerM, _
+    opWeierstrassPInverse _
     ]
     -- opWeierstrassPInverse, _
 
